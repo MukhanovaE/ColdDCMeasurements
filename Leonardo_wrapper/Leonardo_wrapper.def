@@ -1,0 +1,6 @@
+LIBRARY Leonardo_wrapper
+
+EXPORTS
+	InitBoard @1
+	PerformRead @2
+	FreeBoard @3
