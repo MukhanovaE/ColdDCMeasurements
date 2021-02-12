@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InputValidator.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="RunParams.cs" />
     <Compile Include="Form1.cs">
@@ -104,6 +105,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Annotate_info.ico" />
     <None Include="Images\I-V.png" />
     <None Include="Images\I-V_T.png" />
     <None Include="Images\V-B.png" />

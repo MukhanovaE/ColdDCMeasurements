@@ -28,8 +28,9 @@ namespace ExperimentRunner
         //Flag are we ready to do measurements, are entered values correct?
         public bool fCurrentsReady = true, fVoltagesReady = true, fResistanceReady = true;
 
-        //Python script names
-        private String[] strScripts = new String[] { "I_V", "I_V_T_manual", "I_V_T_auto", "I_V_B", "V_B", "I_V_crit_stats", "R_T", "I_V_Gate"}; //fuck c# arrays initialization
+        //Python script names (without .py extension)
+        private String[] strScripts = new String[] { "I_V", "I_V_T_manual", "I_V_T_auto", "I_V_B", "V_B", "I_V_crit_stats", "R_T", "R_T_Gate", "I_V_Gate", 
+            "I_V_Gate_T", "I_V_Gate_B", "I_V_Shapiro_power", "Gate_pulse" }; //fuck c# arrays initialization
 
         //public fields - references to controls
         public RadioButton btnmkV, btnmV, btnnA, btnmkA, btnmA;
@@ -48,10 +49,11 @@ namespace ExperimentRunner
         private string strSampleName;
         private int mYokRead, mYokWrite, mLakeShore;
         private bool fSaveData = true;
+        private List<String> UserParams = new List<String>();
 
         //Gets a floating point value from a text box
         //Always uses "." as a decimal separator
-        private float GetValueFromField(TextBox field)
+        public static float GetValueFromField(TextBox field)
         {
             NumberFormatInfo f = new NumberFormatInfo();
             f.NumberDecimalSeparator = ".";
@@ -61,7 +63,7 @@ namespace ExperimentRunner
 
         //Sets a floating point value to a text box
         //Always uses "." as a decimal separator
-        private void SetValueToField(TextBox field, float value)
+        public static void SetValueToField(TextBox field, float value)
         {
             NumberFormatInfo f = new NumberFormatInfo();
             f.NumberDecimalSeparator = ".";
@@ -206,16 +208,6 @@ namespace ExperimentRunner
             return true;
         }
 
-        //Check if text box input is correct, and cancel a pressed key if it is not.
-        private void HandleKeyEvent(KeyPressEventArgs e, bool AllowDecimal = true, bool AllowE = false)
-        {
-            if (!((e.KeyChar >= '0' && e.KeyChar <= '9') || (e.KeyChar=='-') || (e.KeyChar == '.' && AllowDecimal) || (e.KeyChar == 'E' && AllowE) || char.IsControl(e.KeyChar)))
-            {
-                e.Handled = true;
-                System.Media.SystemSounds.Beep.Play();
-            }
-        }
-
         //constructor
         public RunParams(string sample_name="")
         {
@@ -235,16 +227,19 @@ namespace ExperimentRunner
             strUnitU = btn.Text;
         }
 
+        // handles resistance unit change (KOhms/MOhms)
         private void ResistanceHandler(object sender, EventArgs e)
         {
             RadioButton btn = (RadioButton)sender;
             strUnitR = btn.Text;
+            UpdateResistanceField();
+            VoltageChanged();
         }
 
         private void ResistanceTextboxHandler(object sender, EventArgs e)
         {
             UpdateResistanceField();
-            VoltageChanged();
+            VoltageChanged();  //recalculate U->I
         }
 
         //Event handlers for automatic I<->U range recalculation
@@ -263,12 +258,12 @@ namespace ExperimentRunner
         //Numeric text box edit handlers
         private void KeyPressWithDecimalsHandler(object sender, KeyPressEventArgs e)
         {
-            HandleKeyEvent(e, true, true);
+            InputValidator.HandleKeyEvent(e, true, true);
         }
 
         private void KeyPressWithoutDecimalsHandler(object sender, KeyPressEventArgs e)
         {
-            HandleKeyEvent(e, false, false);
+            InputValidator.HandleKeyEvent(e, false, false);
         }
 
         //local keepers updaters for first time
@@ -311,6 +306,13 @@ namespace ExperimentRunner
             sett.SaveSetting(strSettingName + strSettingsGain, txtGain.Text);
             sett.SaveSetting(strSettingName + strSettingsDelay, txtDelay.Text);
             sett.SaveSetting(strSettingName + strSettingsSamples, txtSamples.Text);
+
+            //save user-defined parameters
+            
+            for(int i=0; i<UserParams.Count; i++)
+            {
+                sett.SaveSetting(String.Format("{0}_param{1}", strSettingName, i), UserParams[i]);
+            }
         }
 
         private void LoadCurrentTabSettings()
@@ -410,6 +412,9 @@ namespace ExperimentRunner
 
                 //save current tab settings
                 SaveCurrentTabSettings();
+
+                //clear additional parameters from a previous tab
+                UserParams.Clear();
             }
 
             //store a current tab number
@@ -475,7 +480,10 @@ namespace ExperimentRunner
             String fSamples = txtSamples.Text;
 
             String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5}", strUnitR, strUnitU, strUnitI, mYokRead, mYokWrite, mLakeShore);
-            if (!fSaveData) strKwargs += "-nosave";
+            if (!fSaveData) strKwargs += " -nosave";
+
+            if (UserParams.Count != 0)
+                strKwargs += " -P " + String.Join(";", UserParams);
 
             String strCmdLine = String.Format(@"/k python.exe {0}.py {1} {2} {3} {4} {5} {6} {7}",
                 strCurrentScript,
@@ -535,5 +543,35 @@ namespace ExperimentRunner
             return (fResistanceReady && fCurrentsReady && fVoltagesReady);
         }
 
+        public void SetParameters(params String[] runParameters)
+        {
+            UserParams.Clear();
+            foreach (String now in runParameters)
+                UserParams.Add(now);
+        }
+        
+        // Set additional user-defined parameters for this measurement
+        public void SetParameters(params float[] runParameters)
+        {
+            UserParams.Clear();
+            foreach (float now in runParameters)
+                UserParams.Add(now.ToString());
+        }
+
+        // Updates additional user-defined parameters for this measurement
+        public void UpdateParameter(int nParam, String newValue)
+        {
+            if (nParam > UserParams.Count - 1)
+                return;
+            UserParams[nParam] = newValue;
+        }
+
+        public int CurrentTab
+        {
+            get
+            {
+                return nCurrentTab;
+            }
+        }
     }
 }
