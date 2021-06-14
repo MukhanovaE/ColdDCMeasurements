@@ -43,6 +43,7 @@ class KeysightAWG(visa_device.visa_device):
         print('Low level:', self.GetString('SOURce:VOLTage1:LEVel:HIGH?'))
         print('Period', self.GetString('SOURce:PERiod?'))
         print(r'% cycle', self.GetString('SOURce:FUNCtion1:SQUare:DCYCle?'))
+        print('----')
 
         # wait for waveform output to be completed
         self.GetString("*OPC?")

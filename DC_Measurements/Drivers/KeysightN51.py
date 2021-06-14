@@ -37,9 +37,9 @@ class KeysightN51(visa_device.visa_device):
     def __iter__(self):
         self.SendString(':OUTPut:STATe ON')
         if self.__mode == MODE_POWER:
-            for pow in self.__powers:
-                self.SetPower(pow)
-                yield pow
+            for power in self.__powers:
+                self.SetPower(power)
+                yield power
         else:
             for freq in self.__freqs:
                 self.SetFrequency(freq)
@@ -56,7 +56,7 @@ class KeysightN51(visa_device.visa_device):
 
     @property
     def GenericSweptRange(self):
-        return self.__powers if self.__mode == MODE_POWER else self.__freqsfreq
+        return self.__powers if self.__mode == MODE_POWER else self.__freqs
 
     def OutputOff(self):
         self.SendString(':OUTPut:STATe OFF')

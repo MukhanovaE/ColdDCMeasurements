@@ -3,13 +3,13 @@ import ctypes
 
 
 class LeonardoInitException(Exception):
-    def __init(self, errorcode):
+    def __init__(self, errorcode):
         msg = f"Unable to initialize Leonardo board. Driver returned an error code: {errorcode}"
         super().__init__(msg)
 
 
 class LeonardoReadException(Exception):
-    def __init(self, errorcode):
+    def __init__(self, errorcode):
         msg = f"Unable to read data from Leonardo board. Driver returned an error code: {errorcode}"
         super().__init__(msg)
 

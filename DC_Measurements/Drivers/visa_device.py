@@ -7,10 +7,16 @@ import numpy as np
 
 
 class visa_device:
-    def __init__(self, device_num: int):
+    def __init__(self, device_id):
         rm = visa.ResourceManager()
-        device = rm.open_resource(f"GPIB0::{device_num}::INSTR")
-
+        if isinstance(device_id, int):
+            device_num = int(device_id)
+            device = rm.open_resource(f"GPIB0::{device_num}::INSTR")
+        elif isinstance(device_id, str):
+            addr = str(device_id)
+            device = rm.open_resource(addr)
+        else:
+            raise ValueError('Invalid device initialization, please provide GPIB num or device address.')
         self.device = device
 
     def __error_message(self):
