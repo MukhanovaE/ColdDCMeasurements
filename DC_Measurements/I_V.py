@@ -52,6 +52,9 @@ def OnClose(_):
 
     f_exit = f_save = True
 
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
 
 # Initialize a plot
 plt.ion()
@@ -98,7 +101,7 @@ try:
         if volt < lower_R_bound or volt > upper_R_bound:
             R_IValues.append(volt / R)  # Amperes forever!
             R_UValues.append(V_meas)  # volts
-            UpdateResistance(ax1, R_IValues, R_UValues)
+            UpdateResistance(ax1, np.array(R_IValues), np.array(R_UValues))
 
         line.set_xdata(currValues)
         line.set_ydata(voltValues)

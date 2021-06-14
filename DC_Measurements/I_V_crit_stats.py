@@ -141,6 +141,9 @@ def main_thread():
     
     Log.Save()
 
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
     caption = "Ic_stats"
     dict_save = {'number': numbers, f'I, {I_units}A': I_values, f'U, {V_units}V': U_values}
     SaveData(dict_save, R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)

@@ -13,6 +13,7 @@ from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
 import threading
 from Lib.lm_utils import *
+from Lib.GoogleDrive import GoogleDriveUploader
 
 # User input
 # ------------------------------------------------------------------------------------------------------------
@@ -54,7 +55,11 @@ def DataSave():
               f'U, {I_units}V': voltValues, 'T, mK': [T] * len(currValues)},
              R, caption=f"I_V_T_{T}", k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     f_save = True
+
     Log.Save()
+
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 # Procedure after window closed - write results to a file
 def OnClose(e):
@@ -85,7 +90,7 @@ def Measurement():
         if volt < lower_R_bound or volt > upper_R_bound:
             R_IValues.append(volt / R)  # Amperes forever!
             R_UValues.append(V_meas)
-            UpdateResistance(ax1, R_IValues, R_UValues)
+            UpdateResistance(ax1, np.array(R_IValues) * k_A, np.array(R_UValues) * k_V_meas)
 
         line.set_xdata(currValues)
         line.set_ydata(voltValues)

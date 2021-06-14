@@ -76,7 +76,12 @@ def DataSave():
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
+
     Log.Save()
+
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
     exit(0)
 
 
@@ -138,6 +143,8 @@ def MeasureProc():
 
             # measure R
             if IsNeededNowMeasureR(i):
+                I_for_R.append(volt / R)
+                V_for_R.append(V_meas)
                 R_meas = UpdateResistance(pw.Axes[tabIV], I_for_R, V_for_R)  # is being updated at each point
 
             # update plot

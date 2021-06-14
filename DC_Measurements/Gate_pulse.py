@@ -121,7 +121,11 @@ def DataSave(length):
     x = 65535 / 100  # figure maximum size
     fig.set_size_inches(x, y)
     pw.SaveFigureToOneFile(tabMainVT, GetSaveFileName(R, k_R, caption, "pdf"))
+
     Log.Save()
+
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
 # turns off all equipment if an error occurs

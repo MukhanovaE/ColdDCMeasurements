@@ -23,9 +23,9 @@ Log.AddGenericEntry(
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT')
-Yokogawa_gate = YokogawaMeasurer(device_num=yok_write, dev_range='1E+1', what='VOLT')
+Leonardo = DebugLeonardoMeasurer(n_samples=num_samples)
+Yokogawa = DebugYokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT')
+Yokogawa_gate = DebugYokogawaMeasurer(device_num=yok_write, dev_range='1E+1', what='VOLT')
 
 # Yokogawa voltage values
 upper_line_1 = np.arange(0, rangeA, stepA)
@@ -85,7 +85,11 @@ def DataSave(vg):
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
+
     Log.Save()
+
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
 f_exit = threading.Event()
@@ -157,7 +161,7 @@ def MeasureProc():
                     V_values.append(V_meas / k_V_meas)
 
                     # measure R
-                    R_meas = UpdateResistance(pw.Axes[tabIV], I_values, V_values)  # is being updated at each point
+                    R_meas = UpdateResistance(pw.Axes[tabIV], np.array(I_values) * k_A, np.array(V_values) * k_V_meas)  # is being updated at each point
 
                     # update plot
                     try:

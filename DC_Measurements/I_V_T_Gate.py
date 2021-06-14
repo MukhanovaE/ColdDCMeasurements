@@ -147,6 +147,8 @@ def DataSave():
                                                        fr"$U, {core_units[k_V_meas]}V$"], float_format='%.8f')
 
         print('Data were successfully saved to: ', fname)
+        # upload to cloud services
+        UploadToClouds(GetSaveFolder(R, k_R, caption))
         Log.Save()
     except Exception:  # to avoid data loss when an error occured
         fname = GetSaveFileName(R, k_R, caption=main_caption + 'CrashDump', ext='pickle')

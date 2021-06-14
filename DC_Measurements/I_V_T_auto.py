@@ -38,7 +38,7 @@ print('Temperatures will be:\n', LakeShore.TempRange)
 
 # Yokogawa voltage values
 n_points = int(2 * rangeA // stepA)
-upper_line_1 = np.linspace(0, rangeA, n_points // 2)
+upper_line_1 = np.linspace(0, rangeA, n_points // 2 + 1)
 down_line_1 = np.linspace(rangeA, -rangeA, n_points)
 upper_line_2 = np.linspace(-rangeA, 0, n_points // 2)
 voltValues0 = np.hstack((upper_line_1,
@@ -72,6 +72,7 @@ voltValues = []
 crit_curs = np.zeros((2, N_temps))
 currValues_axis = ((-down_line_1 / R) / k_A)
 tempValues_axis = LakeShore.TempRange
+resistValues = []
 tempsMomental = []  # for temperatures plot
 
 # behavior on program exit - save data
@@ -116,7 +117,15 @@ def DataSave():
               f'Crit curr., positive, {I_units}A': crit_curs[1, :N_meas]},
              R, caption=caption_cr, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     SaveMatrix(tempValues, currValues, voltValues, f'I, {I_units}A', R, k_R, caption=caption)
+    
+    SaveData({'T_mK': tempValues_axis[:len(resistValues)], 'R_Ohm': resistValues}, R, caption=caption + '_R', k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+    
+    # save log
     Log.Save()
+
+    # upload to cloud services
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
 
 pw = plotWindow("Leonardo I-U measurement with different T")
 
@@ -156,8 +165,11 @@ tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'T, mK', fr'I, {core_units[k_A]}A', 
 # 9 I_crit. vs. T
 tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'T, mK',
                                         fr'$I_C^\pm, {core_units[k_A]}A$', linestyle='-', marker='o')
+                                        
+# 10 Resistance vs. T
+tabResistance = pw.addLine2D('Resistance', 'T', 'R, $\Omega$', linestyle='-', marker='o')
 
-# 10 T(t) plot - to control temperature in real time
+# 11 T(t) plot - to control temperature in real time
 tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
 
 # Update T on the last tab
@@ -170,7 +182,7 @@ def EquipmentCleanup():
 
 
 def UpdateRealtimeThermometer():
-    global times, tempsMomental, LakeShore, ax4, line_T, t, pw
+    global times, tempsMomental, LakeShore, t, pw
     T_curr = LakeShore.GetTemperature()
     times.append(t)
     t += 1
@@ -199,11 +211,11 @@ def TemperatureThreadProc():
 
 # main thread - runs when QT application is started
 N_meas = 0
-
+R_now = 0
 
 @MeasurementProc(EquipmentCleanup)
 def thread_proc():
-    global Leonardo, Yokogawa, LakeShore, pw, f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas
+    global Leonardo, Yokogawa, LakeShore, pw, f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, R_now
 
     # Temperature change and measurement process!
     for i, temp in enumerate(LakeShore):
@@ -234,6 +246,7 @@ def thread_proc():
             # process one point of I-V curve
             def PerformStep(yok, currValues, tempValues, voltValues,
                             volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues):
+                global R_now
                 yok.SetOutput(volt)
                 time.sleep(step_delay)
                 curr_curr = (volt / R) / k_A
@@ -254,17 +267,15 @@ def thread_proc():
                 pw.MouseInit(tabIVTR3D)
                 pw.MouseInit(tabRC3D)
                 pw.MouseInit(tabRR3D)
-
                 # Update I-U 2D plot
                 if pw.CurrentTab == tabIV:
                     pw.updateLine2D(tabIV, this_temp_A, this_temp_V, redraw=False)
-
                 # measure resistance on 2D plot
                 if volt > upper_R_bound:
                     this_RIValues.append(curr_curr)
                     this_RUValues.append(V_meas / k_V_meas)
-                    if pw.CurrentTab == tabIV:
-                        UpdateResistance(pw.Axes[tabIV], this_RIValues, this_RUValues)
+
+                    R_now = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * k_A, np.array(this_RUValues) * k_V_meas)
 
                 pw.canvases[pw.CurrentTab].draw()
 
@@ -283,9 +294,9 @@ def thread_proc():
             for j, volt in enumerate(down_line_1):
                 res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
                                   volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                if j < (len(down_line_1) // 2):
+                if j <= (len(down_line_1) // 2):
                     data_buff_ir[N_points - j - 1, i] = res
-                else:
+                if j >= (len(down_line_1) // 2):
                     data_buff[N_points - j - 1, i] = res
 
             # 3/3: min curr -> 0, Ir-
@@ -314,18 +325,7 @@ def thread_proc():
             R_values_ir = np.gradient(np.array(data_buff_ir[:, i]) * (k_V_meas / k_A))  # to make R in ohms
             R_buff_ir[:, i] = R_values_ir
 
-            # find critical currents (left and right)
-            # find peaks above and below than a middle
-            avg = np.mean(R_values_ic)
-            Np = len(R_values_ic)
-            peaks = np.array(np.where(R_values_ic > 1.5 * avg))[0]
-            if len(peaks) != 0:
-                peaks_left = [peaks[i] for i in np.where(peaks < Np // 2)]
-                peaks_right = [peaks[i] for i in np.where(peaks >= Np // 2)]
-                if len(peaks_left) != 0 and len(peaks_right) != 0:
-                    peaks_final = (int(np.average(peaks_left)), int(np.average(peaks_right)))
-                    crit_curs[:, i] = [currValues_axis[peaks_final[0]], currValues_axis[peaks_final[1]]]
-            # else I crit. remains zero - no change, no critical current
+            crit_curs[:, i] = FindCriticalCurrent(this_temp_A, this_temp_V, threshold=1.5)
 
             # plot them
             xdata = LakeShore.TempRange[:i + 1]
@@ -340,7 +340,11 @@ def thread_proc():
                             LakeShore.TempRange, R_3D_colormap)
             pw.update3DPlot(tabRR3D, tempValues_axis[:i + 1], currValues_axis, R_buff_ir[:, :i + 1],
                             LakeShore.TempRange, R_3D_colormap)
-
+            
+            # Update resistance
+            resistValues.append(R_now)
+            pw.updateLine2D(tabResistance, tempValues_axis[:len(resistValues)], resistValues)
+               
             # Mark measurement end
             pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
 
