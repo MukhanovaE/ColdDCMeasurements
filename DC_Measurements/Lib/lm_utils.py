@@ -5,8 +5,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
-    QGridLayout
+    QGridLayout, QSizePolicy
 from scipy.signal import savgol_filter
+from Lib.GoogleDrive import GoogleDriveUploader
+from Lib.CloudRQC import NextCloudUploader
 
 import os
 from os import path
@@ -19,7 +21,6 @@ from copy import copy
 import numpy as np
 import pandas as pd
 import win32api
-import atexit
 
 MB_ICONSTOP = 0x10
 
@@ -27,12 +28,14 @@ MB_ICONSTOP = 0x10
 # Coefficients for units transformation and their symbols
 core_units = {1: '', 1e-3: 'm', 1e-6: 'mk', 1e-9: 'n'}
 r_units = {1: '', 1e+3: 'K', 1e+6: 'M'}
-sample_name=""
+sample_name = ""
+experimentDate = None
+
 
 # function ParseCommandLine
 # parses command line and makes user input if command-line parameters were not set
 def ParseCommandLine():
-    global sample_name, Log
+    global sample_name
 
     default_yok_read = 3
     default_yok_write = 6
@@ -134,12 +137,16 @@ def ParseCommandLine():
                 print('Warning! Data will not be saved!')
 
             yok_read = int(args['R'])
-            yok_write = int(args['W'])
+            yok_write = args['W']
             lakeshore = int(args['L'])
+
+            yok_write = int(yok_write) if yok_write.isdigit() else yok_write
+
             print(
                 f'Equipment IDs will be used: Yokogawa for current:{yok_read}, Yokogawa for field/gate: {yok_write}, '
                 f'LakeShore controller: {lakeshore}')
-            user_params = args['P']
+            user_params = args['P'][1:-1]  #remove quotes
+            
         except Exception as e:
             print('Error during command line parsing:')
             print(e)
@@ -155,25 +162,49 @@ def ParseCommandLine():
             f_save, yok_read, yok_write, lakeshore, user_params)
 
 
+# Function GetSaveFolder
+# Get a directory to save experiment data
+# If folder not exists, creates it
+# Parameters:
+# caption - additional string to be added to the end of file
+def GetSaveFolder(R, k_R=1, caption=""):
+    global experimentDate
+    # get current date only one time
+    # to prevent case when part of saved files will have date, for example, 12:00
+    # and another part - 12:01
+    if experimentDate is None:
+        experimentDate = datetime.now()
+
+    R_units = r_units[k_R]
+
+    cd_short = experimentDate.strftime('%d-%m-%Y')
+    cd_this_meas = experimentDate.strftime('%H-%M') + f'_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption.split("_")[0]}'
+    save_path = path.join(os.getcwd(), 'Data', cd_short, cd_this_meas)
+    if not path.isdir(save_path):
+        os.makedirs(save_path)
+
+    return save_path
+
+
 # Function GetSaveFileName
 # Get a filename to save
 # Parameters:
 # caption - additional string to be added to the end of file
-def GetSaveFileName(R, k_R=1, caption="", ext="dat"):
-    cd = datetime.now().strftime('%d-%m-%Y_%H-%M')
-    cd_short = datetime.now().strftime('%d-%m-%Y')
+def GetSaveFileName(R, k_R=1, caption="", ext="dat", preserve_unique=True):
+    global experimentDate
+
+    save_path = GetSaveFolder(R, k_R, caption)
+    cd = experimentDate.strftime('%d-%m-%Y_%H-%M')
     R_units = r_units[k_R]
-    save_path = path.join(os.getcwd(), 'Data', cd_short)
-    if not path.isdir(save_path):
-        os.makedirs(save_path)
 
     filename = path.join(save_path, f'{cd}_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption}.{ext}')
 
     # if file, even with this minutes, already exists
-    k = 0
-    while os.path.isfile(filename):
-        k += 1
-        filename = os.path.join(os.getcwd(), 'Data', f'{cd}_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption}_{k}.{ext}')
+    if preserve_unique:
+        k = 0
+        while os.path.isfile(filename):
+            k += 1
+            filename = os.path.join(os.getcwd(), 'Data', f'{cd}_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption}_{k}.{ext}')
 
     return filename
 
@@ -184,8 +215,8 @@ def GetSaveFileName(R, k_R=1, caption="", ext="dat"):
 # caption - additional string to be added to the end of file
 # data_dict - a dictionary which has a format:
 # {columnName1:[data1, data1,...], columnName2:[data2, data2,...]}
-def SaveData(data_dict, R, caption="", k_A=1, k_V_meas=1, k_R=1):
-    fname = GetSaveFileName(R, k_R, caption)
+def SaveData(data_dict, R, caption="", k_A=1, k_V_meas=1, k_R=1, preserve_unique=True):
+    fname = GetSaveFileName(R, k_R, caption, preserve_unique=preserve_unique)
     I_units = core_units[k_A]
     V_units = core_units[k_V_meas]
 
@@ -193,6 +224,15 @@ def SaveData(data_dict, R, caption="", k_A=1, k_V_meas=1, k_R=1):
     df.to_csv(fname, sep=" ", header=True, index=False, float_format='%.8f')
 
     print('Data were successfully saved to:', fname)
+
+
+# Function UploadToClouds
+# Uploads measured data to all possible cloud storages
+def UploadToClouds(save_dir):
+    up = GoogleDriveUploader()
+    up.UploadMeasFolder(save_dir)
+    nc = NextCloudUploader()
+    nc.UploadFolder(save_dir)
 
 
 def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R=1, caption=""):
@@ -255,7 +295,7 @@ def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R
 # output: list [Ic-, Ic+]
 def FindCriticalCurrent(I_array, U_array, threshold=1.5):
     res = [0, 0]
-    R_values = np.gradient(U_array)
+    R_values = np.abs(np.gradient(U_array))
     avg = np.mean(R_values)
     Np = len(R_values)
     try:
@@ -323,9 +363,12 @@ class plotWindow:
         if self.__shown:
             self.canvases[i].draw()
         self.__currtab = i
+        if self.__userCallback is not None:
+            self.__userCallback()
 
     def __init__(self, title, parent=None, color_buttons=True):
         self.buttons_step = 0.1  # buttons range percentage change
+        plt.rcParams.update({'font.size': 15})
 
         # hide Qt warning messages
         qInstallMessageHandler(self.__handler)
@@ -338,6 +381,7 @@ class plotWindow:
         self.__figures = []
         self.__axes = []
         self.__objects = []  # line/pcolormesh for each tab
+        self.__userCallback = None
 
         # initialize and show a window
         self.app = QApplication(sys.argv)
@@ -352,6 +396,7 @@ class plotWindow:
         self.current_window = -1
         self.tabs = QTabWidget()
         self.tabs.currentChanged.connect(self.__onChange)
+
         if color_buttons:
             self.c = QWidget()  # required to be a base widget, because it is impossible to simple place widgets onto a main window
             # I wish mother of PyQT5 developer to dead
@@ -433,7 +478,11 @@ class plotWindow:
 
         quad.set_clim(min_data, max_data)
         self.canvases[ct].draw()
-
+    
+    # Add tab change handler
+    def addOnChange(self, callback):
+        self.__userCallback = callback
+    
     # A base method to add a new tab
     # All another methods call it
     def addPlot(self, title, figure, **user_defined_info):
@@ -444,11 +493,14 @@ class plotWindow:
         figure.subplots_adjust(left=0.15, right=0.90, bottom=0.15, top=0.85, wspace=0.2, hspace=0.2)
         new_canvas = FigureCanvas(figure)
         new_toolbar = NavigationToolbar(new_canvas, new_tab)
-
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy.setHeightForWidth(True)
+        new_canvas.setSizePolicy(sizePolicy)
         layout.addWidget(new_canvas)
         layout.addWidget(new_toolbar)
         self.tabs.addTab(new_tab, title)
 
+        # store objects associated with this tab
         self.toolbar_handles.append(new_toolbar)
         self.canvases.append(new_canvas)
         self.figure_handles.append(figure)
@@ -464,17 +516,19 @@ class plotWindow:
         return self.__total_tabs - 1  # returns zero-based index of this tab
 
     def addEmptyPlot(self, title):
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.tick_params(axis='both', direction='in')
         return self.addPlot(title, fig, ax=ax)
 
     def addColormesh(self, header, xlabel, ylabel, xaxis, yaxis, data_buff, cmap):
         data_min = np.min(data_buff)
         data_max = np.max(data_buff)
 
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(10, 10))
         quad = ax.pcolormesh(data_buff, cmap=cmap)
         ax.set_xlabel(xlabel, fontsize=15)
         ax.set_ylabel(ylabel, fontsize=15)
+        ax.tick_params(axis='both', direction='in')
         fig.colorbar(quad)
 
         return self.addPlot(header, fig, data_min=data_min, data_max=data_max, now_percent=1, ax=ax, fig=fig,
@@ -500,7 +554,8 @@ class plotWindow:
 
     # Add 2D plot without any line (to add them manually later)
     def addEmptyLine2D(self, header, xlabel, ylabel):
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.tick_params(axis='both', direction='in')
         ax.set_xlabel(xlabel, fontsize=15)
         ax.set_ylabel(ylabel, fontsize=15)
         ax.grid()
@@ -530,7 +585,8 @@ class plotWindow:
         return n  # fig, ax, line
 
     def addScatter2D(self, header, xlabel, ylabel, **line_kwargs):
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.tick_params(axis='both', direction='in')
         line, = ax.plot([], [], 'o', **line_kwargs)
         ax.set_xlabel(xlabel, fontsize=15)
         ax.set_ylabel(ylabel, fontsize=15)
@@ -545,7 +601,8 @@ class plotWindow:
         ax.legend()
 
     def addLines2D(self, header, titles, xlabel, ylabel, **kwargs_line):
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.tick_params(axis='both', direction='in')
         lines = []
         for tit in titles:
             line_curr, = ax.plot([], [], label=tit, **kwargs_line)
