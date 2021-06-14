@@ -147,6 +147,9 @@
             this.btnIVTA_mkV = new System.Windows.Forms.RadioButton();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.groupBox56 = new System.Windows.Forms.GroupBox();
+            this.groupBox91 = new System.Windows.Forms.GroupBox();
+            this.btnIVB_AMI = new System.Windows.Forms.RadioButton();
+            this.btnIVB_Yokogawa = new System.Windows.Forms.RadioButton();
             this.label79 = new System.Windows.Forms.Label();
             this.txtIVB_FieldStep = new System.Windows.Forms.TextBox();
             this.label80 = new System.Windows.Forms.Label();
@@ -186,7 +189,18 @@
             this.btnIVB_mV = new System.Windows.Forms.RadioButton();
             this.btnIVB_mkV = new System.Windows.Forms.RadioButton();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.pictureBox5 = new System.Windows.Forms.PictureBox();
+            this.groupBox93 = new System.Windows.Forms.GroupBox();
+            this.btnVB_RF = new System.Windows.Forms.RadioButton();
+            this.btnVB_FR = new System.Windows.Forms.RadioButton();
+            this.btnVB_R = new System.Windows.Forms.RadioButton();
+            this.btnVB_F = new System.Windows.Forms.RadioButton();
             this.groupBox57 = new System.Windows.Forms.GroupBox();
+            this.label177 = new System.Windows.Forms.Label();
+            this.txtVB_FieldTo = new System.Windows.Forms.TextBox();
+            this.groupBox92 = new System.Windows.Forms.GroupBox();
+            this.btnVB_AMI = new System.Windows.Forms.RadioButton();
+            this.btnVB_Yokogawa = new System.Windows.Forms.RadioButton();
             this.label88 = new System.Windows.Forms.Label();
             this.txtVB_BiasStep = new System.Windows.Forms.TextBox();
             this.label89 = new System.Windows.Forms.Label();
@@ -201,10 +215,9 @@
             this.txtVB_FieldStep = new System.Windows.Forms.TextBox();
             this.label78 = new System.Windows.Forms.Label();
             this.label84 = new System.Windows.Forms.Label();
-            this.txtVB_FieldRange = new System.Windows.Forms.TextBox();
+            this.txtVB_FieldFrom = new System.Windows.Forms.TextBox();
             this.label85 = new System.Windows.Forms.Label();
             this.label86 = new System.Windows.Forms.Label();
-            this.pictureBox5 = new System.Windows.Forms.PictureBox();
             this.groupBox21 = new System.Windows.Forms.GroupBox();
             this.txtVB_Samples = new System.Windows.Forms.TextBox();
             this.label21 = new System.Windows.Forms.Label();
@@ -596,6 +609,9 @@
             this.btnGatePulses_mV = new System.Windows.Forms.RadioButton();
             this.btnGatePulses_mkV = new System.Windows.Forms.RadioButton();
             this.tabPage9 = new System.Windows.Forms.TabPage();
+            this.groupBox90 = new System.Windows.Forms.GroupBox();
+            this.txtAMIAddress = new System.Windows.Forms.TextBox();
+            this.label176 = new System.Windows.Forms.Label();
             this.groupBox46 = new System.Windows.Forms.GroupBox();
             this.txtLakeShoreID = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
@@ -609,6 +625,8 @@
             this.label36 = new System.Windows.Forms.Label();
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
+            this.btnVB_RF_one = new System.Windows.Forms.RadioButton();
+            this.btnVB_FR_one = new System.Windows.Forms.RadioButton();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -641,6 +659,7 @@
             this.groupBox14.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.groupBox56.SuspendLayout();
+            this.groupBox91.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).BeginInit();
             this.groupBox15.SuspendLayout();
             this.groupBox16.SuspendLayout();
@@ -649,8 +668,10 @@
             this.groupBox19.SuspendLayout();
             this.groupBox20.SuspendLayout();
             this.tabPage5.SuspendLayout();
-            this.groupBox57.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).BeginInit();
+            this.groupBox93.SuspendLayout();
+            this.groupBox57.SuspendLayout();
+            this.groupBox92.SuspendLayout();
             this.groupBox21.SuspendLayout();
             this.groupBox22.SuspendLayout();
             this.groupBox23.SuspendLayout();
@@ -730,6 +751,7 @@
             this.groupBox88.SuspendLayout();
             this.groupBox89.SuspendLayout();
             this.tabPage9.SuspendLayout();
+            this.groupBox90.SuspendLayout();
             this.groupBox46.SuspendLayout();
             this.groupBox45.SuspendLayout();
             this.SuspendLayout();
@@ -1981,6 +2003,7 @@
             // 
             // groupBox56
             // 
+            this.groupBox56.Controls.Add(this.groupBox91);
             this.groupBox56.Controls.Add(this.label79);
             this.groupBox56.Controls.Add(this.txtIVB_FieldStep);
             this.groupBox56.Controls.Add(this.label80);
@@ -1994,6 +2017,41 @@
             this.groupBox56.TabIndex = 25;
             this.groupBox56.TabStop = false;
             this.groupBox56.Text = "Additional parameters";
+            // 
+            // groupBox91
+            // 
+            this.groupBox91.Controls.Add(this.btnIVB_AMI);
+            this.groupBox91.Controls.Add(this.btnIVB_Yokogawa);
+            this.groupBox91.Location = new System.Drawing.Point(18, 129);
+            this.groupBox91.Name = "groupBox91";
+            this.groupBox91.Size = new System.Drawing.Size(203, 69);
+            this.groupBox91.TabIndex = 8;
+            this.groupBox91.TabStop = false;
+            this.groupBox91.Text = "Magnetic field source";
+            // 
+            // btnIVB_AMI
+            // 
+            this.btnIVB_AMI.AutoSize = true;
+            this.btnIVB_AMI.Location = new System.Drawing.Point(12, 42);
+            this.btnIVB_AMI.Name = "btnIVB_AMI";
+            this.btnIVB_AMI.Size = new System.Drawing.Size(142, 17);
+            this.btnIVB_AMI.TabIndex = 0;
+            this.btnIVB_AMI.TabStop = true;
+            this.btnIVB_AMI.Text = "AMI model 430 controller";
+            this.btnIVB_AMI.UseVisualStyleBackColor = true;
+            this.btnIVB_AMI.CheckedChanged += new System.EventHandler(this.btnIVB_AMI_CheckedChanged);
+            // 
+            // btnIVB_Yokogawa
+            // 
+            this.btnIVB_Yokogawa.AutoSize = true;
+            this.btnIVB_Yokogawa.Location = new System.Drawing.Point(12, 19);
+            this.btnIVB_Yokogawa.Name = "btnIVB_Yokogawa";
+            this.btnIVB_Yokogawa.Size = new System.Drawing.Size(76, 17);
+            this.btnIVB_Yokogawa.TabIndex = 0;
+            this.btnIVB_Yokogawa.TabStop = true;
+            this.btnIVB_Yokogawa.Text = "Yokogawa";
+            this.btnIVB_Yokogawa.UseVisualStyleBackColor = true;
+            this.btnIVB_Yokogawa.CheckedChanged += new System.EventHandler(this.btnIVB_Yokogawa_CheckedChanged);
             // 
             // label79
             // 
@@ -2383,8 +2441,9 @@
             // 
             // tabPage5
             // 
-            this.tabPage5.Controls.Add(this.groupBox57);
             this.tabPage5.Controls.Add(this.pictureBox5);
+            this.tabPage5.Controls.Add(this.groupBox93);
+            this.tabPage5.Controls.Add(this.groupBox57);
             this.tabPage5.Controls.Add(this.groupBox21);
             this.tabPage5.Controls.Add(this.groupBox22);
             this.tabPage5.Controls.Add(this.groupBox23);
@@ -2397,8 +2456,82 @@
             this.tabPage5.Text = "U-B";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
+            // pictureBox5
+            // 
+            this.pictureBox5.Image = global::ExperimentRunner.Properties.Resources.V_B;
+            this.pictureBox5.Location = new System.Drawing.Point(16, 16);
+            this.pictureBox5.Name = "pictureBox5";
+            this.pictureBox5.Size = new System.Drawing.Size(284, 284);
+            this.pictureBox5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox5.TabIndex = 30;
+            this.pictureBox5.TabStop = false;
+            // 
+            // groupBox93
+            // 
+            this.groupBox93.Controls.Add(this.btnVB_RF_one);
+            this.groupBox93.Controls.Add(this.btnVB_FR_one);
+            this.groupBox93.Controls.Add(this.btnVB_RF);
+            this.groupBox93.Controls.Add(this.btnVB_FR);
+            this.groupBox93.Controls.Add(this.btnVB_R);
+            this.groupBox93.Controls.Add(this.btnVB_F);
+            this.groupBox93.Location = new System.Drawing.Point(325, 161);
+            this.groupBox93.Name = "groupBox93";
+            this.groupBox93.Size = new System.Drawing.Size(372, 92);
+            this.groupBox93.TabIndex = 32;
+            this.groupBox93.TabStop = false;
+            this.groupBox93.Text = "Field sweep direction";
+            // 
+            // btnVB_RF
+            // 
+            this.btnVB_RF.AutoSize = true;
+            this.btnVB_RF.Location = new System.Drawing.Point(6, 56);
+            this.btnVB_RF.Name = "btnVB_RF";
+            this.btnVB_RF.Size = new System.Drawing.Size(181, 17);
+            this.btnVB_RF.TabIndex = 3;
+            this.btnVB_RF.Text = "Reverse -> Forward (each curve)";
+            this.btnVB_RF.UseVisualStyleBackColor = true;
+            this.btnVB_RF.CheckedChanged += new System.EventHandler(this.btnVB_RF_CheckedChanged);
+            // 
+            // btnVB_FR
+            // 
+            this.btnVB_FR.AutoSize = true;
+            this.btnVB_FR.Checked = true;
+            this.btnVB_FR.Location = new System.Drawing.Point(6, 27);
+            this.btnVB_FR.Name = "btnVB_FR";
+            this.btnVB_FR.Size = new System.Drawing.Size(181, 17);
+            this.btnVB_FR.TabIndex = 2;
+            this.btnVB_FR.TabStop = true;
+            this.btnVB_FR.Text = "Forward -> Reverse (each curve)";
+            this.btnVB_FR.UseVisualStyleBackColor = true;
+            this.btnVB_FR.CheckedChanged += new System.EventHandler(this.btnVB_FR_CheckedChanged);
+            // 
+            // btnVB_R
+            // 
+            this.btnVB_R.AutoSize = true;
+            this.btnVB_R.Location = new System.Drawing.Point(309, 56);
+            this.btnVB_R.Name = "btnVB_R";
+            this.btnVB_R.Size = new System.Drawing.Size(65, 17);
+            this.btnVB_R.TabIndex = 1;
+            this.btnVB_R.Text = "Reverse";
+            this.btnVB_R.UseVisualStyleBackColor = true;
+            this.btnVB_R.CheckedChanged += new System.EventHandler(this.btnVB_R_CheckedChanged);
+            // 
+            // btnVB_F
+            // 
+            this.btnVB_F.AutoSize = true;
+            this.btnVB_F.Location = new System.Drawing.Point(309, 27);
+            this.btnVB_F.Name = "btnVB_F";
+            this.btnVB_F.Size = new System.Drawing.Size(63, 17);
+            this.btnVB_F.TabIndex = 0;
+            this.btnVB_F.Text = "Forward";
+            this.btnVB_F.UseVisualStyleBackColor = true;
+            this.btnVB_F.CheckedChanged += new System.EventHandler(this.btnVB_F_CheckedChanged);
+            // 
             // groupBox57
             // 
+            this.groupBox57.Controls.Add(this.label177);
+            this.groupBox57.Controls.Add(this.txtVB_FieldTo);
+            this.groupBox57.Controls.Add(this.groupBox92);
             this.groupBox57.Controls.Add(this.label88);
             this.groupBox57.Controls.Add(this.txtVB_BiasStep);
             this.groupBox57.Controls.Add(this.label89);
@@ -2413,7 +2546,7 @@
             this.groupBox57.Controls.Add(this.txtVB_FieldStep);
             this.groupBox57.Controls.Add(this.label78);
             this.groupBox57.Controls.Add(this.label84);
-            this.groupBox57.Controls.Add(this.txtVB_FieldRange);
+            this.groupBox57.Controls.Add(this.txtVB_FieldFrom);
             this.groupBox57.Controls.Add(this.label85);
             this.groupBox57.Controls.Add(this.label86);
             this.groupBox57.Location = new System.Drawing.Point(721, 16);
@@ -2423,21 +2556,75 @@
             this.groupBox57.TabStop = false;
             this.groupBox57.Text = "Additional parameters";
             // 
+            // label177
+            // 
+            this.label177.AutoSize = true;
+            this.label177.Location = new System.Drawing.Point(168, 47);
+            this.label177.Name = "label177";
+            this.label177.Size = new System.Drawing.Size(15, 13);
+            this.label177.TabIndex = 24;
+            this.label177.Text = "G";
+            // 
+            // txtVB_FieldTo
+            // 
+            this.txtVB_FieldTo.Location = new System.Drawing.Point(129, 44);
+            this.txtVB_FieldTo.MaxLength = 8;
+            this.txtVB_FieldTo.Name = "txtVB_FieldTo";
+            this.txtVB_FieldTo.Size = new System.Drawing.Size(33, 20);
+            this.txtVB_FieldTo.TabIndex = 23;
+            this.txtVB_FieldTo.Text = "200";
+            this.txtVB_FieldTo.TextChanged += new System.EventHandler(this.txtVB_FieldTo_TextChanged);
+            // 
+            // groupBox92
+            // 
+            this.groupBox92.Controls.Add(this.btnVB_AMI);
+            this.groupBox92.Controls.Add(this.btnVB_Yokogawa);
+            this.groupBox92.Location = new System.Drawing.Point(16, 231);
+            this.groupBox92.Name = "groupBox92";
+            this.groupBox92.Size = new System.Drawing.Size(203, 69);
+            this.groupBox92.TabIndex = 21;
+            this.groupBox92.TabStop = false;
+            this.groupBox92.Text = "Magnetic field source";
+            // 
+            // btnVB_AMI
+            // 
+            this.btnVB_AMI.AutoSize = true;
+            this.btnVB_AMI.Location = new System.Drawing.Point(12, 42);
+            this.btnVB_AMI.Name = "btnVB_AMI";
+            this.btnVB_AMI.Size = new System.Drawing.Size(142, 17);
+            this.btnVB_AMI.TabIndex = 0;
+            this.btnVB_AMI.Text = "AMI model 430 controller";
+            this.btnVB_AMI.UseVisualStyleBackColor = true;
+            this.btnVB_AMI.CheckedChanged += new System.EventHandler(this.btnVB_AMI_CheckedChanged);
+            // 
+            // btnVB_Yokogawa
+            // 
+            this.btnVB_Yokogawa.AutoSize = true;
+            this.btnVB_Yokogawa.Checked = true;
+            this.btnVB_Yokogawa.Location = new System.Drawing.Point(12, 19);
+            this.btnVB_Yokogawa.Name = "btnVB_Yokogawa";
+            this.btnVB_Yokogawa.Size = new System.Drawing.Size(76, 17);
+            this.btnVB_Yokogawa.TabIndex = 0;
+            this.btnVB_Yokogawa.TabStop = true;
+            this.btnVB_Yokogawa.Text = "Yokogawa";
+            this.btnVB_Yokogawa.UseVisualStyleBackColor = true;
+            this.btnVB_Yokogawa.CheckedChanged += new System.EventHandler(this.btnVB_Yokogawa_CheckedChanged);
+            // 
             // label88
             // 
             this.label88.AutoSize = true;
-            this.label88.Location = new System.Drawing.Point(91, 217);
+            this.label88.Location = new System.Drawing.Point(98, 201);
             this.label88.Name = "label88";
-            this.label88.Size = new System.Drawing.Size(14, 13);
+            this.label88.Size = new System.Drawing.Size(39, 13);
             this.label88.TabIndex = 20;
-            this.label88.Text = "V";
+            this.label88.Text = "curves";
             // 
             // txtVB_BiasStep
             // 
-            this.txtVB_BiasStep.Location = new System.Drawing.Point(51, 214);
+            this.txtVB_BiasStep.Location = new System.Drawing.Point(46, 198);
             this.txtVB_BiasStep.MaxLength = 8;
             this.txtVB_BiasStep.Name = "txtVB_BiasStep";
-            this.txtVB_BiasStep.Size = new System.Drawing.Size(33, 20);
+            this.txtVB_BiasStep.Size = new System.Drawing.Size(50, 20);
             this.txtVB_BiasStep.TabIndex = 19;
             this.txtVB_BiasStep.Text = "30";
             this.txtVB_BiasStep.TextChanged += new System.EventHandler(this.txtVB_BiasStep_TextChanged);
@@ -2446,27 +2633,28 @@
             // label89
             // 
             this.label89.AutoSize = true;
-            this.label89.Location = new System.Drawing.Point(13, 217);
+            this.label89.Location = new System.Drawing.Point(13, 201);
             this.label89.Name = "label89";
-            this.label89.Size = new System.Drawing.Size(32, 13);
+            this.label89.Size = new System.Drawing.Size(18, 13);
             this.label89.TabIndex = 18;
-            this.label89.Text = "Step:";
+            this.label89.Text = "N:";
+            this.label89.Click += new System.EventHandler(this.label89_Click);
             // 
             // label90
             // 
             this.label90.AutoSize = true;
-            this.label90.Location = new System.Drawing.Point(91, 185);
+            this.label90.Location = new System.Drawing.Point(98, 169);
             this.label90.Name = "label90";
-            this.label90.Size = new System.Drawing.Size(22, 13);
+            this.label90.Size = new System.Drawing.Size(28, 13);
             this.label90.TabIndex = 17;
-            this.label90.Text = "mA";
+            this.label90.Text = "mkA";
             // 
             // txtVB_BiasEnd
             // 
-            this.txtVB_BiasEnd.Location = new System.Drawing.Point(51, 182);
-            this.txtVB_BiasEnd.MaxLength = 8;
+            this.txtVB_BiasEnd.Location = new System.Drawing.Point(46, 166);
+            this.txtVB_BiasEnd.MaxLength = 10;
             this.txtVB_BiasEnd.Name = "txtVB_BiasEnd";
-            this.txtVB_BiasEnd.Size = new System.Drawing.Size(33, 20);
+            this.txtVB_BiasEnd.Size = new System.Drawing.Size(50, 20);
             this.txtVB_BiasEnd.TabIndex = 16;
             this.txtVB_BiasEnd.Text = "2.69";
             this.txtVB_BiasEnd.TextChanged += new System.EventHandler(this.txtVB_BiasEnd_TextChanged);
@@ -2475,7 +2663,7 @@
             // label91
             // 
             this.label91.AutoSize = true;
-            this.label91.Location = new System.Drawing.Point(13, 185);
+            this.label91.Location = new System.Drawing.Point(13, 169);
             this.label91.Name = "label91";
             this.label91.Size = new System.Drawing.Size(23, 13);
             this.label91.TabIndex = 15;
@@ -2484,18 +2672,18 @@
             // label92
             // 
             this.label92.AutoSize = true;
-            this.label92.Location = new System.Drawing.Point(91, 152);
+            this.label92.Location = new System.Drawing.Point(98, 136);
             this.label92.Name = "label92";
-            this.label92.Size = new System.Drawing.Size(22, 13);
+            this.label92.Size = new System.Drawing.Size(28, 13);
             this.label92.TabIndex = 13;
-            this.label92.Text = "mA";
+            this.label92.Text = "mkA";
             // 
             // txtVB_BiasStart
             // 
-            this.txtVB_BiasStart.Location = new System.Drawing.Point(51, 149);
-            this.txtVB_BiasStart.MaxLength = 8;
+            this.txtVB_BiasStart.Location = new System.Drawing.Point(46, 133);
+            this.txtVB_BiasStart.MaxLength = 10;
             this.txtVB_BiasStart.Name = "txtVB_BiasStart";
-            this.txtVB_BiasStart.Size = new System.Drawing.Size(33, 20);
+            this.txtVB_BiasStart.Size = new System.Drawing.Size(50, 20);
             this.txtVB_BiasStart.TabIndex = 12;
             this.txtVB_BiasStart.Text = "2.25";
             this.txtVB_BiasStart.TextChanged += new System.EventHandler(this.txtVB_BiasStart_TextChanged);
@@ -2504,7 +2692,7 @@
             // label93
             // 
             this.label93.AutoSize = true;
-            this.label93.Location = new System.Drawing.Point(13, 152);
+            this.label93.Location = new System.Drawing.Point(13, 136);
             this.label93.Name = "label93";
             this.label93.Size = new System.Drawing.Size(33, 13);
             this.label93.TabIndex = 11;
@@ -2513,7 +2701,7 @@
             // label87
             // 
             this.label87.AutoSize = true;
-            this.label87.Location = new System.Drawing.Point(13, 126);
+            this.label87.Location = new System.Drawing.Point(13, 110);
             this.label87.Name = "label87";
             this.label87.Size = new System.Drawing.Size(100, 13);
             this.label87.TabIndex = 8;
@@ -2522,7 +2710,7 @@
             // label77
             // 
             this.label77.AutoSize = true;
-            this.label77.Location = new System.Drawing.Point(133, 86);
+            this.label77.Location = new System.Drawing.Point(91, 83);
             this.label77.Name = "label77";
             this.label77.Size = new System.Drawing.Size(15, 13);
             this.label77.TabIndex = 7;
@@ -2530,7 +2718,7 @@
             // 
             // txtVB_FieldStep
             // 
-            this.txtVB_FieldStep.Location = new System.Drawing.Point(93, 83);
+            this.txtVB_FieldStep.Location = new System.Drawing.Point(51, 80);
             this.txtVB_FieldStep.MaxLength = 8;
             this.txtVB_FieldStep.Name = "txtVB_FieldStep";
             this.txtVB_FieldStep.Size = new System.Drawing.Size(33, 20);
@@ -2542,7 +2730,7 @@
             // label78
             // 
             this.label78.AutoSize = true;
-            this.label78.Location = new System.Drawing.Point(13, 86);
+            this.label78.Location = new System.Drawing.Point(13, 80);
             this.label78.Name = "label78";
             this.label78.Size = new System.Drawing.Size(32, 13);
             this.label78.TabIndex = 5;
@@ -2551,50 +2739,40 @@
             // label84
             // 
             this.label84.AutoSize = true;
-            this.label84.Location = new System.Drawing.Point(133, 53);
+            this.label84.Location = new System.Drawing.Point(90, 47);
             this.label84.Name = "label84";
-            this.label84.Size = new System.Drawing.Size(15, 13);
+            this.label84.Size = new System.Drawing.Size(36, 13);
             this.label84.TabIndex = 3;
-            this.label84.Text = "G";
+            this.label84.Text = "G    to";
             // 
-            // txtVB_FieldRange
+            // txtVB_FieldFrom
             // 
-            this.txtVB_FieldRange.Location = new System.Drawing.Point(93, 50);
-            this.txtVB_FieldRange.MaxLength = 8;
-            this.txtVB_FieldRange.Name = "txtVB_FieldRange";
-            this.txtVB_FieldRange.Size = new System.Drawing.Size(33, 20);
-            this.txtVB_FieldRange.TabIndex = 2;
-            this.txtVB_FieldRange.Text = "200";
-            this.txtVB_FieldRange.TextChanged += new System.EventHandler(this.txtVB_FieldRange_TextChanged);
-            this.txtVB_FieldRange.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtVB_FieldRange_KeyPress);
+            this.txtVB_FieldFrom.Location = new System.Drawing.Point(51, 44);
+            this.txtVB_FieldFrom.MaxLength = 8;
+            this.txtVB_FieldFrom.Name = "txtVB_FieldFrom";
+            this.txtVB_FieldFrom.Size = new System.Drawing.Size(33, 20);
+            this.txtVB_FieldFrom.TabIndex = 2;
+            this.txtVB_FieldFrom.Text = "-200";
+            this.txtVB_FieldFrom.TextChanged += new System.EventHandler(this.txtVB_FieldFrom_TextChanged);
+            this.txtVB_FieldFrom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtVB_FieldRange_KeyPress);
             // 
             // label85
             // 
             this.label85.AutoSize = true;
-            this.label85.Location = new System.Drawing.Point(13, 53);
+            this.label85.Location = new System.Drawing.Point(13, 47);
             this.label85.Name = "label85";
-            this.label85.Size = new System.Drawing.Size(76, 13);
+            this.label85.Size = new System.Drawing.Size(33, 13);
             this.label85.TabIndex = 1;
-            this.label85.Text = "Range, -x to x:";
+            this.label85.Text = "From:";
             // 
             // label86
             // 
             this.label86.AutoSize = true;
-            this.label86.Location = new System.Drawing.Point(13, 25);
+            this.label86.Location = new System.Drawing.Point(13, 19);
             this.label86.Name = "label86";
             this.label86.Size = new System.Drawing.Size(110, 13);
             this.label86.TabIndex = 0;
             this.label86.Text = "Magnetic field sweep:";
-            // 
-            // pictureBox5
-            // 
-            this.pictureBox5.Image = global::ExperimentRunner.Properties.Resources.V_B;
-            this.pictureBox5.Location = new System.Drawing.Point(16, 16);
-            this.pictureBox5.Name = "pictureBox5";
-            this.pictureBox5.Size = new System.Drawing.Size(284, 284);
-            this.pictureBox5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox5.TabIndex = 30;
-            this.pictureBox5.TabStop = false;
             // 
             // groupBox21
             // 
@@ -2674,12 +2852,13 @@
             this.groupBox22.Controls.Add(this.label24);
             this.groupBox22.Controls.Add(this.txtVB_Range);
             this.groupBox22.Controls.Add(this.label25);
-            this.groupBox22.Location = new System.Drawing.Point(325, 161);
+            this.groupBox22.Location = new System.Drawing.Point(58, 149);
             this.groupBox22.Name = "groupBox22";
-            this.groupBox22.Size = new System.Drawing.Size(372, 80);
+            this.groupBox22.Size = new System.Drawing.Size(223, 80);
             this.groupBox22.TabIndex = 28;
             this.groupBox22.TabStop = false;
             this.groupBox22.Text = "Given voltage";
+            this.groupBox22.Visible = false;
             // 
             // txtVB_StepI
             // 
@@ -6680,6 +6859,7 @@
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.groupBox90);
             this.tabPage9.Controls.Add(this.groupBox46);
             this.tabPage9.Controls.Add(this.groupBox45);
             this.tabPage9.Location = new System.Drawing.Point(4, 22);
@@ -6689,6 +6869,36 @@
             this.tabPage9.TabIndex = 8;
             this.tabPage9.Text = "Equipment parameters";
             this.tabPage9.UseVisualStyleBackColor = true;
+            // 
+            // groupBox90
+            // 
+            this.groupBox90.Controls.Add(this.txtAMIAddress);
+            this.groupBox90.Controls.Add(this.label176);
+            this.groupBox90.Location = new System.Drawing.Point(10, 184);
+            this.groupBox90.Name = "groupBox90";
+            this.groupBox90.Size = new System.Drawing.Size(213, 62);
+            this.groupBox90.TabIndex = 2;
+            this.groupBox90.TabStop = false;
+            this.groupBox90.Text = "Magnetic field controller";
+            // 
+            // txtAMIAddress
+            // 
+            this.txtAMIAddress.Location = new System.Drawing.Point(67, 26);
+            this.txtAMIAddress.Name = "txtAMIAddress";
+            this.txtAMIAddress.Size = new System.Drawing.Size(141, 20);
+            this.txtAMIAddress.TabIndex = 1;
+            this.txtAMIAddress.Text = "TCPIP0::192.168.1.12::7185::SOCKET";
+            this.txtAMIAddress.TextChanged += new System.EventHandler(this.txtAMIAddress_TextChanged);
+            // 
+            // label176
+            // 
+            this.label176.AutoSize = true;
+            this.label176.Location = new System.Drawing.Point(15, 28);
+            this.label176.Name = "label176";
+            this.label176.Size = new System.Drawing.Size(45, 13);
+            this.label176.TabIndex = 0;
+            this.label176.Text = "Address";
+            this.label176.Click += new System.EventHandler(this.label176_Click);
             // 
             // groupBox46
             // 
@@ -6831,6 +7041,30 @@
             this.chkSaveData.UseVisualStyleBackColor = true;
             this.chkSaveData.CheckedChanged += new System.EventHandler(this.chkSaveData_CheckedChanged);
             // 
+            // btnVB_RF_one
+            // 
+            this.btnVB_RF_one.AutoSize = true;
+            this.btnVB_RF_one.Location = new System.Drawing.Point(189, 56);
+            this.btnVB_RF_one.Name = "btnVB_RF_one";
+            this.btnVB_RF_one.Size = new System.Drawing.Size(118, 17);
+            this.btnVB_RF_one.TabIndex = 5;
+            this.btnVB_RF_one.Text = "Reverse -> Forward";
+            this.btnVB_RF_one.UseVisualStyleBackColor = true;
+            this.btnVB_RF_one.CheckedChanged += new System.EventHandler(this.btnVB_RF_one_CheckedChanged);
+            // 
+            // btnVB_FR_one
+            // 
+            this.btnVB_FR_one.AutoSize = true;
+            this.btnVB_FR_one.Checked = true;
+            this.btnVB_FR_one.Location = new System.Drawing.Point(189, 27);
+            this.btnVB_FR_one.Name = "btnVB_FR_one";
+            this.btnVB_FR_one.Size = new System.Drawing.Size(118, 17);
+            this.btnVB_FR_one.TabIndex = 4;
+            this.btnVB_FR_one.TabStop = true;
+            this.btnVB_FR_one.Text = "Forward -> Reverse";
+            this.btnVB_FR_one.UseVisualStyleBackColor = true;
+            this.btnVB_FR_one.CheckedChanged += new System.EventHandler(this.btnVB_F_one_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -6902,6 +7136,8 @@
             this.tabPage4.ResumeLayout(false);
             this.groupBox56.ResumeLayout(false);
             this.groupBox56.PerformLayout();
+            this.groupBox91.ResumeLayout(false);
+            this.groupBox91.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).EndInit();
             this.groupBox15.ResumeLayout(false);
             this.groupBox15.PerformLayout();
@@ -6916,9 +7152,13 @@
             this.groupBox20.ResumeLayout(false);
             this.groupBox20.PerformLayout();
             this.tabPage5.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).EndInit();
+            this.groupBox93.ResumeLayout(false);
+            this.groupBox93.PerformLayout();
             this.groupBox57.ResumeLayout(false);
             this.groupBox57.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).EndInit();
+            this.groupBox92.ResumeLayout(false);
+            this.groupBox92.PerformLayout();
             this.groupBox21.ResumeLayout(false);
             this.groupBox21.PerformLayout();
             this.groupBox22.ResumeLayout(false);
@@ -7060,6 +7300,8 @@
             this.groupBox89.ResumeLayout(false);
             this.groupBox89.PerformLayout();
             this.tabPage9.ResumeLayout(false);
+            this.groupBox90.ResumeLayout(false);
+            this.groupBox90.PerformLayout();
             this.groupBox46.ResumeLayout(false);
             this.groupBox46.PerformLayout();
             this.groupBox45.ResumeLayout(false);
@@ -7406,7 +7648,7 @@
         private System.Windows.Forms.TextBox txtVB_FieldStep;
         private System.Windows.Forms.Label label78;
         private System.Windows.Forms.Label label84;
-        private System.Windows.Forms.TextBox txtVB_FieldRange;
+        private System.Windows.Forms.TextBox txtVB_FieldFrom;
         private System.Windows.Forms.Label label85;
         private System.Windows.Forms.Label label86;
         private System.Windows.Forms.Label label88;
@@ -7651,6 +7893,24 @@
         private System.Windows.Forms.TextBox txtGatePulses_Repeat;
         private System.Windows.Forms.Label label169;
         private System.Windows.Forms.Label label170;
+        private System.Windows.Forms.GroupBox groupBox90;
+        private System.Windows.Forms.Label label176;
+        private System.Windows.Forms.TextBox txtAMIAddress;
+        private System.Windows.Forms.GroupBox groupBox91;
+        private System.Windows.Forms.RadioButton btnIVB_AMI;
+        private System.Windows.Forms.RadioButton btnIVB_Yokogawa;
+        private System.Windows.Forms.GroupBox groupBox92;
+        private System.Windows.Forms.RadioButton btnVB_AMI;
+        private System.Windows.Forms.RadioButton btnVB_Yokogawa;
+        private System.Windows.Forms.Label label177;
+        private System.Windows.Forms.TextBox txtVB_FieldTo;
+        private System.Windows.Forms.GroupBox groupBox93;
+        private System.Windows.Forms.RadioButton btnVB_RF;
+        private System.Windows.Forms.RadioButton btnVB_FR;
+        private System.Windows.Forms.RadioButton btnVB_R;
+        private System.Windows.Forms.RadioButton btnVB_F;
+        private System.Windows.Forms.RadioButton btnVB_RF_one;
+        private System.Windows.Forms.RadioButton btnVB_FR_one;
     }
 }
 

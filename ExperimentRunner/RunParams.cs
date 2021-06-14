@@ -48,6 +48,7 @@ namespace ExperimentRunner
         //Measurement parameters to be set with methods, manually
         private string strSampleName;
         private int mYokRead, mYokWrite, mLakeShore;
+        private String mAMI;
         private bool fSaveData = true;
         private List<String> UserParams = new List<String>();
 
@@ -196,7 +197,8 @@ namespace ExperimentRunner
 
             if (voltageRange > 32)
             {
-                MessageBox.Show("Voltage range is set more than source can give", sError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // max 32 V: Yokogawa user manual, p. 2-4
+                MessageBox.Show("Voltage range is set more than the source can give (32 V)", sError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -479,11 +481,13 @@ namespace ExperimentRunner
             String fDelay = txtDelay.Text;
             String fSamples = txtSamples.Text;
 
-            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5}", strUnitR, strUnitU, strUnitI, mYokRead, mYokWrite, mLakeShore);
+            String strYokWrite = mAMI == "" ? mYokWrite.ToString() : mAMI;
+
+            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5}", strUnitR, strUnitU, strUnitI, mYokRead, strYokWrite, mLakeShore);
             if (!fSaveData) strKwargs += " -nosave";
 
             if (UserParams.Count != 0)
-                strKwargs += " -P " + String.Join(";", UserParams);
+                strKwargs += " -P '" + String.Join(";", UserParams) + "'";
 
             String strCmdLine = String.Format(@"/k python.exe {0}.py {1} {2} {3} {4} {5} {6} {7}",
                 strCurrentScript,
@@ -524,6 +528,11 @@ namespace ExperimentRunner
         public void SetLakeShore(int i)
         {
             mLakeShore = i;
+        }
+
+        public void SetAMI(String s)
+        {
+            mAMI = s;
         }
 
         public void SetEquipment(int r, int w, int ls)

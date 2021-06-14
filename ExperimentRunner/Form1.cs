@@ -17,6 +17,7 @@ namespace ExperimentRunner
 
         // Device IDs
         private int nYokRead, nYokWrite, nLakeShore;
+        private String strAMI;
 
         // Settings names in Windows registry
         private const String strSettingsTab = "ActiveTab";
@@ -24,6 +25,7 @@ namespace ExperimentRunner
         private const String strYokRead = "SourceReadout";
         private const String strYokWrite = "SourceExcitation";
         private const String strLakeShore = "LakeShore";
+        private const String strAMIController = "AMI_controller";
         private const String sShapiroStartPower = "Shapiro_power_start";
         private const String sShapiroEndPower = "Shapiro_power_end";
         private const String sShapiroStepPower = "Shapiro_power_step";
@@ -33,6 +35,8 @@ namespace ExperimentRunner
         private const String sShapiroStepFreq = "Shapiro_freq_step";
         private const String sShapiroFixedFreq = "Shapiro_const_power";
         private const String sShapiroSelected = "Shapiro_type";
+        private const String sAMIUsed_IVB = "AMI_used_IVB";
+        private const String sAMIUsed_VB = "AMI_used_VB";
 
         //Shapiro steps masurement sweep modes
         private const int SHAPIRO_POWER = 0;
@@ -42,11 +46,19 @@ namespace ExperimentRunner
 
         //Maximum parameter values which are allowed
         private const double MAX_TEMP = 1.7; //K
-        private const float MAX_FIELD = 40; //G
+        private const float MAX_FIELD = 60; //G, only for Yokogawa field control
         private const float MAX_CURR = 200; //mA
         private const float MAX_GATE = 4; //V
         private const float MAX_FREQ = 6; //GHz
         private const float MAX_POWER = -30; //dBm
+
+        // Field sweep modes (for V-B measurement)
+        private const String SWEEP_MODE_INCR = "0";
+        private const String SWEEP_MODE_DECR = "1";
+        private const String SWEEP_MODE_INCR_DECR = "2";
+        private const String SWEEP_MODE_DECR_INCR = "3";
+        private const String SWEEP_MODE_INCR_DECR_ONE_CURVE = "4";
+        private const String SWEEP_MODE_DECR_INCR_ONE_CURVE = "5";
 
         //tabs numbers
         private const int tabIV = 0;
@@ -81,26 +93,18 @@ namespace ExperimentRunner
         private bool CheckTemperature(float fInitial, float fNew, float fStep)
         {
             float eps = 0.001F;
-            bool fCheckTemp = true;
-            string[] args = Environment.GetCommandLineArgs();
-            if (args.Count() == 2)
-                if (args[1] == "-notemp")
-                    fCheckTemp = false;
+
             if (fNew < fInitial && fStep>0)
             {
                 MessageBox.Show(String.Format("Final temperature value {0} mK is less than a starter value {1} mK!", fNew*1000, fInitial),
                     strError, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return false;
             }
-            if (fNew - eps > MAX_TEMP && fCheckTemp)
+            if (fNew - eps > MAX_TEMP)
             {
-                MessageBox.Show(String.Format("Invalid final temperature. A temperature more than {0} K is impossible physically!",MAX_TEMP),
-                    strError, MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                return false;
-            }
-            if (fNew - eps > MAX_TEMP && !fCheckTemp)
-            {
-                MessageBox.Show("Warning a temperature is >1.7K, temperature check is disabled. You are performing this measurement on your own risk.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                DialogResult ret = MessageBox.Show("Warning. a temperature is > 1.7K.\nYou are performing this measurement on your own risk.\nAreYouSure?",
+                    strError, MessageBoxButtons.YesNo, MessageBoxIcon.Stop);
+                return (ret == DialogResult.Yes);
             }
             return true;
         }
@@ -114,9 +118,10 @@ namespace ExperimentRunner
             return f;
         }
 
-        private bool CheckField(float fRange)
+        private bool CheckField(float fRange, bool fYokogawa = true)
         {
-            return CheckOneValue(fRange, MAX_FIELD, "field", "G");
+            if (!fYokogawa) return true;
+            return CheckOneValue(Math.Abs(fRange), MAX_FIELD, "field", "G");  //negative fields are possible
         }
 
         private bool CheckCurrents(params float[] fCurrents)
@@ -157,13 +162,14 @@ namespace ExperimentRunner
                     return CheckTemperature(fStart, fEnd, fStep);
                 case tabIVB: // I-U-B
                     fRange = RunParams.GetValueFromField(txtIVB_FieldRange);
-                    return CheckField(fRange);
+                    return CheckField(fRange, btnIVB_Yokogawa.Checked);
                 case tabVB: //U-B
-                    fRange = RunParams.GetValueFromField(txtVB_FieldRange);
+                    fStart = RunParams.GetValueFromField(txtVB_FieldFrom);
+                    fEnd = RunParams.GetValueFromField(txtVB_FieldTo);
                     fCurr1 = RunParams.GetValueFromField(txtVB_BiasStart);
                     fCurr2 = RunParams.GetValueFromField(txtVB_BiasEnd);
                     fCurr3 = RunParams.GetValueFromField(txtVB_BiasStep);
-                    return CheckCurrents(new float[]{fCurr1, fCurr2, fCurr3}) && CheckField(fRange);
+                    return CheckCurrents(new float[] { fCurr1, fCurr2, fCurr3 }) && CheckField(fStart, btnVB_Yokogawa.Checked) && CheckField(fEnd, btnVB_Yokogawa.Checked);
                 case tabRTGate: //R-T-Gate
                     fStart = chkRTGate_FromStart.Checked ? 0 : RunParams.GetValueFromField(txtRTGate_SweepFrom);
                     fEnd = RunParams.GetValueFromField(txtRTGate_SweepTo);
@@ -219,26 +225,60 @@ namespace ExperimentRunner
                 meas_params.StartMeasurement();
         }
 
+        private void SaveAMISettings(int nTab)
+        {
+            Settings ss = new Settings();
+
+            String sRequiredSetting = (nTab == tabIVB) ? sAMIUsed_IVB : sAMIUsed_VB;
+            RadioButton btnRequired = (nTab == tabIVB) ? btnIVB_AMI : btnVB_AMI;
+
+            ss.SaveSetting(sRequiredSetting, btnRequired.Checked ? 1:0);
+        }
+
+        private void SaveShapiroSettings(int nSelected)
+        { 
+            Settings ss = new Settings();
+            String sSettingStart = nSelected == SHAPIRO_POWER ? sShapiroStartPower : sShapiroStartFreq;
+            String sSettingEnd = nSelected == SHAPIRO_POWER ? sShapiroEndPower : sShapiroEndFreq;
+            String sSettingStep = nSelected == SHAPIRO_POWER ? sShapiroStepPower : sShapiroStepFreq;
+            String sSettingFixed = nSelected == SHAPIRO_POWER ? sShapiroFixedPower : sShapiroFixedFreq;
+
+            ss.SaveSetting(sSettingStart, txtShapiroStart.Text);
+            ss.SaveSetting(sSettingEnd, txtShapiroEnd.Text);
+            ss.SaveSetting(sSettingStep, txtShapiroStep.Text);
+            ss.SaveSetting(sSettingFixed, txtShapiro_Fixed.Text);
+
+            ss.SaveSetting(sShapiroSelected, nSelected);
+        }
+
         private void SaveSettings()
         {
             meas_params.FlushCurrentTabSettings(); //save currently active tab settings
 
             Settings sett = new Settings();
-            sett.SaveSetting(strSettingsTab, tabControl1.SelectedIndex);
+            int nCurrentTab = tabControl1.SelectedIndex;
+
+            sett.SaveSetting(strSettingsTab, nCurrentTab);
             sett.SaveSetting(strSampleName, txtSampleName.Text);
 
             sett.SaveSetting(strYokRead, nYokRead);
             sett.SaveSetting(strYokWrite, nYokWrite);
             sett.SaveSetting(strLakeShore, nLakeShore);
+            sett.SaveSetting(strAMIController, strAMI);
 
+            // advanced settings for some tabs
             SaveShapiroSettings(cboShapiroType.SelectedIndex);
+            SaveAMISettings(nCurrentTab);
         }
 
         private void LoadSettings()
         {
             Settings sett = new Settings();
             int nCurrentTab = 0;
+
+            // Default values
             int settYokRead = 3, settYokWrite = 6, settLakeShore = 17;
+            String settAMI = txtAMIAddress.Text;
 
             String strSampName="Sample 1";
             sett.TryLoadSetting(strSettingsTab, ref nCurrentTab); //default value is 0, so the first tab will be opened if there is no settings
@@ -247,12 +287,15 @@ namespace ExperimentRunner
             sett.TryLoadSetting(strYokRead, ref settYokRead);
             sett.TryLoadSetting(strYokWrite, ref settYokWrite);
             sett.TryLoadSetting(strLakeShore, ref settLakeShore);
+            sett.TryLoadSetting(strAMIController, ref settAMI);
 
             nYokRead = settYokRead; nYokWrite = settYokWrite; nLakeShore = settLakeShore;
+            strAMI = settAMI;
             meas_params.SetEquipment(nYokRead, nYokWrite, nLakeShore);
             txtExcitationDevice.Text = nYokWrite.ToString();
             txtReadoutDevice.Text = nYokRead.ToString();
             txtLakeShoreID.Text = nLakeShore.ToString();
+            txtAMIAddress.Text = strAMI;
 
             tabControl1.SelectedIndex = nCurrentTab;
             txtSampleName.Text = strSampName;
@@ -277,6 +320,9 @@ namespace ExperimentRunner
         {
             Settings sett = new Settings();
             String strRead="";
+            String strFieldType="";
+            String sSweepType = "";
+            meas_params.SetAMI("");
             switch (nTab)
             {
                 case tabIVTAuto: //I-V-T auto
@@ -305,31 +351,76 @@ namespace ExperimentRunner
                     {
                         txtIVB_FieldStep.Text = strRead;
                     }
-                    meas_params.SetParameters(txtIVB_FieldRange.Text, txtIVB_Step.Text);
+                    strFieldType = "Y";
+                    if (sett.TryLoadSetting("I_V_B_param2", ref strRead))
+                    {
+                        strFieldType = strRead;
+                    }
+                    if (strFieldType == "Y")
+                        btnIVB_Yokogawa.Checked = true;
+                    else
+                        btnIVB_AMI.Checked = true;
+                    LoadAMISettings(tabIVB);
+                    meas_params.SetAMI(btnIVB_AMI.Checked ? txtAMIAddress.Text : "");
+                    meas_params.SetParameters(txtIVB_FieldRange.Text, txtIVB_FieldStep.Text);
+                    
                     break;
                 case tabVB: //V-B 
                     if (sett.TryLoadSetting("V_B_param0", ref strRead))
                     {
-                        txtVB_FieldRange.Text = strRead;
+                        txtVB_FieldFrom.Text = strRead;
                     }
                     if (sett.TryLoadSetting("V_B_param1", ref strRead))
                     {
-                        txtVB_FieldStep.Text = strRead;
+                        txtVB_FieldTo.Text = strRead;
                     }
                     if (sett.TryLoadSetting("V_B_param2", ref strRead))
                     {
-                        txtVB_BiasStart.Text = strRead;
+                        txtVB_FieldStep.Text = strRead;
                     }
                     if (sett.TryLoadSetting("V_B_param3", ref strRead))
                     {
-                        txtVB_BiasEnd.Text = strRead;
+                        txtVB_BiasStart.Text = strRead;
                     }
                     if (sett.TryLoadSetting("V_B_param4", ref strRead))
                     {
+                        txtVB_BiasEnd.Text = strRead;
+                    }
+                    if (sett.TryLoadSetting("V_B_param5", ref strRead))
+                    {
                         txtVB_BiasStep.Text = strRead;
                     }
-                    meas_params.SetParameters(txtVB_FieldRange.Text, txtVB_Step.Text, txtVB_BiasStart.Text, txtVB_BiasEnd.Text, txtVB_BiasStep.Text);
+                    if (sett.TryLoadSetting("V_B_param6", ref sSweepType))
+                    {
+                        switch (sSweepType)
+                        {
+                            case SWEEP_MODE_INCR:
+                                btnVB_F.Checked = true;
+                                break;
+                            case SWEEP_MODE_DECR:
+                                btnVB_R.Checked = true;
+                                break;
+                            case SWEEP_MODE_INCR_DECR:
+                                btnVB_FR.Checked = true;
+                                break;
+                            case SWEEP_MODE_DECR_INCR:
+                                btnVB_RF.Checked = true;
+                                break;
+                            case SWEEP_MODE_INCR_DECR_ONE_CURVE:
+                                btnVB_FR_one.Checked = true;
+                                break;
+                            case SWEEP_MODE_DECR_INCR_ONE_CURVE:
+                                btnVB_RF_one.Checked = true;
+                                break;
+                        }
+                    }
+
+                    meas_params.SetParameters(txtVB_FieldFrom.Text,txtVB_FieldTo.Text, txtVB_FieldStep.Text, 
+                        txtVB_BiasStart.Text, txtVB_BiasEnd.Text, txtVB_BiasStep.Text, sSweepType);
+                    LoadAMISettings(tabVB);
+                    meas_params.SetAMI(btnVB_AMI.Checked ? txtAMIAddress.Text : "");
                     break;
+
                 case tabCritStats: //critical current distribution
                     if (sett.TryLoadSetting("I_V_crit_stats_param0", ref strRead))
                     {
@@ -465,21 +556,77 @@ namespace ExperimentRunner
             }
         }
 
-        private String FieldToCurrent(String field)
+        /*private String FieldToCurrent(String field)
         {
             NumberFormatInfo f = new NumberFormatInfo();
             f.NumberDecimalSeparator = ".";
             float fField = float.Parse(field, f);
             return (fField * 10).ToString();
         }
+        */
 
+        private String GetVBSweepType()
+        {
+            if (btnVB_F.Checked)
+                return SWEEP_MODE_INCR;
+            if (btnVB_R.Checked)
+                return SWEEP_MODE_DECR;
+            if (btnVB_FR.Checked)
+                return SWEEP_MODE_INCR_DECR;
+            if (btnVB_RF.Checked)
+                return SWEEP_MODE_DECR_INCR;
+            if (btnVB_FR_one.Checked)
+                return SWEEP_MODE_INCR_DECR_ONE_CURVE;
+            if (btnVB_RF_one.Checked)
+                return SWEEP_MODE_DECR_INCR_ONE_CURVE;
+            return SWEEP_MODE_INCR_DECR;
+        }
+
+        private void UpdateVBSweepMode()
+        {
+            meas_params.UpdateParameter(6, GetVBSweepType());
+        }
+
+        private void btnVB_F_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateVBSweepMode();
+        }
+
+        private void btnVB_R_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateVBSweepMode();
+        }
+
+        private void btnVB_FR_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateVBSweepMode();
+        }
+
+        private void btnVB_RF_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateVBSweepMode();
+        }
+
+        private void btnVB_F_one_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateVBSweepMode();
+        }
+
+        private void btnVB_RF_one_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateVBSweepMode();
+        }
+
+        // Called when users switches a tab
         private void UpdateCurrentTab()
         {
             int i = tabControl1.SelectedIndex;
             int i_old = meas_params.CurrentTab;
 
-            if (i_old == 10)
+            if (i_old == tabShapiro)
                 SaveShapiroSettings(cboShapiroType.SelectedIndex);
+            if (i_old == tabIVB || i_old==tabVB)
+                SaveAMISettings(i_old);
 
             switch (i)
             {
@@ -504,7 +651,8 @@ namespace ExperimentRunner
                 case tabVB: //V-B 
                     meas_params.UpdateControls(i, btnVB_mkV, btnVB_mV, btnVB_nA, btnVB_mkA, btnVB_mA, txtVB_Resistance, btnVB_KOhm, btnVB_MOhm,
                         txtVB_Range, txtVB_Step, txtVB_RangeI, txtVB_StepI, txtVB_Gain, txtVB_Delay, txtVB_Samples);
-                    meas_params.SetParameters(FieldToCurrent(txtVB_FieldRange.Text), FieldToCurrent(txtVB_FieldStep.Text), txtVB_BiasStart.Text, txtVB_BiasEnd.Text, txtVB_BiasStep.Text);
+                    meas_params.SetParameters(txtVB_FieldFrom.Text, txtVB_FieldTo.Text, txtVB_Step.Text,
+                       txtVB_BiasStart.Text, txtVB_BiasEnd.Text, txtVB_BiasStep.Text, GetVBSweepType());
                     break;
                 case tabCritStats: //critical current distribution
                     meas_params.UpdateControls(i, btnStats_mkV, btnStats_mV, btnStats_nA, btnStats_mkA, btnStats_mA, txtStats_Resistance, btnStats_KOhm, btnStats_MOhm,
@@ -594,6 +742,11 @@ namespace ExperimentRunner
         {
             InputValidator.HandleKeyEvent(e, false, false);
         }
+
+        private void txtAMIAddress_TextChanged(object sender, EventArgs e)
+        {
+            strAMI = txtAMIAddress.Text;
+        }
         //
         private void chkSaveData_CheckedChanged(object sender, EventArgs e)
         {
@@ -667,6 +820,40 @@ namespace ExperimentRunner
             if (!bFullInitialized) return;
             meas_params.UpdateParameter(1, txtIVB_FieldStep.Text);
         }
+
+
+        //
+        private void UpdateAMIButton(int nCurrentTab)
+        {
+            RadioButton btnRequired = null;
+            if (nCurrentTab == tabIVB)
+                btnRequired = btnIVB_AMI;
+            else if (nCurrentTab == tabVB)
+                btnRequired = btnVB_AMI;
+            //to be continued
+            meas_params.SetAMI(btnRequired.Checked ? txtAMIAddress.Text : "");
+        }
+
+        private void btnIVB_Yokogawa_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateAMIButton(tabControl1.SelectedIndex);
+        }
+
+        private void btnIVB_AMI_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateAMIButton(tabControl1.SelectedIndex);
+        }
+
+        private void btnVB_AMI_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateAMIButton(tabControl1.SelectedIndex);
+        }
+
+        private void btnVB_Yokogawa_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateAMIButton(tabControl1.SelectedIndex);
+        }
+
         //
         private void txtVB_FieldRange_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -683,13 +870,13 @@ namespace ExperimentRunner
         private void txtVB_BiasStart_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!bFullInitialized) return;
-            InputValidator.HandleKeyEvent(e, true, false);
+            InputValidator.HandleKeyEvent(e, true, true);
         }
 
         private void txtVB_BiasEnd_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!bFullInitialized) return;
-            InputValidator.HandleKeyEvent(e, true, false);
+            InputValidator.HandleKeyEvent(e, true, true);
         }
 
         private void txtVB_BiasStep_KeyPress(object sender, KeyPressEventArgs e)
@@ -698,34 +885,39 @@ namespace ExperimentRunner
             InputValidator.HandleKeyEvent(e, true, false);
         }
 
-        private void txtVB_FieldRange_TextChanged(object sender, EventArgs e)
+        private void txtVB_FieldFrom_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(0, txtVB_FieldRange.Text);
+            meas_params.UpdateParameter(0, txtVB_FieldFrom.Text);
+        }
+
+        private void txtVB_FieldTo_TextChanged(object sender, EventArgs e)
+        {
+            meas_params.UpdateParameter(1, txtVB_FieldTo.Text);
         }
 
         private void txtVB_FieldStep_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(1, txtVB_FieldStep.Text);
+            meas_params.UpdateParameter(2, txtVB_FieldStep.Text);
         }
 
         private void txtVB_BiasStart_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(2, txtVB_BiasStart.Text);
+            meas_params.UpdateParameter(3, txtVB_BiasStart.Text);
         }
 
         private void txtVB_BiasEnd_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(3, txtVB_BiasEnd.Text);
+            meas_params.UpdateParameter(4, txtVB_BiasEnd.Text);
         }
 
         private void txtVB_BiasStep_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(4, txtVB_BiasStep.Text);
+            meas_params.UpdateParameter(5, txtVB_BiasStep.Text);
         }
         //
         private void txtStats_nCurves_KeyPress(object sender, KeyPressEventArgs e)
@@ -816,21 +1008,20 @@ namespace ExperimentRunner
                 meas_params.UpdateParameter(2, txtGateT_TempStart.Text);
         }
         //
-        private void SaveShapiroSettings(int nSelected)
-        { 
+
+        private void LoadAMISettings(int nTab)
+        {
             Settings ss = new Settings();
-            String sSettingStart = nSelected == SHAPIRO_POWER ? sShapiroStartPower : sShapiroStartFreq;
-            String sSettingEnd = nSelected == SHAPIRO_POWER ? sShapiroEndPower : sShapiroEndFreq;
-            String sSettingStep = nSelected == SHAPIRO_POWER ? sShapiroStepPower : sShapiroStepFreq;
-            String sSettingFixed = nSelected == SHAPIRO_POWER ? sShapiroFixedPower : sShapiroFixedFreq;
 
-            ss.SaveSetting(sSettingStart, txtShapiroStart.Text);
-            ss.SaveSetting(sSettingEnd, txtShapiroEnd.Text);
-            ss.SaveSetting(sSettingStep, txtShapiroStep.Text);
-            ss.SaveSetting(sSettingFixed, txtShapiro_Fixed.Text);
+            String sRequiredSetting = (nTab == tabIVB) ? sAMIUsed_IVB : sAMIUsed_VB;
+            RadioButton btnRequired = (nTab == tabIVB) ? btnIVB_AMI : btnVB_AMI;
 
-            ss.SaveSetting(sShapiroSelected, nSelected);
+            int iAMIUSed = 0;
+
+            if(ss.TryLoadSetting(sRequiredSetting, ref iAMIUSed))
+                btnRequired.Checked = (iAMIUSed==1);
         }
+
 
         private void LoadShapiroSettings()
         {
@@ -1128,9 +1319,21 @@ namespace ExperimentRunner
 
         }
 
+        private void label176_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label89_Click(object sender, EventArgs e)
+        {
+
+        }
 
 
 
+
+
+     
         
     }
 }
