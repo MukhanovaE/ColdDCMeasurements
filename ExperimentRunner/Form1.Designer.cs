@@ -631,6 +631,7 @@
             this.label36 = new System.Windows.Forms.Label();
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
+            this.cmdExploreData = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -7124,11 +7125,22 @@
             this.chkSaveData.UseVisualStyleBackColor = true;
             this.chkSaveData.CheckedChanged += new System.EventHandler(this.chkSaveData_CheckedChanged);
             // 
+            // cmdExploreData
+            // 
+            this.cmdExploreData.Location = new System.Drawing.Point(795, 427);
+            this.cmdExploreData.Name = "cmdExploreData";
+            this.cmdExploreData.Size = new System.Drawing.Size(177, 32);
+            this.cmdExploreData.TabIndex = 10;
+            this.cmdExploreData.Text = "Open data folder";
+            this.cmdExploreData.UseVisualStyleBackColor = true;
+            this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(984, 462);
+            this.Controls.Add(this.cmdExploreData);
             this.Controls.Add(this.chkSaveData);
             this.Controls.Add(this.txtSampleName);
             this.Controls.Add(this.label36);
@@ -7975,6 +7987,7 @@
         private System.Windows.Forms.Label label179;
         private System.Windows.Forms.NumericUpDown txtIVTA_OneCurveTimes;
         private System.Windows.Forms.Label label178;
+        private System.Windows.Forms.Button cmdExploreData;
     }
 }
 

@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.IO;
 using Microsoft.Win32;
 using System.Globalization;
 
@@ -1328,6 +1329,18 @@ namespace ExperimentRunner
         private void TxtStats_Resistance_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void CmdExploreData_Click(object sender, EventArgs e)
+        {
+            String strCurrDir = System.IO.Directory.GetCurrentDirectory();
+            String strDataFolder = System.IO.Path.Combine(strCurrDir, "Data");
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+            {
+                FileName = strDataFolder,
+                UseShellExecute = true,
+                Verb = "open"
+            });
         }
 
         private void txtIVTA_OneCurveTimes_Leave(object sender, EventArgs e)
