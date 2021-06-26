@@ -1,0 +1,8 @@
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\bin\Release\ExperimentRunner.exe
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\bin\Release\ExperimentRunner.pdb
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.Form1.resources
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.Properties.Resources.resources
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.csproj.GenerateResource.Cache
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.exe
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.pdb
+F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.csprojResolveAssemblyReference.cache

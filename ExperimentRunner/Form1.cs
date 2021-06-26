@@ -340,7 +340,11 @@ namespace ExperimentRunner
                     {
                         txtIVTA_SweepStep.Text = strRead;
                     }
-                    meas_params.SetParameters(txtIVTA_SweepFrom.Text, txtIVTA_SweepTo.Text, txtIVTA_SweepStep.Text);
+                    if (sett.TryLoadSetting("I_V_T_auto_param3", ref strRead))
+                    {
+                        txtIVTA_OneCurveTimes.Value = Int32.Parse(strRead);                      
+                    }
+                    meas_params.SetParameters(txtIVTA_SweepFrom.Text, txtIVTA_SweepTo.Text, txtIVTA_SweepStep.Text, strRead);
                     break;
                 case tabIVB: //I-V-B 
                     if (sett.TryLoadSetting("I_V_B_param0", ref strRead))
@@ -641,7 +645,7 @@ namespace ExperimentRunner
                 case tabIVTAuto: //I-V-T auto
                     meas_params.UpdateControls(i, btnIVTA_mkV, btnIVTA_mV, btnIVTA_nA, btnIVTA_mkA, btnIVTA_mA, txtIVTA_Resistance, btnIVTA_KOhm, btnIVTA_MOhm,
                         txtIVTA_Range, txtIVTA_Step, txtIVTA_RangeI, txtIVTA_StepI, txtIVTA_Gain, txtIVTA_Delay, txtIVTA_Samples);
-                    meas_params.SetParameters(txtIVTA_SweepFrom.Text, txtIVTA_SweepTo.Text, txtIVTA_SweepStep.Text);
+                    meas_params.SetParameters(txtIVTA_SweepFrom.Text, txtIVTA_SweepTo.Text, txtIVTA_SweepStep.Text, txtIVTA_OneCurveTimes.Value.ToString());
                     break;
                 case tabIVB: //I-V-B 
                     meas_params.UpdateControls(i, btnIVB_mkV, btnIVB_mV, btnIVB_nA, btnIVB_mkA, btnIVB_mA, txtIVB_Resistance, btnIVB_KOhm, btnIVB_MOhm,
@@ -1304,36 +1308,30 @@ namespace ExperimentRunner
             InputValidator.HandleKeyEvent(e, false, false);
         }
 
-        private void btnIV_kOhm_CheckedChanged(object sender, EventArgs e)
-        {
 
+        private void btnStartTempObserver_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("python.exe", "Temperature.py");
         }
 
-        private void btnIV_mOhm_CheckedChanged(object sender, EventArgs e)
+        private void txtIVTA_OneCurveTimes_KeyPress(object sender, KeyPressEventArgs e)
         {
-
+            InputValidator.HandleKeyEvent(e, false, false);
         }
 
-        private void txtIV_Resistance_TextChanged(object sender, EventArgs e)
+        private void txtIVTA_OneCurveTimes_Leave(object sender, EventArgs e)
         {
-
+            if (txtIVTA_OneCurveTimes.Value > 10)
+            {
+                txtIVTA_OneCurveTimes.Value = 10;
+                System.Media.SystemSounds.Beep.Play();
+            }
         }
 
-        private void label176_Click(object sender, EventArgs e)
+        private void txtIVTA_OneCurveTimes_ValueChanged(object sender, EventArgs e)
         {
-
+            meas_params.UpdateParameter(3, txtIVTA_OneCurveTimes.Value.ToString());
         }
 
-        private void label89_Click(object sender, EventArgs e)
-        {
-
-        }
-
-
-
-
-
-     
-        
     }
 }

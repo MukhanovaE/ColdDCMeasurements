@@ -103,6 +103,9 @@
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.groupBox55 = new System.Windows.Forms.GroupBox();
+            this.label179 = new System.Windows.Forms.Label();
+            this.txtIVTA_OneCurveTimes = new System.Windows.Forms.NumericUpDown();
+            this.label178 = new System.Windows.Forms.Label();
             this.label75 = new System.Windows.Forms.Label();
             this.txtIVTA_SweepStep = new System.Windows.Forms.TextBox();
             this.label76 = new System.Windows.Forms.Label();
@@ -191,6 +194,8 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.pictureBox5 = new System.Windows.Forms.PictureBox();
             this.groupBox93 = new System.Windows.Forms.GroupBox();
+            this.btnVB_RF_one = new System.Windows.Forms.RadioButton();
+            this.btnVB_FR_one = new System.Windows.Forms.RadioButton();
             this.btnVB_RF = new System.Windows.Forms.RadioButton();
             this.btnVB_FR = new System.Windows.Forms.RadioButton();
             this.btnVB_R = new System.Windows.Forms.RadioButton();
@@ -613,6 +618,7 @@
             this.txtAMIAddress = new System.Windows.Forms.TextBox();
             this.label176 = new System.Windows.Forms.Label();
             this.groupBox46 = new System.Windows.Forms.GroupBox();
+            this.btnStartTempObserver = new System.Windows.Forms.Button();
             this.txtLakeShoreID = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
             this.groupBox45 = new System.Windows.Forms.GroupBox();
@@ -625,8 +631,6 @@
             this.label36 = new System.Windows.Forms.Label();
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
-            this.btnVB_RF_one = new System.Windows.Forms.RadioButton();
-            this.btnVB_FR_one = new System.Windows.Forms.RadioButton();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -650,6 +654,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.tabPage3.SuspendLayout();
             this.groupBox55.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtIVTA_OneCurveTimes)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.groupBox9.SuspendLayout();
             this.groupBox10.SuspendLayout();
@@ -1011,7 +1016,6 @@
             this.btnIV_mOhm.TabStop = true;
             this.btnIV_mOhm.Text = "MOhm";
             this.btnIV_mOhm.UseVisualStyleBackColor = true;
-            this.btnIV_mOhm.CheckedChanged += new System.EventHandler(this.btnIV_mOhm_CheckedChanged);
             // 
             // btnIV_kOhm
             // 
@@ -1024,7 +1028,6 @@
             this.btnIV_kOhm.TabStop = true;
             this.btnIV_kOhm.Text = "KOhm";
             this.btnIV_kOhm.UseVisualStyleBackColor = true;
-            this.btnIV_kOhm.CheckedChanged += new System.EventHandler(this.btnIV_kOhm_CheckedChanged);
             // 
             // txtIV_Resistance
             // 
@@ -1034,7 +1037,6 @@
             this.txtIV_Resistance.Size = new System.Drawing.Size(194, 20);
             this.txtIV_Resistance.TabIndex = 0;
             this.txtIV_Resistance.Text = "2000";
-            this.txtIV_Resistance.TextChanged += new System.EventHandler(this.txtIV_Resistance_TextChanged);
             // 
             // grpCurrent
             // 
@@ -1541,6 +1543,9 @@
             // 
             // groupBox55
             // 
+            this.groupBox55.Controls.Add(this.label179);
+            this.groupBox55.Controls.Add(this.txtIVTA_OneCurveTimes);
+            this.groupBox55.Controls.Add(this.label178);
             this.groupBox55.Controls.Add(this.label75);
             this.groupBox55.Controls.Add(this.txtIVTA_SweepStep);
             this.groupBox55.Controls.Add(this.label76);
@@ -1558,6 +1563,49 @@
             this.groupBox55.TabIndex = 19;
             this.groupBox55.TabStop = false;
             this.groupBox55.Text = "Additional parameters";
+            // 
+            // label179
+            // 
+            this.label179.AutoSize = true;
+            this.label179.Location = new System.Drawing.Point(151, 157);
+            this.label179.Name = "label179";
+            this.label179.Size = new System.Drawing.Size(31, 13);
+            this.label179.TabIndex = 14;
+            this.label179.Text = "times";
+            // 
+            // txtIVTA_OneCurveTimes
+            // 
+            this.txtIVTA_OneCurveTimes.Location = new System.Drawing.Point(102, 155);
+            this.txtIVTA_OneCurveTimes.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.txtIVTA_OneCurveTimes.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.txtIVTA_OneCurveTimes.Name = "txtIVTA_OneCurveTimes";
+            this.txtIVTA_OneCurveTimes.Size = new System.Drawing.Size(43, 20);
+            this.txtIVTA_OneCurveTimes.TabIndex = 13;
+            this.txtIVTA_OneCurveTimes.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.txtIVTA_OneCurveTimes.ValueChanged += new System.EventHandler(this.txtIVTA_OneCurveTimes_ValueChanged);
+            this.txtIVTA_OneCurveTimes.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtIVTA_OneCurveTimes_KeyPress);
+            this.txtIVTA_OneCurveTimes.Leave += new System.EventHandler(this.txtIVTA_OneCurveTimes_Leave);
+            // 
+            // label178
+            // 
+            this.label178.AutoSize = true;
+            this.label178.Location = new System.Drawing.Point(13, 157);
+            this.label178.Name = "label178";
+            this.label178.Size = new System.Drawing.Size(86, 13);
+            this.label178.TabIndex = 11;
+            this.label178.Text = "Take one curve:";
             // 
             // label75
             // 
@@ -2474,12 +2522,36 @@
             this.groupBox93.Controls.Add(this.btnVB_FR);
             this.groupBox93.Controls.Add(this.btnVB_R);
             this.groupBox93.Controls.Add(this.btnVB_F);
-            this.groupBox93.Location = new System.Drawing.Point(325, 161);
+            this.groupBox93.Location = new System.Drawing.Point(325, 158);
             this.groupBox93.Name = "groupBox93";
             this.groupBox93.Size = new System.Drawing.Size(372, 92);
             this.groupBox93.TabIndex = 32;
             this.groupBox93.TabStop = false;
             this.groupBox93.Text = "Field sweep direction";
+            // 
+            // btnVB_RF_one
+            // 
+            this.btnVB_RF_one.AutoSize = true;
+            this.btnVB_RF_one.Location = new System.Drawing.Point(189, 56);
+            this.btnVB_RF_one.Name = "btnVB_RF_one";
+            this.btnVB_RF_one.Size = new System.Drawing.Size(118, 17);
+            this.btnVB_RF_one.TabIndex = 5;
+            this.btnVB_RF_one.Text = "Reverse -> Forward";
+            this.btnVB_RF_one.UseVisualStyleBackColor = true;
+            this.btnVB_RF_one.CheckedChanged += new System.EventHandler(this.btnVB_RF_one_CheckedChanged);
+            // 
+            // btnVB_FR_one
+            // 
+            this.btnVB_FR_one.AutoSize = true;
+            this.btnVB_FR_one.Checked = true;
+            this.btnVB_FR_one.Location = new System.Drawing.Point(189, 27);
+            this.btnVB_FR_one.Name = "btnVB_FR_one";
+            this.btnVB_FR_one.Size = new System.Drawing.Size(118, 17);
+            this.btnVB_FR_one.TabIndex = 4;
+            this.btnVB_FR_one.TabStop = true;
+            this.btnVB_FR_one.Text = "Forward -> Reverse";
+            this.btnVB_FR_one.UseVisualStyleBackColor = true;
+            this.btnVB_FR_one.CheckedChanged += new System.EventHandler(this.btnVB_F_one_CheckedChanged);
             // 
             // btnVB_RF
             // 
@@ -2638,7 +2710,6 @@
             this.label89.Size = new System.Drawing.Size(18, 13);
             this.label89.TabIndex = 18;
             this.label89.Text = "N:";
-            this.label89.Click += new System.EventHandler(this.label89_Click);
             // 
             // label90
             // 
@@ -6874,7 +6945,7 @@
             // 
             this.groupBox90.Controls.Add(this.txtAMIAddress);
             this.groupBox90.Controls.Add(this.label176);
-            this.groupBox90.Location = new System.Drawing.Point(10, 184);
+            this.groupBox90.Location = new System.Drawing.Point(10, 218);
             this.groupBox90.Name = "groupBox90";
             this.groupBox90.Size = new System.Drawing.Size(213, 62);
             this.groupBox90.TabIndex = 2;
@@ -6898,18 +6969,28 @@
             this.label176.Size = new System.Drawing.Size(45, 13);
             this.label176.TabIndex = 0;
             this.label176.Text = "Address";
-            this.label176.Click += new System.EventHandler(this.label176_Click);
             // 
             // groupBox46
             // 
+            this.groupBox46.Controls.Add(this.btnStartTempObserver);
             this.groupBox46.Controls.Add(this.txtLakeShoreID);
             this.groupBox46.Controls.Add(this.label44);
             this.groupBox46.Location = new System.Drawing.Point(10, 109);
             this.groupBox46.Name = "groupBox46";
-            this.groupBox46.Size = new System.Drawing.Size(214, 59);
+            this.groupBox46.Size = new System.Drawing.Size(214, 89);
             this.groupBox46.TabIndex = 1;
             this.groupBox46.TabStop = false;
             this.groupBox46.Text = "Heat controller";
+            // 
+            // btnStartTempObserver
+            // 
+            this.btnStartTempObserver.Location = new System.Drawing.Point(18, 53);
+            this.btnStartTempObserver.Name = "btnStartTempObserver";
+            this.btnStartTempObserver.Size = new System.Drawing.Size(190, 23);
+            this.btnStartTempObserver.TabIndex = 5;
+            this.btnStartTempObserver.Text = "Start temperature observer";
+            this.btnStartTempObserver.UseVisualStyleBackColor = true;
+            this.btnStartTempObserver.Click += new System.EventHandler(this.btnStartTempObserver_Click);
             // 
             // txtLakeShoreID
             // 
@@ -7041,30 +7122,6 @@
             this.chkSaveData.UseVisualStyleBackColor = true;
             this.chkSaveData.CheckedChanged += new System.EventHandler(this.chkSaveData_CheckedChanged);
             // 
-            // btnVB_RF_one
-            // 
-            this.btnVB_RF_one.AutoSize = true;
-            this.btnVB_RF_one.Location = new System.Drawing.Point(189, 56);
-            this.btnVB_RF_one.Name = "btnVB_RF_one";
-            this.btnVB_RF_one.Size = new System.Drawing.Size(118, 17);
-            this.btnVB_RF_one.TabIndex = 5;
-            this.btnVB_RF_one.Text = "Reverse -> Forward";
-            this.btnVB_RF_one.UseVisualStyleBackColor = true;
-            this.btnVB_RF_one.CheckedChanged += new System.EventHandler(this.btnVB_RF_one_CheckedChanged);
-            // 
-            // btnVB_FR_one
-            // 
-            this.btnVB_FR_one.AutoSize = true;
-            this.btnVB_FR_one.Checked = true;
-            this.btnVB_FR_one.Location = new System.Drawing.Point(189, 27);
-            this.btnVB_FR_one.Name = "btnVB_FR_one";
-            this.btnVB_FR_one.Size = new System.Drawing.Size(118, 17);
-            this.btnVB_FR_one.TabIndex = 4;
-            this.btnVB_FR_one.TabStop = true;
-            this.btnVB_FR_one.Text = "Forward -> Reverse";
-            this.btnVB_FR_one.UseVisualStyleBackColor = true;
-            this.btnVB_FR_one.CheckedChanged += new System.EventHandler(this.btnVB_F_one_CheckedChanged);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -7120,6 +7177,7 @@
             this.tabPage3.ResumeLayout(false);
             this.groupBox55.ResumeLayout(false);
             this.groupBox55.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtIVTA_OneCurveTimes)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.groupBox9.ResumeLayout(false);
             this.groupBox9.PerformLayout();
@@ -7911,6 +7969,10 @@
         private System.Windows.Forms.RadioButton btnVB_F;
         private System.Windows.Forms.RadioButton btnVB_RF_one;
         private System.Windows.Forms.RadioButton btnVB_FR_one;
+        private System.Windows.Forms.Button btnStartTempObserver;
+        private System.Windows.Forms.Label label179;
+        private System.Windows.Forms.NumericUpDown txtIVTA_OneCurveTimes;
+        private System.Windows.Forms.Label label178;
     }
 }
 
