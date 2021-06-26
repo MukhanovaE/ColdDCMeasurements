@@ -16,7 +16,6 @@ from Drivers.LakeShore import *
 from Lib.lm_utils import *
 
 
-
 LakeShore = LakeShoreController(device_num=17, mode='passive')
 
 
@@ -26,15 +25,17 @@ f_exit = threading.Event()
 
 pw = plotWindow("Temperature control", color_buttons=False)
 
-channels = [6,2,3,5]
+channels = [6, 2, 3, 5]
 tabs = []
 times_arrays = []
 temps_arrays = []
 ts = []
 
+
 def onChange():
     tab_now = pw.CurrentTab
     LakeShore.temp_channel = channels[tab_now]
+
 
 for ch in channels:
     tabTemp = pw.addLine2D(f'Channel {ch}', 'Time', 'T, K')
@@ -44,6 +45,7 @@ for ch in channels:
     ts.append(0)
 pw.addOnChange(onChange)
 LakeShore.temp_channel = channels[0]
+
 
 def UpdateRealtimeThermometer():
     global times_arrays, temps_arrays, ts, LakeShore, pw
@@ -58,8 +60,6 @@ def UpdateRealtimeThermometer():
         temps_arrays[tab_now] = temps_arrays[tab_now][-1000:]  # keep memory and make plot to move left
         times_arrays[tab_now] = times_arrays[tab_now][-1000:]
 
-
-    line_T = pw.CoreObjects[tab_now]
     axT = pw.Axes[tab_now]
     axT.clear()
     axT.plot(times_arrays[tab_now], temps_arrays[tab_now])

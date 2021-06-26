@@ -130,6 +130,9 @@ def DataSave():
 
     print('All data were successfully saved.')
 
+    print('Uploading to clouds')
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
 
 warnings.filterwarnings('ignore')  # there can be math warnings in some points
 pw = plotWindow("Leonardo I-U measurement with different B")

@@ -120,7 +120,7 @@ def DataSave():
     Log.Save()
 
     # upload to cloud services
-    # UploadToClouds(GetSaveFolder(R, k_R, caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
 def LocalSaveIncr():

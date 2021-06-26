@@ -77,6 +77,10 @@ def DataSave():
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
     Log.Save()
+
+    print('Uploading to clouds')
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
     exit(0)
 
 
