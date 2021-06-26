@@ -129,13 +129,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-*.exe
+
 DC_Measurements/Cloud_auth/
 *.cache
 *.Cache
 *.exe
 *.pdb
+*.dll
 
 Data/
 *.exe
 *.pdb
+
+# Some auxillary scripts used for some local tasks
+__*.py
