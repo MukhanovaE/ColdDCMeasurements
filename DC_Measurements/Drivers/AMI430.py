@@ -45,29 +45,30 @@ class AMI430(visa_device.visa_device):
         print('Coil constant is:', self.__k_magnet, 'Gauss / A')
 
         # set limits according to field
-        #max_field = np.max(np.abs(field_range))
-        #max_curr = self.B_to_I(max_field)
+        max_field = np.max(np.abs(field_range))
+        max_curr = self.B_to_I(max_field)
         #self.SendString(f"CONFigure:CURRent:LIMit {max_curr}")
-        #print('Current limit is set to:', max_curr, 'Amperes, this is a field of', max_field, 'Gausses')
+        print('Current limit is set to:', max_curr, 'Amperes, this is a field of', max_field, 'Gausses')
 
         # set another parameters
         self.SendString("CONFigure:QUench:DETect 3")
         print('Quench detection configured')
 
-        print('Turning on Persistent switch heater, current is 20 mA')
+        '''print('Turning on Persistent switch heater, current is 20 mA')
         self.SendString("CONFigure:PSwitch:CURRent 20")
         self.SendString("PSwitch 1")
         print('Waiting 40 sec to complete heating process...')
-        time.sleep(40)
+        time.sleep(40)'''
 
         # set ramp rate (TODO: check if it works)
-        '''self.SendString("CONFigure:RAMP:RATE:SEGments 3")
+        self.SendString("CONFigure:RAMP:RATE:SEGments 3")
         self.SendString("CONFigure:RAMP:RATE:UNITS 0")  # 0 - seconds
-        curr_50_kG = self.B_to_I(50e+3)
-        curr_80_kG = self.B_to_I(80e+3)
+        '''curr_50_kG = self.B_to_I(50e+3)
+        curr_80_kG = self.B_to_I(100e+3)
         self.SendString(f"CONFigure: RAMP:RATE: CURRent 1, 0.054, {curr_50_kG}")  # 0.054 Amp/sec
-        self.SendString(f"CONFigure: RAMP:RATE: CURRent 2, 0.027, {curr_80_kG}")  # 0.027 Amp/sec
-        print('Ramp rates for segments are configured')'''
+        self.SendString(f"CONFigure: RAMP:RATE: CURRent 2, 0.027, {curr_80_kG}")  # 0.027 Amp/sec'''
+
+        print('Ramp rates for segments are configured')
 
         self.__now_field = 0
 
@@ -76,14 +77,15 @@ class AMI430(visa_device.visa_device):
 
     # ramp to defined field, in Gausses
     def ramp_to_field(self, field):
-        print('Ramping to', field, 'G')
+        # print('Ramping to', field, 'G')
         if self.__units_in_kg:
             self.SendString(f"CONFigure:FIELD:TARGet {field*1e-3}")  # G->kG
         else:
             self.SendString(f"CONFigure:FIELD:TARGet {field*1e-4}")  # G->T
         self.SendString("RAMP")
 
-        '''print(f'Target field is: {field}:.4f G, ramping...')
+        print(f'Target field is: {field}:.4f G, ramping...')
+        '''
         res = RAMPING
         while res == RAMPING:
             res = self.GetFloat("STATE?")
@@ -99,10 +101,10 @@ class AMI430(visa_device.visa_device):
         ramp_rate = 0.027  #A/sec
         ramp_time = self.B_to_I(delta_field) / ramp_rate  # Amperes / (Amperes/sec) = sec
         print('Waiting', ramp_time, 'sec...')
-        time.sleep(ramp_time + 5)
+        time.sleep(ramp_time + 2)
 
         self.__now_field = field
-        print('Ramp success')
+        print('Ramp success, measuring')
 
     # ramp to zero
     def ramp_to_zero(self):
@@ -117,7 +119,7 @@ class AMI430(visa_device.visa_device):
         ramp_rate = 0.027  #A/sec
         ramp_time = self.B_to_I(delta_field) / ramp_rate  # Amperes / (Amperes/sec) = sec
         print('Waiting', ramp_time, 'sec...')
-        time.sleep(ramp_time + 5)
+        time.sleep(ramp_time + 1)
 
         print('A magnetic field was returned to zero')
 
@@ -131,9 +133,9 @@ class AMI430(visa_device.visa_device):
         for field_now in self.__field_range:
             print('------------------------------')
             self.ramp_to_field(field_now)
-            field_actual = self.get_actual_field()
+            # field_actual = self.get_actual_field()
 
-            print('Actual field is:', field_actual, 'G')
+            # print('Actual field is:', field_actual, 'G')
             print('------------------------------')
 
     def pswitch_heater_off(self):
@@ -142,7 +144,7 @@ class AMI430(visa_device.visa_device):
         self.SendString("PSwitch 0")
         print('Waiting 40 sec to complete cooling process')
         time.sleep(40)
-        
+
     def update_fields(self, new_fields):
         self.__field_range = new_fields
 
@@ -218,6 +220,5 @@ class DebugAMI430:
     def pswitch_heater_off(self):
         print('Turning persistent switch off...')
 
-    def update_fields(self, new_fields):
-        self.__field_range = new_fields
+
 

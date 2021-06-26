@@ -32,7 +32,7 @@ class LakeShoreController(visa_device.visa_device):
         self.__htrrng = htrrng
 
     def __set_excitation(self, excitation):
-        print('Excitation is:', n_setting)
+        print('Excitation is:', excitation)
         self.device.write(
             f'RDGRNG {self.__temp_channel}, 0, {excitation}, 14, 1, 0')  # 6 chan, 0 - voltage exc.,
                                                 # n_setting, 14 - 6.32 kOhm, 1 - autorange on, 0 - excitation on(!!!)
@@ -60,14 +60,16 @@ class LakeShoreController(visa_device.visa_device):
             n_setting = 7
         elif 1500 < currTemp <= 1800:
             n_setting = 8
-        else:  # > 1800
-            n_setting = 13
+        elif 1800 < currTemp <=6000:  # > 1800
+            n_setting = 10
+        elif currTemp > 6000:
+            n_setting = 12
         self.__set_excitation(n_setting)
 
     def __update_heater_range(self, T):
-        if T <= 6:
+        if T <= 5:
             self.__set_heater_range(7)
-        elif T > 6:
+        elif T > 5:
             self.__set_heater_range(8)
 
     def __update_pid(self, T):
