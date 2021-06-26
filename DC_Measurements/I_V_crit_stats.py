@@ -21,10 +21,6 @@ warnings.filterwarnings("ignore")  # A critical current function may give warnin
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, ls, user_params = ParseCommandLine()
-Log = Logger(R, k_R, 'Stats')
-Log.AddGenericEntry(
-    f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
-    f'Gain={gain}; IVPointDelay={step_delay} sec; LeonardoPoints={num_samples}')
 # ------------------------------------------------------------------------------------------------------------
 
 Leonardo = LeonardoMeasurer(n_samples=num_samples)
@@ -120,7 +116,6 @@ def main_thread():
                                                     3)  # we are not near superconductivity end - threshold may be big
         print(f'Ic- {left_curr}, Ic+ {right_curr}')
         stats_array.append(right_curr)
-        Log.AddParametersEntry('N', nv+1, '', Ic_minus=left_curr, Ic_plus=right_curr)
         # seaborn.histplot(np.array(stats_array), kde=True, ax=ax2)
         time_mgr.OneSweepStepEnd(N + 1)
 
@@ -130,7 +125,8 @@ def main_thread():
         MeasureWaveform(i)
 
     # Saving data
-    fname = GetSaveFileName(R, k_R, "Stats", 'pdf')
+    save_title = "Stats"
+    fname = GetSaveFileName(R, k_R, save_title, 'pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveFigureToPDF(tabIV, pp)
 
@@ -138,16 +134,13 @@ def main_thread():
     pw.canvases[1].draw()
     pw.SaveFigureToPDF(tabStats, pp)
     pp.close()
-    
-    Log.Save()
-
-    # upload to cloud services
-    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
     caption = "Ic_stats"
     dict_save = {'number': numbers, f'I, {I_units}A': I_values, f'U, {V_units}V': U_values}
     SaveData(dict_save, R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     SaveMatrix(numbers, I_values, U_values, f'I, {I_units}A', R, k_R, caption=caption)
+
+    UploadToClouds(GetSaveFolder(R, k_R, save_title))
 
     exit(0)
 

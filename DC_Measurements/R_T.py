@@ -41,7 +41,7 @@ try:
     temp_limit = float(user_params[0])
 except Exception:
     temp_limit = 20
-print('Measurements will be done until temp limit:', temp_limit, 'mK')
+# print('Measurements will be done until temp limit:', temp_limit, 'mK')
 
 # Main program window
 pw = plotWindow("R(T)", color_buttons=False)
@@ -61,8 +61,8 @@ def EquipmentCleanup():
 
 
 def DataSave():
-    if not f_save:
-        return
+    # if not f_save:
+    #    return
 
     # save main data
     caption = 'R_T'
@@ -76,12 +76,7 @@ def DataSave():
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
-
     Log.Save()
-
-    # upload to cloud services
-    UploadToClouds(GetSaveFolder(R, k_R, caption))
-
     exit(0)
 
 
@@ -126,7 +121,7 @@ def MeasureProc():
                or (num > 0 * len_line + percent_points * len_line) or (num < N_points - percent_points * len_line)
 
     curr_temp = LakeShore.GetTemperature()
-    while curr_temp > temp_limit * 1E-3 and not f_exit.is_set():
+    while not f_exit.is_set():
         # measure I_V
         V_for_R = []
         I_for_R = []

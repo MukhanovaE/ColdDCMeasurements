@@ -50,10 +50,9 @@ def OnClose(_):
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
 
-    f_exit = f_save = True
-
-    # upload to cloud services
+    print('Uploading to clouds')
     UploadToClouds(GetSaveFolder(R, k_R, caption))
+    f_exit = f_save = True
 
 
 # Initialize a plot

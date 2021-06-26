@@ -22,13 +22,12 @@ Log.AddGenericEntry(
 
 # get LakeShore temperature sweep parameters from command line
 try:
-    temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in user_params.split(';')]
-    N_curves_each_time = int(N_curves_each_time)
+    temp0, max_temp, temp_step = [float(i) for i in user_params.split(';')]
     if temp0 == 0:
         temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
 except Exception:
-    temp0, max_temp, temp_step, N_curves_each_time = None, 1.1, 100 * 1E-3, 1
-print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0*1e+3} mK to {max_temp} K, with step: {temp_step*1e+3:.3f} mK, each temperature will be measured', N_curves_each_time, 'times')
+    temp0, max_temp, temp_step = None, 1.1, 100 * 1E-3
+print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0*1e+3} mK to {max_temp} K, with step: {temp_step*1e+3:.3f} mK')
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
@@ -45,7 +44,7 @@ upper_line_2 = np.arange(-rangeA, 0, stepA)  # np.linspace(-rangeA, 0, n_points 
 voltValues0 = np.hstack((upper_line_1,
                          down_line_1,
                          upper_line_2))
-print(n_points)
+
 N_points = len(down_line_1)
 N_temps = len(LakeShore.TempRange)
 # ------------------------------------------------------------------------------------------------------------
@@ -56,7 +55,7 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 
 # Resistance measurement
 # ----------------------------------------------------------------------------------------------------
-percentage_R = 0.2  # how many percents left-right will be used to measure R
+percentage_R = 0.1  # how many percents left-right will be used to measure R
 fraction_R = int(len(voltValues0) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
 lower_R_bound = upper_line_2[int(len(upper_line_2) * percentage_R)]
 upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
@@ -73,10 +72,8 @@ voltValues = []
 crit_curs = np.zeros((2, N_temps))
 currValues_axis = ((-down_line_1 / R) / k_A)
 tempValues_axis = LakeShore.TempRange
+resistValues = []
 tempsMomental = []  # for temperatures plot
-
-tempValuesR = []
-resistValuesR = []
 
 # behavior on program exit - save data
 f_exit = threading.Event()
@@ -119,12 +116,13 @@ def DataSave():
     SaveData({'T, mK': tempValues_axis[:N_meas], f'Crit curr., negative, {I_units}A': crit_curs[0, :N_meas],
               f'Crit curr., positive, {I_units}A': crit_curs[1, :N_meas]},
              R, caption=caption_cr, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
-             
     SaveMatrix(tempValues, currValues, voltValues, f'I, {I_units}A', R, k_R, caption=caption)
+    
+    SaveData({'T_mK': tempValues_axis[:len(resistValues)], 'R_Ohm': resistValues}, R, caption=caption + '_R', k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+    
+    # save log
     Log.Save()
 
-    SaveData({'T': tempValuesR, f'R': resistValuesR},
-             R, caption=caption + '_R', k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     # upload to cloud services
     UploadToClouds(GetSaveFolder(R, k_R, caption))
 
@@ -167,10 +165,11 @@ tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'T, mK', fr'I, {core_units[k_A]}A', 
 # 9 I_crit. vs. T
 tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'T, mK',
                                         fr'$I_C^\pm, {core_units[k_A]}A$', linestyle='-', marker='o')
-
-tabResist = pw.addScatter2D('Resistance', 'Temperature', r'R, $\Omega$')
                                         
-# 10 T(t) plot - to control temperature in real time
+# 10 Resistance vs. T
+tabResistance = pw.addLine2D('Resistance', 'T', 'R, $\Omega$', linestyle='-', marker='o')
+
+# 11 T(t) plot - to control temperature in real time
 tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
 
 # Update T on the last tab
@@ -212,180 +211,160 @@ def TemperatureThreadProc():
 
 # main thread - runs when QT application is started
 N_meas = 0
-resist = 0
-
+R_now = 0
 
 @MeasurementProc(EquipmentCleanup)
 def thread_proc():
-    global Leonardo, Yokogawa, LakeShore, pw, f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, resist
+    global Leonardo, Yokogawa, LakeShore, pw, f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, R_now
 
     # Temperature change and measurement process!
     for i, temp in enumerate(LakeShore):
+        # calculate estimated time
+        time_mgr.OneSweepStepBegin()
 
         # write data to logs
         Log.AddParametersEntry('T', temp, 'K', PID=LakeShore.pid, HeaterRange=LakeShore.htrrng,
                                Excitation=LakeShore.excitation)
-        all_Ic = []
-        all_Ir = []
-        all_this_temp_A = []
-        all_this_temp_V = []
 
-        for Ncurve in range(N_curves_each_time):
-            this_temp_buff_ic = np.zeros(data_buff.shape[0])
-            this_temp_buff_ir = np.zeros(data_buff.shape[0])
+        # try to measure while temperature will be stable
+        fMeasSuccess = False
+        while not fMeasSuccess:
+            # Mark measurement begin
+            UpdateRealtimeThermometer()
+            pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
 
-            # measure one of required curves
-            print('Measuring', Ncurve+1, 'of', N_curves_each_time)
-            # try to measure while temperature will be stable
-            fMeasSuccess = False
-            while not fMeasSuccess:
-                # Mark measurement begin
-                UpdateRealtimeThermometer()
-                pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
+            this_temp_V = []  # for I-V 2D plot
+            this_temp_A = []
 
-                this_temp_V = []  # for I-V 2D plot
-                this_temp_A = []
+            this_T = []  # for quality control
 
-                this_T = []  # for quality control
+            this_RIValues = [0]  # for resistance measurement
+            this_RUValues = [0]
 
-                this_RIValues = [0]  # for resistance measurement
-                this_RUValues = [0]
+            pw.SetHeader(tabIV, 'R will be measured later...')
 
-                pw.SetHeader(tabIV, 'R will be measured later...')
+            # process one point of I-V curve
+            def PerformStep(yok, currValues, tempValues, voltValues,
+                            volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues):
+                global R_now
+                yok.SetOutput(volt)
+                time.sleep(step_delay)
+                curr_curr = (volt / R) / k_A
+                V_meas = Leonardo.MeasureNow(6) / gain
 
-                # process one point of I-V curve
-                def PerformStep(yok, currValues, tempValues, voltValues,
-                                volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues):
-                    global resist
-                    yok.SetOutput(volt)
-                    time.sleep(step_delay)
-                    curr_curr = (volt / R) / k_A
-                    V_meas = Leonardo.MeasureNow(6) / gain
+                result_data = V_meas / k_V_meas
+                currValues.append(curr_curr)
+                tempValues.append(temp * 1000)
+                voltValues.append(V_meas / k_V_meas)
+                this_temp_V.append(V_meas / k_V_meas)
+                this_temp_A.append(curr_curr)
 
-                    result_data = V_meas / k_V_meas
-                    #currValues.append(curr_curr)
-                    #tempValues.append(temp * 1000)
-                    #voltValues.append(V_meas / k_V_meas)
-                    this_temp_V.append(V_meas / k_V_meas)
-                    this_temp_A.append(curr_curr)
+                # keep temperatures to estimate measurements quality
+                this_T.append(tempsMomental[-1])
 
-                    # keep temperatures to estimate measurements quality
-                    this_T.append(tempsMomental[-1])
+                # Make 3D plots mouse-scrollable
+                pw.MouseInit(tabIVTC3D)
+                pw.MouseInit(tabIVTR3D)
+                pw.MouseInit(tabRC3D)
+                pw.MouseInit(tabRR3D)
+                # Update I-U 2D plot
+                if pw.CurrentTab == tabIV:
+                    pw.updateLine2D(tabIV, this_temp_A, this_temp_V, redraw=False)
+                # measure resistance on 2D plot
+                if volt > upper_R_bound:
+                    this_RIValues.append(curr_curr)
+                    this_RUValues.append(V_meas / k_V_meas)
 
-                    # Make 3D plots mouse-scrollable
-                    pw.MouseInit(tabIVTC3D)
-                    pw.MouseInit(tabIVTR3D)
-                    pw.MouseInit(tabRC3D)
-                    pw.MouseInit(tabRR3D)
-                    # Update I-U 2D plot
-                    if pw.CurrentTab == tabIV:
-                        pw.updateLine2D(tabIV, this_temp_A, this_temp_V, redraw=False)
-                    # measure resistance on 2D plot
-                    if volt > upper_R_bound:
-                        this_RIValues.append(curr_curr)
-                        this_RUValues.append(V_meas / k_V_meas)
-                        resist = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * k_A, np.array(this_RUValues) * k_V_meas)
+                    R_now = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * k_A, np.array(this_RUValues) * k_V_meas)
 
-                    pw.canvases[pw.CurrentTab].draw()
+                pw.canvases[pw.CurrentTab].draw()
 
-                    if f_exit.is_set():
-                        exit(0)
+                if f_exit.is_set():
+                    exit(0)
 
-                    return result_data
+                return result_data
 
-                # 1/3: 0 - max curr, Ic+
-                for j, volt in enumerate(upper_line_1):
-                    res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
-                                      volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                    this_temp_buff_ic[j + N_points // 2] = res
+            # 1/3: 0 - max curr, Ic+
+            for j, volt in enumerate(upper_line_1):
+                res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
+                                  volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
+                data_buff[j + N_points // 2, i] = res
 
-                # 2/3: max curr -> min curr, Ir+, Ic-
-                for j, volt in enumerate(down_line_1):
-                    res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
-                                      volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                    if j < (len(down_line_1) // 2):
-                        this_temp_buff_ir[N_points - j - 1] = res
-                    else:
-                        this_temp_buff_ic[N_points - j - 1] = res
+            # 2/3: max curr -> min curr, Ir+, Ic-
+            for j, volt in enumerate(down_line_1):
+                res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
+                                  volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
+                if j <= (len(down_line_1) // 2):
+                    data_buff_ir[N_points - j - 1, i] = res
+                if j >= (len(down_line_1) // 2):
+                    data_buff[N_points - j - 1, i] = res
 
-                # 3/3: min curr -> 0, Ir-
-                for j, volt in enumerate(upper_line_2):
-                    res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
-                                      volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                    this_temp_buff_ir[j] = res
+            # 3/3: min curr -> 0, Ir-
+            for j, volt in enumerate(upper_line_2):
+                res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
+                                  volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
+                data_buff_ir[j, i] = res
 
-                N_meas += 1
+            N_meas += 1
 
+            # Update plots
+            # Update I-U-T 3D
+            pw.update3DPlot(tabIVTC3D, tempValues_axis[:i + 1], currValues_axis, data_buff[:, :i + 1],
+                            LakeShore.TempRange, plt.cm.brg)
+            pw.update3DPlot(tabIVTR3D, tempValues_axis[:i + 1], currValues_axis, data_buff_ir[:, :i + 1],
+                            LakeShore.TempRange, plt.cm.brg)
 
-                # check measurements accuracy
-                mean_temp = np.mean(this_T)
-                if abs(mean_temp - temp) > 0.005:  # toleracy is 5 mK
-                    print(f'Temperature was unstable, desired - {temp}, average - {mean_temp}. Now retrying...')
+            # update T-I-V color mesh (ir and ic)
+            pw.updateColormesh(tabIVTCMesh, data_buff, LakeShore.TempRange, currValues_axis, 9)
+            pw.updateColormesh(tabIVTRMesh, data_buff_ir, LakeShore.TempRange, currValues_axis, 9)
 
-                    # retry loop, do not exit while
-                    fMeasSuccess = False
-                else:
-                    fMeasSuccess = True
+            # calculate R
+            R_values_ic = np.gradient(np.array(data_buff[:, i]) * (k_V_meas / k_A))  # to make R in ohms
+            R_buff[:, i] = R_values_ic
+            #
+            R_values_ir = np.gradient(np.array(data_buff_ir[:, i]) * (k_V_meas / k_A))  # to make R in ohms
+            R_buff_ir[:, i] = R_values_ir
 
-            all_Ic.append(this_temp_buff_ic)
-            all_Ir.append(this_temp_buff_ir)
-            all_this_temp_A.append(this_temp_A)
-            all_this_temp_V.append(this_temp_V)
+            crit_curs[:, i] = FindCriticalCurrent(this_temp_A, this_temp_V, threshold=1.5)
+
+            # plot them
+            xdata = LakeShore.TempRange[:i + 1]
+            pw.updateLines2D(tabICT, [xdata, xdata], [crit_curs[0, :i + 1], crit_curs[1, :i + 1]])
+
+            # update R color mesh (ir and ic)
+            pw.updateColormesh(tabRCMesh, R_buff, LakeShore.TempRange, currValues_axis, 9)
+            pw.updateColormesh(tabRRMesh, R_buff_ir, LakeShore.TempRange, currValues_axis, 9)
+
+            # update R 3D plot (ir and ic)
+            pw.update3DPlot(tabRC3D, tempValues_axis[:i + 1], currValues_axis, R_buff[:, :i + 1],
+                            LakeShore.TempRange, R_3D_colormap)
+            pw.update3DPlot(tabRR3D, tempValues_axis[:i + 1], currValues_axis, R_buff_ir[:, :i + 1],
+                            LakeShore.TempRange, R_3D_colormap)
             
-            resistValuesR.append(resist)
-            tempValuesR.append(temp)
-            
-            pw.updateLine2D(tabResist, tempValuesR, resistValuesR)
+            # Update resistance
+            resistValues.append(R_now)
+            pw.updateLine2D(tabResistance, tempValues_axis[:len(resistValues)], resistValues)
+               
+            # Mark measurement end
+            pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
 
-        # end for (3 times)
-        # get averaged data and put them into buffers/arrays
-        all_Ic = np.column_stack(all_Ic)
-        all_Ir = np.column_stack(all_Ir)
-        all_this_temp_V = np.column_stack(all_this_temp_V)
-        all_this_temp_A = np.column_stack(all_this_temp_A)
+            # check measurements accuracy
+            mean_temp = np.mean(this_T)
+            if abs(mean_temp - temp) > 0.005:  # toleracy is 5 mK
+                print(f'Temperature was unstable, desired - {temp}, average - {mean_temp}. Now retrying...')
 
-        data_buff[:, i] = np.mean(all_Ic, axis=1)
-        data_buff_ir[:, i] = np.mean(all_Ir, axis=1)
-        this_temp_V_final = np.mean(all_this_temp_V, axis=1)
-        this_temp_A_final = np.mean(all_this_temp_A, axis=1)
+                # Erase now measured data
+                # 2D buffers will be rewritten, there is no append(), so it is not required to erase data from them
+                currValues = currValues[:-len(voltValues0)]
+                voltValues = voltValues[:-len(voltValues0)]
+                tempValues = tempValues[:-len(voltValues0)]
+                # retry loop, do not exit while
+                fMeasSuccess = False
+            else:
+                fMeasSuccess = True
 
-        tempValues.extend([temp] * len(this_temp_V_final))
-        currValues.extend(this_temp_A_final)
-        voltValues.extend(this_temp_V_final)
-
-        # Update plots
-        # Update I-U-T 3D
-        pw.update3DPlot(tabIVTC3D, tempValues_axis[:i + 1], currValues_axis, data_buff[:, :i + 1],
-                        LakeShore.TempRange, plt.cm.brg)
-        pw.update3DPlot(tabIVTR3D, tempValues_axis[:i + 1], currValues_axis, data_buff_ir[:, :i + 1],
-                        LakeShore.TempRange, plt.cm.brg)
-
-        # update T-I-V color mesh (ir and ic)
-        pw.updateColormesh(tabIVTCMesh, data_buff, LakeShore.TempRange, currValues_axis, 9)
-        pw.updateColormesh(tabIVTRMesh, data_buff_ir, LakeShore.TempRange, currValues_axis, 9)
-
-        # calculate R
-        R_values_ic = np.gradient(np.array(data_buff[:, i]) * (k_V_meas / k_A))  # to make R in ohms
-        R_buff[:, i] = R_values_ic
-        #
-        R_values_ir = np.gradient(np.array(data_buff_ir[:, i]) * (k_V_meas / k_A))  # to make R in ohms
-        R_buff_ir[:, i] = R_values_ir
-
-        crit_curs[:, i] = FindCriticalCurrent(this_temp_A, this_temp_V, threshold=1.5)
-
-        # plot them
-        xdata = LakeShore.TempRange[:i + 1]
-        pw.updateLines2D(tabICT, [xdata, xdata], [crit_curs[0, :i + 1], crit_curs[1, :i + 1]])
-
-        # update R color mesh (ir and ic)
-        pw.updateColormesh(tabRCMesh, R_buff, LakeShore.TempRange, currValues_axis, 9)
-        pw.updateColormesh(tabRRMesh, R_buff_ir, LakeShore.TempRange, currValues_axis, 9)
-
-        # update R 3D plot (ir and ic)
-        pw.update3DPlot(tabRC3D, tempValues_axis[:i + 1], currValues_axis, R_buff[:, :i + 1],
-                        LakeShore.TempRange, R_3D_colormap)
-        pw.update3DPlot(tabRR3D, tempValues_axis[:i + 1], currValues_axis, R_buff_ir[:, :i + 1],
-                        LakeShore.TempRange, R_3D_colormap)
+        # calculate estimated time
+        time_mgr.OneSweepStepEnd(i + 1)
 
     # end of measurements
     f_exit.set()  # terminate all another threads

@@ -75,19 +75,19 @@ fields_decr = np.arange(toA_B, fromA_B, -stepA_B)
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = DebugLeonardoMeasurer(n_samples=num_samples)
-Yokogawa_I = DebugYokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT')
+Leonardo = LeonardoMeasurer(n_samples=num_samples)
+Yokogawa_I = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT')
 if isinstance(yok_write, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = DebugYokogawaMeasurer(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
+    Field_controller = YokogawaMeasurer(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
 else:
     print('Using AMI430 for magnetic field control')
-    Field_controller = DebugAMI430(yok_write, fields_incr)
+    Field_controller = AMI430(yok_write, fields_incr)
 # ------------------------------------------------------------------------------------------------------------
 
 
 # Current parameters
-v0_sweep = np.linspace(bias_start*1E-6 * R, bias_end*1E-6 * R, int(bias_step)) # U=IR
+v0_sweep = np.array([15,30]) * 1e-9 * R #,1, 0.5 #np.linspace(bias_start*1E-6 * R, bias_end*1E-6 * R, int(bias_step)) # U=IR
 print(len(v0_sweep), 'points')
 # Measurement result
 data_dict_inc = {}
@@ -181,8 +181,8 @@ def MainThreadProc():
     curr_plot_bias_dec = 0
 
     # "field" column in each data matrix
-    data_dict_inc['B, Gs'] = upper_line_1B
-    data_dict_dec['B, Gs'] = upper_line_1B[::-1]
+    data_dict_inc['B_G'] = upper_line_1B
+    data_dict_dec['B_G'] = upper_line_1B[::-1]
 
     # Measurement process
     
@@ -205,8 +205,6 @@ def MainThreadProc():
         
         time_mgr.OneSweepStepBegin()
         Yokogawa_I.SetOutput(v0)
-
-        
 
         voltValues_inc = []
         voltValues_dec = []
@@ -235,7 +233,8 @@ def MainThreadProc():
                 if f_exit.is_set():
                     exit(0)
                 
-            data_dict_inc[f'{curr:.5f}'] = copy(voltValues_inc)
+            data_dict_inc[f'V_{curr:.5f}'] = copy(voltValues_inc)
+            data_dict_inc[f'R_{curr:.5f}'] = copy(resValues_inc)
             LocalSaveIncr()
             
             # plot on common graph
@@ -267,18 +266,21 @@ def MainThreadProc():
         if decr_now:
             print('Ramping field upwards')
             for curr_field in sweeper_decr:
+                curr_volt = Leonardo.MeasureNow(6) / gain  # in volts
                 fieldValues_dec.append(curr_field)
                 voltValues_dec.append(curr_volt / k_V_meas)  # in required units
 
                 resValues_dec.append(curr_volt / now_current)
                 pw.updateScatter2D(tabVB, fieldValues_dec, voltValues_dec)
-                pw.updateScatter2D(tabVB_resistance, fieldValues_dec, voltValues_dec)
+                pw.updateScatter2D(tabVB_resistance, fieldValues_dec, resValues_dec)
                 
                 if f_exit.is_set():
                     exit(0)
         
             # add data to common dictionary
-            data_dict_dec[f'{curr:.5f}'] = copy(voltValues_dec)[::-1]
+            data_dict_dec[f'V_{curr:.5f}'] = copy(voltValues_dec)[::-1]
+            data_dict_dec[f'R_{curr:.5f}'] = copy(resValues_dec)[::-1]
+
             LocalSaveDecr()
             pw.plotOnScatter2D(tabVBReverseNoOffset, fieldValues_dec, voltValues_dec,
                            f'I={(v0 / R) / k_A:.3f} {core_units[k_A]}A', 'o', markersize=4)
