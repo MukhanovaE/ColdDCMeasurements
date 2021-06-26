@@ -10,6 +10,7 @@ import threading
 
 MAX_TEMP = 1.7  # WARNING!!! Must be <=1.7!!!
 
+
 # An exception to be thrown if we try to control a temperature in a passive mode
 class LakeShoreException(Exception):
     def __init(self):
@@ -60,7 +61,7 @@ class LakeShoreController(visa_device.visa_device):
             n_setting = 7
         elif 1500 < currTemp <= 1800:
             n_setting = 8
-        elif 1800 < currTemp <=6000:  # > 1800
+        elif 1800 < currTemp <= 6000:  # > 1800
             n_setting = 10
         elif currTemp > 6000:
             n_setting = 12
@@ -118,7 +119,7 @@ class LakeShoreController(visa_device.visa_device):
             pid = [float(i) for i in self.GetString('PID?').rstrip().split(',')]
             print(f'P={pid[0]}, I={pid[1]}, D={pid[2]}')
         except ValueError:
-            print('LakeShore returned an invalid responce.')
+            print('LakeShore returned an invalid response.')
 
     # A class constructor
     # temp0 - starter swept temperature (if None, use current temperature)
@@ -163,8 +164,6 @@ class LakeShoreController(visa_device.visa_device):
 
             # temperature swept values
             self.__tempValues = np.arange(initialTemp, max_temp, tempStep)
-
-        
 
         if self.__verbose:
             print('LakeShore bridge connection success')

@@ -342,7 +342,13 @@ namespace ExperimentRunner
                     }
                     if (sett.TryLoadSetting("I_V_T_auto_param3", ref strRead))
                     {
-                        txtIVTA_OneCurveTimes.Value = Int32.Parse(strRead);                      
+                        try { 
+                            txtIVTA_OneCurveTimes.Value = Int32.Parse(strRead);      
+                        }
+                        catch
+                        {
+                            txtIVTA_OneCurveTimes.Value = 1;
+                        }
                     }
                     meas_params.SetParameters(txtIVTA_SweepFrom.Text, txtIVTA_SweepTo.Text, txtIVTA_SweepStep.Text, strRead);
                     break;
@@ -1317,6 +1323,11 @@ namespace ExperimentRunner
         private void txtIVTA_OneCurveTimes_KeyPress(object sender, KeyPressEventArgs e)
         {
             InputValidator.HandleKeyEvent(e, false, false);
+        }
+
+        private void TxtStats_Resistance_TextChanged(object sender, EventArgs e)
+        {
+
         }
 
         private void txtIVTA_OneCurveTimes_Leave(object sender, EventArgs e)

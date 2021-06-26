@@ -833,7 +833,8 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::ExperimentRunner.Properties.Resources.I_V;
+            this.pictureBox1.Image = global::ExperimentRunner.Properties.Resources.IV;
+            this.pictureBox1.InitialImage = global::ExperimentRunner.Properties.Resources.IV;
             this.pictureBox1.Location = new System.Drawing.Point(16, 16);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(284, 284);
@@ -1517,7 +1518,7 @@
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = global::ExperimentRunner.Properties.Resources.I_V;
+            this.pictureBox2.Image = global::ExperimentRunner.Properties.Resources.IV;
             this.pictureBox2.Location = new System.Drawing.Point(16, 16);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(284, 284);
@@ -3408,6 +3409,7 @@
             this.txtStats_Resistance.Size = new System.Drawing.Size(194, 20);
             this.txtStats_Resistance.TabIndex = 0;
             this.txtStats_Resistance.Text = "2000";
+            this.txtStats_Resistance.TextChanged += new System.EventHandler(this.TxtStats_Resistance_TextChanged);
             // 
             // groupBox30
             // 
@@ -5072,7 +5074,7 @@
             // 
             // pictureBox9
             // 
-            this.pictureBox9.Image = global::ExperimentRunner.Properties.Resources.I_V;
+            this.pictureBox9.Image = global::ExperimentRunner.Properties.Resources.IV;
             this.pictureBox9.Location = new System.Drawing.Point(16, 16);
             this.pictureBox9.Name = "pictureBox9";
             this.pictureBox9.Size = new System.Drawing.Size(284, 284);
@@ -5551,7 +5553,7 @@
             // 
             // pictureBox13
             // 
-            this.pictureBox13.Image = global::ExperimentRunner.Properties.Resources.I_V;
+            this.pictureBox13.Image = global::ExperimentRunner.Properties.Resources.IV;
             this.pictureBox13.Location = new System.Drawing.Point(16, 16);
             this.pictureBox13.Name = "pictureBox13";
             this.pictureBox13.Size = new System.Drawing.Size(284, 284);
@@ -6043,7 +6045,7 @@
             // 
             // pictureBox14
             // 
-            this.pictureBox14.Image = global::ExperimentRunner.Properties.Resources.I_V;
+            this.pictureBox14.Image = global::ExperimentRunner.Properties.Resources.IV;
             this.pictureBox14.Location = new System.Drawing.Point(16, 16);
             this.pictureBox14.Name = "pictureBox14";
             this.pictureBox14.Size = new System.Drawing.Size(284, 284);
@@ -6611,7 +6613,7 @@
             // 
             // pictureBox15
             // 
-            this.pictureBox15.Image = global::ExperimentRunner.Properties.Resources.I_V;
+            this.pictureBox15.Image = global::ExperimentRunner.Properties.Resources.IV;
             this.pictureBox15.Location = new System.Drawing.Point(16, 16);
             this.pictureBox15.Name = "pictureBox15";
             this.pictureBox15.Size = new System.Drawing.Size(284, 284);
