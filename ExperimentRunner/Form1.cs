@@ -26,6 +26,8 @@ namespace ExperimentRunner
         private const String strYokRead = "SourceReadout";
         private const String strYokWrite = "SourceExcitation";
         private const String strLakeShore = "LakeShore";
+        private const String strExcitationDevice = "ExcitationDevice";
+        private const String strReadoutDevice = "ReadoutDevice";
         private const String strAMIController = "AMI_controller";
         private const String sShapiroStartPower = "Shapiro_power_start";
         private const String sShapiroEndPower = "Shapiro_power_end";
@@ -62,19 +64,20 @@ namespace ExperimentRunner
         private const String SWEEP_MODE_DECR_INCR_ONE_CURVE = "5";
 
         //tabs numbers
-        private const int tabIV = 0;
-        private const int tabIVTManual = 1;
-        private const int tabIVTAuto = 2;
-        private const int tabIVB = 3;
-        private const int tabVB = 4;
-        private const int tabCritStats = 5;
-        private const int tabRT = 6;
-        private const int tabRTGate = 7;
-        private const int tabGate = 8;
-        private const int tabGateT = 9;
-        private const int tabGateB = 10;
-        private const int tabShapiro = 11;
-        private const int tabGatePulse = 12;
+        public const int tabIV = 0;
+        public const int tabIVTManual = 1;
+        public const int tabIVTAuto = 2;
+        public const int tabIVB = 3;
+        public const int tabVB = 4;
+        public const int tabCritStats = 5;
+        public const int tabRT = 6;
+        public const int tabRTGate = 7;
+        public const int tabGate = 8;
+        public const int tabGateT = 9;
+        public const int tabGateB = 10;
+        public const int tabShapiro = 11;
+        public const int tabGatePulse = 12;
+        public const int tabEquipmentSetup = 13;
 
         // a flag that shows are the settings loaded into form controls
         // If no, don't handle text field change events
@@ -266,6 +269,8 @@ namespace ExperimentRunner
             sett.SaveSetting(strYokWrite, nYokWrite);
             sett.SaveSetting(strLakeShore, nLakeShore);
             sett.SaveSetting(strAMIController, strAMI);
+            sett.SaveSetting(strExcitationDevice, cboExcitationDevice.SelectedIndex);
+            sett.SaveSetting(strReadoutDevice, cboReadoutDevice.SelectedIndex);
 
             // advanced settings for some tabs
             SaveShapiroSettings(cboShapiroType.SelectedIndex);
@@ -279,6 +284,8 @@ namespace ExperimentRunner
 
             // Default values
             int settYokRead = 3, settYokWrite = 6, settLakeShore = 17;
+            int settExcDevice = RunParams.EXCITATION_YOKOGAWA, settReadoutDevice = RunParams.READOUT_LEONARDO;
+
             String settAMI = txtAMIAddress.Text;
 
             String strSampName="Sample 1";
@@ -290,13 +297,22 @@ namespace ExperimentRunner
             sett.TryLoadSetting(strLakeShore, ref settLakeShore);
             sett.TryLoadSetting(strAMIController, ref settAMI);
 
+            sett.TryLoadSetting(strExcitationDevice, ref settExcDevice);
+            sett.TryLoadSetting(strReadoutDevice, ref settReadoutDevice);
+
             nYokRead = settYokRead; nYokWrite = settYokWrite; nLakeShore = settLakeShore;
             strAMI = settAMI;
-            meas_params.SetEquipment(nYokRead, nYokWrite, nLakeShore);
+            meas_params.SetEquipmentIDs(nYokRead, nYokWrite, nLakeShore);
+            meas_params.SetExcitationDeviceType(settExcDevice);
+            meas_params.SetReadoutDeviceType(settReadoutDevice);
+
             txtExcitationDevice.Text = nYokWrite.ToString();
             txtReadoutDevice.Text = nYokRead.ToString();
             txtLakeShoreID.Text = nLakeShore.ToString();
             txtAMIAddress.Text = strAMI;
+
+            cboExcitationDevice.SelectedIndex = settExcDevice;
+            cboReadoutDevice.SelectedIndex = settReadoutDevice;
 
             tabControl1.SelectedIndex = nCurrentTab;
             txtSampleName.Text = strSampName;
@@ -706,6 +722,9 @@ namespace ExperimentRunner
                             txtGatePulses_Gain, txtGatePulses_Delay, txtGatePulses_Samples);
                     meas_params.SetParameters(txtGatePulses_SweepFrom.Text, txtGatePulses_SweepTo.Text, txtGatePulses_SweepStep.Text, txtGatePulses_Repeat.Text,
                         txtGatePulses_Amplitude.Text, txtGatePulses_BiasCurrent.Text, txtGatePulses_DeviceID.Text);
+                    break;
+                case tabEquipmentSetup:
+                    meas_params.UpdateControls(i);
                     break;
             }
             LoadTabSpecialSettings(i);
@@ -1341,6 +1360,16 @@ namespace ExperimentRunner
                 UseShellExecute = true,
                 Verb = "open"
             });
+        }
+
+        private void CboReadoutDevice_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            meas_params.SetReadoutDeviceType(cboReadoutDevice.SelectedIndex);
+        }
+
+        private void CboExcitationDevice_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            meas_params.SetExcitationDeviceType(cboExcitationDevice.SelectedIndex);
         }
 
         private void txtIVTA_OneCurveTimes_Leave(object sender, EventArgs e)

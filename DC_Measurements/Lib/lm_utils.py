@@ -31,6 +31,11 @@ r_units = {1: '', 1e+3: 'K', 1e+6: 'M'}
 sample_name = ""
 experimentDate = None
 
+# Excitation and readout device types
+EXCITATION_YOKOGAWA = 0
+EXCITATION_KEITHLEY = 1
+READOUT_LEONARDO = 0
+READOUT_KEITHLEY = 1
 
 # function ParseCommandLine
 # parses command line and makes user input if command-line parameters were not set
@@ -40,6 +45,8 @@ def ParseCommandLine():
     default_yok_read = 3
     default_yok_write = 6
     default_lakeshore = 17
+    default_readout = READOUT_LEONARDO
+    default_excitation = EXCITATION_YOKOGAWA
 
     def user_input():
         # units
@@ -64,14 +71,18 @@ def ParseCommandLine():
         yok_read = default_yok_read
         yok_write = default_yok_write
         lakeshore = default_lakeshore
+
+        readout_type = default_readout
+        excitation_type = default_excitation
+
         f_save = True
 
         return k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-               yok_write, lakeshore
+               yok_write, lakeshore, readout_type, excitation_type
 
     if len(sys.argv) == 1:  # user did not specify everything in command line
         k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-                yok_write, lakeshore = user_input()
+                yok_write, lakeshore, read_device, exc_device = user_input()
 
     else:
         # first - key arguments : -mkV, nA, -kOhm etc...
@@ -80,6 +91,9 @@ def ParseCommandLine():
         # resistance, Yokogawa range, Yokogawa step, voltage gain, delay between steps, number of points to measure
         try:
             p = argparse.ArgumentParser()
+
+            p.add_argument('-RT', action='store', required=False, default=default_readout)
+            p.add_argument('-WT', action='store', required=False, default=default_excitation)
 
             p.add_argument('-R', action='store', required=False, default=default_yok_read)
             p.add_argument('-W', action='store', required=False, default=default_yok_write)
@@ -140,18 +154,21 @@ def ParseCommandLine():
             yok_write = args['W']
             lakeshore = int(args['L'])
 
+            exc_device = int(args['WT'])
+            read_device = int(args['WT'])
+
             yok_write = int(yok_write) if yok_write.isdigit() else yok_write
 
             print(
                 f'Equipment IDs will be used: Yokogawa for current:{yok_read}, Yokogawa for field/gate: {yok_write}, '
                 f'LakeShore controller: {lakeshore}')
-            user_params = args['P'][1:-1]  #remove quotes
+            user_params = args['P'][1:-1]  # remove quotes
             
         except Exception as e:
             print('Error during command line parsing:')
             print(e)
             k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-                yok_write, lakeshore = user_input()
+                yok_write, lakeshore, read_device, exc_device = user_input()
             user_params = ""
 
     I_units = core_units[k_A]
@@ -159,7 +176,7 @@ def ParseCommandLine():
     print('R=', R, 'R*', k_R, 'V*', k_V_meas, 'A*', k_A)  # for debugging
 
     return (k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units,
-            f_save, yok_read, yok_write, lakeshore, user_params)
+            f_save, yok_read, yok_write, lakeshore, read_device, exc_device, user_params)
 
 
 # Function GetSaveFolder

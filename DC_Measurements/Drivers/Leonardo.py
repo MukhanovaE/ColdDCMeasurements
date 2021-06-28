@@ -14,7 +14,7 @@ class LeonardoReadException(Exception):
         super().__init__(msg)
 
 
-class LeonardoMeasurer():
+class LeonardoMeasurer:
     def __init__(self, channels=8, n_samples=500, verbose=True):
         self.__N_CHANNELS = channels
         self.__verbose = verbose

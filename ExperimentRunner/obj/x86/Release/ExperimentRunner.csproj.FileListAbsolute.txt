@@ -6,3 +6,11 @@ F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x
 F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.exe
 F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.pdb
 F:\Documents\Visual Studio 2010\Projects\ExperimentRunner\ExperimentRunner\obj\x86\Release\ExperimentRunner.csprojResolveAssemblyReference.cache
+D:\RQC\ColdDCMeasurements\ExperimentRunner\bin\Release\ExperimentRunner.exe
+D:\RQC\ColdDCMeasurements\ExperimentRunner\bin\Release\ExperimentRunner.pdb
+D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.Form1.resources
+D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.Properties.Resources.resources
+D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.csproj.GenerateResource.cache
+D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.csproj.CoreCompileInputs.cache
+D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.exe
+D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.pdb

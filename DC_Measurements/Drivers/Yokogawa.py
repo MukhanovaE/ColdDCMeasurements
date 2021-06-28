@@ -1,4 +1,4 @@
-from . import visa_device
+import visa_device
 
 
 class YokogawaMeasurer(visa_device.visa_device):
@@ -44,12 +44,13 @@ class YokogawaMeasurer(visa_device.visa_device):
 class DebugYokogawaMeasurer:
     def __init__(self, device_num=4, dev_range='1E+0', what='VOLT', verbose=True):
         print('Yokogawa DEBUG version, no real current output')
+        self._curr = 0
 
     def SetOutput(self, value: float):
-        pass
+        self._curr = value
 
     def GetOutput(self):
-        return 42
+        return self._curr
 
     def __del__(self):
         print('If it was a real Yokogawa, its output will be reset to 0.')

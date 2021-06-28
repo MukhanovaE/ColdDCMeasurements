@@ -138,8 +138,6 @@ DC_Measurements/Cloud_auth/
 *.dll
 
 Data/
-*.exe
-*.pdb
 
 # Some auxillary scripts used for some local tasks
 __*.py

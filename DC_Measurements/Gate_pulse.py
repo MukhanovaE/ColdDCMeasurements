@@ -4,23 +4,28 @@ import time
 import threading
 import sys
 
-from Lib.lm_utils import *
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
 from Drivers.LakeShore import *
 from Drivers.KeysightAWG import *
+from Drivers.Keithley2182A import *
+from Drivers.Keithley6200 import *
 
+from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
-k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, ls, user_params = ParseCommandLine()
+k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
+    ls, read_device_type, exc_device_type, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'Gate_pulse')
 Log.AddGenericEntry(f'Gain={gain}; LeonardoPoints={num_samples}')
 # ------------------------------------------------------------------------------------------------------------
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT')
+Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
+    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
+Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
+    else Keithley2182A(device_num=yok_write)
 LakeShore = LakeShoreController(mode='passive', device_num=ls)
 # parse user-defined parameters
 try:

@@ -11,6 +11,13 @@ namespace ExperimentRunner
 {
     class RunParams
     {
+        // excitation and readout device types
+        // (corresponding to combo boxes element IDs on a form)
+        public const int EXCITATION_YOKOGAWA = 0;
+        public const int EXCITATION_KEITHLEY = 1;
+        public const int READOUT_LEONARDO = 0;
+        public const int READOUT_KEITHLEY = 1;
+
         //settings registry key names
         private const string strSettingsIUnits = "_I_units";
         private const string strSettingsVUnits = "_U_units";
@@ -48,6 +55,7 @@ namespace ExperimentRunner
         //Measurement parameters to be set with methods, manually
         private string strSampleName;
         private int mYokRead, mYokWrite, mLakeShore;
+        private int mExcDevice, mReadDevice;
         private String mAMI;
         private bool fSaveData = true;
         private List<String> UserParams = new List<String>();
@@ -296,7 +304,8 @@ namespace ExperimentRunner
         private void SaveCurrentTabSettings()
         {
             Settings sett = new Settings();
-
+            if (nCurrentTab == Form1.tabEquipmentSetup)
+                return;
             String strSettingName = strScripts[nCurrentTab];
 
             sett.SaveSetting(strSettingName + strSettingsIUnits, strUnitI);
@@ -384,6 +393,15 @@ namespace ExperimentRunner
                 txtSamples.Text = sRead;
         }
 
+        //used for equipment settings tab
+        public void UpdateControls(int N_tab)
+        {
+            if (!isFirstUpdate)
+                SaveCurrentTabSettings();
+
+            nCurrentTab = N_tab;
+        }
+
         public void UpdateControls(int N_tab, RadioButton btnmkV_, RadioButton btnmV_, RadioButton btnnA_, RadioButton btnmkA_, RadioButton btnmA_,
             TextBox txtResistance_, RadioButton btnKOhm_, RadioButton btnMOhm_, TextBox txtRange_, TextBox txtStep_, TextBox txtRangeI_, TextBox txtStepI_,
                 TextBox txtGain_, TextBox txtDelay_, TextBox txtSamples_)
@@ -466,8 +484,10 @@ namespace ExperimentRunner
 
         public void StartMeasurement()
         {
-            NumberFormatInfo f = new NumberFormatInfo();
-            f.NumberDecimalSeparator = ".";
+            NumberFormatInfo f = new NumberFormatInfo
+            {
+                NumberDecimalSeparator = "."
+            };
 
             if (!ValidateValues())
                 return;
@@ -483,7 +503,7 @@ namespace ExperimentRunner
 
             String strYokWrite = mAMI == "" ? mYokWrite.ToString() : mAMI;
 
-            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5}", strUnitR, strUnitU, strUnitI, mYokRead, strYokWrite, mLakeShore);
+            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7}", strUnitR, strUnitU, strUnitI, mYokRead, strYokWrite, mLakeShore, mReadDevice, mExcDevice);
             if (!fSaveData) strKwargs += " -nosave";
 
             if (UserParams.Count != 0)
@@ -535,11 +555,21 @@ namespace ExperimentRunner
             mAMI = s;
         }
 
-        public void SetEquipment(int r, int w, int ls)
+        public void SetEquipmentIDs(int r, int w, int ls)
         {
             mYokRead = r;
             mYokWrite = w;
             mLakeShore = ls;
+        }
+
+        public void SetReadoutDeviceType(int nType)
+        {
+            mReadDevice = nType;
+        }
+
+        public void SetExcitationDeviceType(int nType)
+        {
+            mExcDevice = nType;
         }
 
         public void SetSaveData(bool bSave)
