@@ -1,4 +1,4 @@
-import visa_device
+from . import visa_device
 import time
 import numpy as np
 

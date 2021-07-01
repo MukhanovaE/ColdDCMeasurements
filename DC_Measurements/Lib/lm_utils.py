@@ -179,6 +179,11 @@ def ParseCommandLine():
             f_save, yok_read, yok_write, lakeshore, read_device, exc_device, user_params)
 
 
+def preprocess_string_for_filename(s):
+    return s.translate(str.maketrans({':': '_', '/': '_', '\\': '_', '*': '_', '?': '_', '"': '_',
+                                      '>': '_', '<': '_', '|': '_'}))
+
+
 # Function GetSaveFolder
 # Get a directory to save experiment data
 # If folder not exists, creates it
@@ -193,6 +198,7 @@ def GetSaveFolder(R, k_R=1, caption=""):
         experimentDate = datetime.now()
 
     R_units = r_units[k_R]
+    sample_name = preprocess_string_for_filename(sample_name)
 
     cd_short = experimentDate.strftime('%d-%m-%Y')
     cd_this_meas = experimentDate.strftime('%H-%M') + f'_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption.split("_")[0]}'
@@ -214,6 +220,7 @@ def GetSaveFileName(R, k_R=1, caption="", ext="dat", preserve_unique=True):
     cd = experimentDate.strftime('%d-%m-%Y_%H-%M')
     R_units = r_units[k_R]
 
+    sample_name = preprocess_string_for_filename(sample_name)
     filename = path.join(save_path, f'{cd}_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption}.{ext}')
 
     # if file, even with this minutes, already exists

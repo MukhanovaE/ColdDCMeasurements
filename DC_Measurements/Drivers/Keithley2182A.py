@@ -1,4 +1,4 @@
-import visa_device
+from . import visa_device
 
 
 class Keithley2182A(visa_device.visa_device):
