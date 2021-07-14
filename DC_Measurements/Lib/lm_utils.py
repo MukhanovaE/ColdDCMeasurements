@@ -37,6 +37,7 @@ EXCITATION_KEITHLEY = 1
 READOUT_LEONARDO = 0
 READOUT_KEITHLEY = 1
 
+
 # function ParseCommandLine
 # parses command line and makes user input if command-line parameters were not set
 def ParseCommandLine():
@@ -47,6 +48,7 @@ def ParseCommandLine():
     default_lakeshore = 17
     default_readout = READOUT_LEONARDO
     default_excitation = EXCITATION_YOKOGAWA
+    default_readout_id = 8
 
     def user_input():
         # units
@@ -74,15 +76,16 @@ def ParseCommandLine():
 
         readout_type = default_readout
         excitation_type = default_excitation
+        readout_id = default_readout_id
 
         f_save = True
 
         return k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-               yok_write, lakeshore, readout_type, excitation_type
+               yok_write, lakeshore, readout_type, excitation_type, readout_id
 
     if len(sys.argv) == 1:  # user did not specify everything in command line
         k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-                yok_write, lakeshore, read_device, exc_device = user_input()
+                yok_write, lakeshore, read_device_type, exc_device_type, read_device_id = user_input()
 
     else:
         # first - key arguments : -mkV, nA, -kOhm etc...
@@ -94,6 +97,7 @@ def ParseCommandLine():
 
             p.add_argument('-RT', action='store', required=False, default=default_readout)
             p.add_argument('-WT', action='store', required=False, default=default_excitation)
+            p.add_argument('-RR', action='store', required=False, default=default_readout_id)
 
             p.add_argument('-R', action='store', required=False, default=default_yok_read)
             p.add_argument('-W', action='store', required=False, default=default_yok_write)
@@ -154,8 +158,9 @@ def ParseCommandLine():
             yok_write = args['W']
             lakeshore = int(args['L'])
 
-            exc_device = int(args['WT'])
-            read_device = int(args['WT'])
+            exc_device_type = int(args['WT'])
+            read_device_type = int(args['WT'])
+            read_device_id = int(args['RR'])
 
             yok_write = int(yok_write) if yok_write.isdigit() else yok_write
 
@@ -168,7 +173,7 @@ def ParseCommandLine():
             print('Error during command line parsing:')
             print(e)
             k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-                yok_write, lakeshore, read_device, exc_device = user_input()
+                yok_write, lakeshore, read_device_type, exc_device_type, read_device_id = user_input()
             user_params = ""
 
     I_units = core_units[k_A]
@@ -176,7 +181,7 @@ def ParseCommandLine():
     print('R=', R, 'R*', k_R, 'V*', k_V_meas, 'A*', k_A)  # for debugging
 
     return (k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units,
-            f_save, yok_read, yok_write, lakeshore, read_device, exc_device, user_params)
+            f_save, yok_read, yok_write, lakeshore, read_device_type, exc_device_type, read_device_id, user_params)
 
 
 def preprocess_string_for_filename(s):

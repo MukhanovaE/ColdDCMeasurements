@@ -17,18 +17,23 @@ namespace ExperimentRunner
         private RunParams meas_params = new RunParams();
 
         // Device IDs
-        private int nYokRead, nYokWrite, nLakeShore;
+        private int nIDDeviceSweep, nIDDeviceFieldGate, nIDDeviceReadout, nIDLakeShore;
         private String strAMI;
 
         // Settings names in Windows registry
         private const String strSettingsTab = "ActiveTab";
         private const String strSampleName = "SampleName";
-        private const String strYokRead = "SourceReadout";
-        private const String strYokWrite = "SourceExcitation";
-        private const String strLakeShore = "LakeShore";
-        private const String strExcitationDevice = "ExcitationDevice";
-        private const String strReadoutDevice = "ReadoutDevice";
+
+        private const String strSweepDeviceID = "SourceSweep";
+        private const String strFieldGateDeviceID = "SourceExcitation";
+        private const String strLakeShoreID = "LakeShore";
+        private const String strReadoutDeviceID = "SourceReadout";
+
+        // private const String strFieldGateDeviceType = "FieldGateDevice";
+        private const String strSweepDeviceType = "SweepDevice";
+        private const String strReadoutDeviceType = "ReadoutDevice";
         private const String strAMIController = "AMI_controller";
+
         private const String sShapiroStartPower = "Shapiro_power_start";
         private const String sShapiroEndPower = "Shapiro_power_end";
         private const String sShapiroStepPower = "Shapiro_power_step";
@@ -38,6 +43,7 @@ namespace ExperimentRunner
         private const String sShapiroStepFreq = "Shapiro_freq_step";
         private const String sShapiroFixedFreq = "Shapiro_const_power";
         private const String sShapiroSelected = "Shapiro_type";
+
         private const String sAMIUsed_IVB = "AMI_used_IVB";
         private const String sAMIUsed_VB = "AMI_used_VB";
 
@@ -265,12 +271,16 @@ namespace ExperimentRunner
             sett.SaveSetting(strSettingsTab, nCurrentTab);
             sett.SaveSetting(strSampleName, txtSampleName.Text);
 
-            sett.SaveSetting(strYokRead, nYokRead);
-            sett.SaveSetting(strYokWrite, nYokWrite);
-            sett.SaveSetting(strLakeShore, nLakeShore);
+            sett.SaveSetting(strSweepDeviceID, nIDDeviceSweep);
+            sett.SaveSetting(strFieldGateDeviceID, nIDDeviceFieldGate);
+            sett.SaveSetting(strLakeShoreID, nIDLakeShore);
+            sett.SaveSetting(strReadoutDeviceID, nIDDeviceReadout);
+
             sett.SaveSetting(strAMIController, strAMI);
-            sett.SaveSetting(strExcitationDevice, cboExcitationDevice.SelectedIndex);
-            sett.SaveSetting(strReadoutDevice, cboReadoutDevice.SelectedIndex);
+            
+            // sett.SaveSetting(strFieldGateDevice, cboFieldGateDevice.SelectedIndex);
+            sett.SaveSetting(strSweepDeviceType, cboCurrentSweepDeviceType.SelectedIndex);
+            sett.SaveSetting(strReadoutDeviceType, cboReadoutDevice.SelectedIndex);
 
             // advanced settings for some tabs
             SaveShapiroSettings(cboShapiroType.SelectedIndex);
@@ -283,8 +293,8 @@ namespace ExperimentRunner
             int nCurrentTab = 0;
 
             // Default values
-            int settYokRead = 3, settYokWrite = 6, settLakeShore = 17;
-            int settExcDevice = RunParams.EXCITATION_YOKOGAWA, settReadoutDevice = RunParams.READOUT_LEONARDO;
+            int settDevSweep = 3, settDevFieldGate = 6, settDevReadout = 9, settDevLakeShore = 17;
+            int settSweepDeviceType = RunParams.EXCITATION_YOKOGAWA, settReadoutDeviceType = RunParams.READOUT_LEONARDO;
 
             String settAMI = txtAMIAddress.Text;
 
@@ -292,27 +302,32 @@ namespace ExperimentRunner
             sett.TryLoadSetting(strSettingsTab, ref nCurrentTab); //default value is 0, so the first tab will be opened if there is no settings
             sett.TryLoadSetting(strSampleName, ref strSampName);
 
-            sett.TryLoadSetting(strYokRead, ref settYokRead);
-            sett.TryLoadSetting(strYokWrite, ref settYokWrite);
-            sett.TryLoadSetting(strLakeShore, ref settLakeShore);
+            sett.TryLoadSetting(strSweepDeviceID, ref settDevSweep);
+            sett.TryLoadSetting(strFieldGateDeviceID, ref settDevFieldGate);
+            sett.TryLoadSetting(strLakeShoreID, ref settDevLakeShore);
+            sett.TryLoadSetting(strReadoutDeviceID, ref settDevReadout);
+
             sett.TryLoadSetting(strAMIController, ref settAMI);
 
-            sett.TryLoadSetting(strExcitationDevice, ref settExcDevice);
-            sett.TryLoadSetting(strReadoutDevice, ref settReadoutDevice);
+            sett.TryLoadSetting(strSweepDeviceType, ref settSweepDeviceType);
+            sett.TryLoadSetting(strReadoutDeviceType, ref settReadoutDeviceType);
 
-            nYokRead = settYokRead; nYokWrite = settYokWrite; nLakeShore = settLakeShore;
+            nIDDeviceSweep = settDevSweep; nIDDeviceFieldGate = settDevFieldGate; nIDLakeShore = settDevLakeShore; nIDDeviceReadout = settDevReadout;
             strAMI = settAMI;
-            meas_params.SetEquipmentIDs(nYokRead, nYokWrite, nLakeShore);
-            meas_params.SetExcitationDeviceType(settExcDevice);
-            meas_params.SetReadoutDeviceType(settReadoutDevice);
+            meas_params.SetEquipmentIDs(nIDDeviceSweep, nIDDeviceFieldGate, nIDLakeShore);
+            meas_params.SetSweepDeviceType(settSweepDeviceType);
+            meas_params.SetReadoutDeviceType(settReadoutDeviceType);
 
-            txtExcitationDevice.Text = nYokWrite.ToString();
-            txtReadoutDevice.Text = nYokRead.ToString();
-            txtLakeShoreID.Text = nLakeShore.ToString();
+            txtFieldOrGateDevice.Text = nIDDeviceFieldGate.ToString();
+            txtCurrentSweepDevice.Text = nIDDeviceSweep.ToString();
+            txtLakeShoreID.Text = nIDLakeShore.ToString();
+            txtVoltageReadout.Text = nIDDeviceReadout.ToString();
+
             txtAMIAddress.Text = strAMI;
 
-            cboExcitationDevice.SelectedIndex = settExcDevice;
-            cboReadoutDevice.SelectedIndex = settReadoutDevice;
+            cboCurrentSweepDeviceType.SelectedIndex = settSweepDeviceType;
+            cboReadoutDevice.SelectedIndex = settReadoutDeviceType;
+            cboFieldGateDevice.SelectedIndex = 0;
 
             tabControl1.SelectedIndex = nCurrentTab;
             txtSampleName.Text = strSampName;
@@ -740,22 +755,42 @@ namespace ExperimentRunner
             meas_params.SetSampleName(txtSampleName.Text);
         }
 
-        private void txtReadoutDevice_TextChanged(object sender, EventArgs e)
+        private int HandleTextFieldChange(TextBox field)
         {
-            nYokRead = Int32.Parse(txtReadoutDevice.Text);
-            meas_params.SetReadDevice(nYokRead);
+            int nValue;
+            try
+            {
+                nValue = Int32.Parse(field.Text);
+                field.BackColor = SystemColors.Window;
+                return nValue;
+            }
+            catch
+            {
+                field.BackColor = Color.Red;
+                return -1;
+            }
+        }
+
+        private void txtCurrentSweepDevice_TextChanged(object sender, EventArgs e)
+        {
+            int nDevSweep = HandleTextFieldChange(txtCurrentSweepDevice);
+            if (nDevSweep != -1)
+            {
+                nIDDeviceSweep = nDevSweep;
+                meas_params.SetIVSweepDeviceID(nDevSweep);
+            }
         }
 
         private void txtExcitationDevice_TextChanged(object sender, EventArgs e)
         {
-            nYokWrite = Int32.Parse(txtExcitationDevice.Text);
-            meas_params.SetWriteDevice(nYokWrite);
+            nIDDeviceFieldGate = Int32.Parse(txtFieldOrGateDevice.Text);
+            meas_params.SetGateOrFieldDeviceID(nIDDeviceFieldGate);
         }
 
         private void txtLakeShoreID_TextChanged(object sender, EventArgs e)
         {
-            nLakeShore = Int32.Parse(txtLakeShoreID.Text);
-            meas_params.SetLakeShore(nLakeShore);
+            nIDLakeShore = Int32.Parse(txtLakeShoreID.Text);
+            meas_params.SetLakeShoreID(nIDLakeShore);
         }
 
         private void txtReadoutDevice_KeyPress(object sender, KeyPressEventArgs e)
@@ -1362,14 +1397,45 @@ namespace ExperimentRunner
             });
         }
 
+        private void CboExcitationDevice_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            meas_params.SetSweepDeviceType(cboFieldGateDevice.SelectedIndex);
+        }
+
+        private void cboCurrentSweep_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            meas_params.SetSweepDeviceType(cboCurrentSweepDeviceType.SelectedIndex);
+        }
+
         private void CboReadoutDevice_SelectedIndexChanged(object sender, EventArgs e)
         {
             meas_params.SetReadoutDeviceType(cboReadoutDevice.SelectedIndex);
+            txtVoltageReadout.Enabled = (cboReadoutDevice.SelectedIndex != 0);
         }
 
-        private void CboExcitationDevice_SelectedIndexChanged(object sender, EventArgs e)
+        private void CboFieldGateDevice_SelectedIndexChanged(object sender, EventArgs e)
         {
-            meas_params.SetExcitationDeviceType(cboExcitationDevice.SelectedIndex);
+
+        }
+
+        private void TxtVoltageReadout_TextChanged(object sender, EventArgs e)
+        {
+            int nReadoutDevID = HandleTextFieldChange(txtVoltageReadout);
+            if (nReadoutDevID != -1)
+            {
+                meas_params.SetReadoutDeviceID(nReadoutDevID);
+                nIDDeviceReadout = nReadoutDevID;
+            }
+        }
+
+        private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)
+        {
+            int nFieldGateDevID = HandleTextFieldChange(txtFieldOrGateDevice);
+            if (nFieldGateDevID != -1)
+            {
+                meas_params.SetGateOrFieldDeviceID(nFieldGateDevID);
+                nIDDeviceFieldGate = nFieldGateDevID;
+            }
         }
 
         private void txtIVTA_OneCurveTimes_Leave(object sender, EventArgs e)

@@ -54,8 +54,8 @@ namespace ExperimentRunner
 
         //Measurement parameters to be set with methods, manually
         private string strSampleName;
-        private int mYokRead, mYokWrite, mLakeShore;
-        private int mExcDevice, mReadDevice;
+        private int mIDDeviceSweep, mIDDeviceFieldOrGate, mIDLakeShore, mIDDeviceReadout;  //device IDs
+        private int mSweepDeviceType, mReadDeviceType;  //device types
         private String mAMI;
         private bool fSaveData = true;
         private List<String> UserParams = new List<String>();
@@ -501,9 +501,23 @@ namespace ExperimentRunner
             String fDelay = txtDelay.Text;
             String fSamples = txtSamples.Text;
 
-            String strYokWrite = mAMI == "" ? mYokWrite.ToString() : mAMI;
+            String strYokWrite = mAMI == "" ? mIDDeviceFieldOrGate.ToString() : mAMI;
 
-            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7}", strUnitR, strUnitU, strUnitI, mYokRead, strYokWrite, mLakeShore, mReadDevice, mExcDevice);
+            /*
+                A Python script is started with the following arguments:
+                -R_unit (e.g. MOhm)
+                -V_unit (e.g. mkV)
+                -I_unit (e.g. nA)
+                -R VISA device ID for IV curve current sweep
+                -W VISA device ID for field or gate control
+                -L VISA device ID of LakeShore temperature controller
+                -RR readout device VISA ID, ignored if Leonardo board is used
+                -RT readout device type; 0 if Leonardo board, 1 if Keithley nanovoltmeter is used
+                -WT IV curve current sweep device type, 0 if Yokogawa, 1 if Keithley
+            */
+
+            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7} -RR {8}", strUnitR, strUnitU, strUnitI, 
+                mIDDeviceSweep, strYokWrite, mIDLakeShore, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout);
             if (!fSaveData) strKwargs += " -nosave";
 
             if (UserParams.Count != 0)
@@ -535,19 +549,19 @@ namespace ExperimentRunner
         }
 
         //equipment parameters setters
-        public void SetReadDevice(int i)
+        public void SetIVSweepDeviceID(int i)
         {
-            mYokRead = i;
+            mIDDeviceSweep = i;
         }
 
-        public void SetWriteDevice(int i)
+        public void SetGateOrFieldDeviceID(int i)
         {
-            mYokWrite = i;
+            mIDDeviceFieldOrGate = i;
         }
 
-        public void SetLakeShore(int i)
+        public void SetLakeShoreID(int i)
         {
-            mLakeShore = i;
+            mIDLakeShore = i;
         }
 
         public void SetAMI(String s)
@@ -557,19 +571,24 @@ namespace ExperimentRunner
 
         public void SetEquipmentIDs(int r, int w, int ls)
         {
-            mYokRead = r;
-            mYokWrite = w;
-            mLakeShore = ls;
+            mIDDeviceSweep = r;
+            mIDDeviceFieldOrGate = w;
+            mIDLakeShore = ls;
+        }
+
+        public void SetReadoutDeviceID(int nID)
+        {
+            mIDDeviceReadout = nID;
         }
 
         public void SetReadoutDeviceType(int nType)
         {
-            mReadDevice = nType;
+            mReadDeviceType = nType;
         }
 
-        public void SetExcitationDeviceType(int nType)
+        public void SetSweepDeviceType(int nType)
         {
-            mExcDevice = nType;
+            mSweepDeviceType = nType;
         }
 
         public void SetSaveData(bool bSave)

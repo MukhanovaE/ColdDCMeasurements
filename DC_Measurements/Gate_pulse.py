@@ -15,7 +15,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, user_params = ParseCommandLine()
+    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'Gate_pulse')
 Log.AddGenericEntry(f'Gain={gain}; LeonardoPoints={num_samples}')
 # ------------------------------------------------------------------------------------------------------------

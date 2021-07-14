@@ -24,13 +24,13 @@ warnings.filterwarnings("ignore")  # A critical current function may give warnin
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, user_params = ParseCommandLine()
+    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 # ------------------------------------------------------------------------------------------------------------
 
 Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
+    else Keithley2182A(device_num=read_device_id)
 Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley2182A(device_num=yok_write)
+    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 
 # all Yokogawa generated values (always in volts!!!)
 upper_line_1 = np.arange(0, rangeA, stepA)

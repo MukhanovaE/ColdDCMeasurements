@@ -622,8 +622,16 @@
             this.txtLakeShoreID = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
             this.groupBox45 = new System.Windows.Forms.GroupBox();
-            this.txtExcitationDevice = new System.Windows.Forms.TextBox();
-            this.txtReadoutDevice = new System.Windows.Forms.TextBox();
+            this.label183 = new System.Windows.Forms.Label();
+            this.txtVoltageReadout = new System.Windows.Forms.TextBox();
+            this.cboCurrentSweepDeviceType = new System.Windows.Forms.ComboBox();
+            this.label182 = new System.Windows.Forms.Label();
+            this.label181 = new System.Windows.Forms.Label();
+            this.cboReadoutDevice = new System.Windows.Forms.ComboBox();
+            this.cboFieldGateDevice = new System.Windows.Forms.ComboBox();
+            this.label180 = new System.Windows.Forms.Label();
+            this.txtFieldOrGateDevice = new System.Windows.Forms.TextBox();
+            this.txtCurrentSweepDevice = new System.Windows.Forms.TextBox();
             this.label43 = new System.Windows.Forms.Label();
             this.label42 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
@@ -632,10 +640,6 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
-            this.cboReadoutDevice = new System.Windows.Forms.ComboBox();
-            this.label180 = new System.Windows.Forms.Label();
-            this.cboExcitationDevice = new System.Windows.Forms.ComboBox();
-            this.label181 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -6952,7 +6956,7 @@
             // 
             this.groupBox90.Controls.Add(this.txtAMIAddress);
             this.groupBox90.Controls.Add(this.label176);
-            this.groupBox90.Location = new System.Drawing.Point(10, 218);
+            this.groupBox90.Location = new System.Drawing.Point(10, 266);
             this.groupBox90.Name = "groupBox90";
             this.groupBox90.Size = new System.Drawing.Size(213, 62);
             this.groupBox90.TabIndex = 2;
@@ -6982,7 +6986,7 @@
             this.groupBox46.Controls.Add(this.btnStartTempObserver);
             this.groupBox46.Controls.Add(this.txtLakeShoreID);
             this.groupBox46.Controls.Add(this.label44);
-            this.groupBox46.Location = new System.Drawing.Point(10, 109);
+            this.groupBox46.Location = new System.Drawing.Point(10, 157);
             this.groupBox46.Name = "groupBox46";
             this.groupBox46.Size = new System.Drawing.Size(214, 89);
             this.groupBox46.TabIndex = 1;
@@ -7021,60 +7025,148 @@
             // 
             // groupBox45
             // 
+            this.groupBox45.Controls.Add(this.label183);
+            this.groupBox45.Controls.Add(this.txtVoltageReadout);
+            this.groupBox45.Controls.Add(this.cboCurrentSweepDeviceType);
+            this.groupBox45.Controls.Add(this.label182);
             this.groupBox45.Controls.Add(this.label181);
-            this.groupBox45.Controls.Add(this.cboExcitationDevice);
-            this.groupBox45.Controls.Add(this.label180);
             this.groupBox45.Controls.Add(this.cboReadoutDevice);
-            this.groupBox45.Controls.Add(this.txtExcitationDevice);
-            this.groupBox45.Controls.Add(this.txtReadoutDevice);
+            this.groupBox45.Controls.Add(this.cboFieldGateDevice);
+            this.groupBox45.Controls.Add(this.label180);
+            this.groupBox45.Controls.Add(this.txtFieldOrGateDevice);
+            this.groupBox45.Controls.Add(this.txtCurrentSweepDevice);
             this.groupBox45.Controls.Add(this.label43);
             this.groupBox45.Controls.Add(this.label42);
             this.groupBox45.Location = new System.Drawing.Point(10, 11);
             this.groupBox45.Name = "groupBox45";
-            this.groupBox45.Size = new System.Drawing.Size(406, 84);
+            this.groupBox45.Size = new System.Drawing.Size(510, 114);
             this.groupBox45.TabIndex = 0;
             this.groupBox45.TabStop = false;
-            this.groupBox45.Text = "DC sources";
+            this.groupBox45.Text = "Devices";
             // 
-            // txtExcitationDevice
+            // label183
             // 
-            this.txtExcitationDevice.Location = new System.Drawing.Point(324, 50);
-            this.txtExcitationDevice.MaxLength = 2;
-            this.txtExcitationDevice.Name = "txtExcitationDevice";
-            this.txtExcitationDevice.Size = new System.Drawing.Size(66, 20);
-            this.txtExcitationDevice.TabIndex = 3;
-            this.txtExcitationDevice.Text = "6";
-            this.txtExcitationDevice.TextChanged += new System.EventHandler(this.txtExcitationDevice_TextChanged);
-            this.txtExcitationDevice.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtExcitationDevice_KeyPress);
+            this.label183.AutoSize = true;
+            this.label183.Location = new System.Drawing.Point(352, 80);
+            this.label183.Name = "label183";
+            this.label183.Size = new System.Drawing.Size(21, 13);
+            this.label183.TabIndex = 11;
+            this.label183.Text = "ID:";
             // 
-            // txtReadoutDevice
+            // txtVoltageReadout
             // 
-            this.txtReadoutDevice.Location = new System.Drawing.Point(324, 22);
-            this.txtReadoutDevice.MaxLength = 2;
-            this.txtReadoutDevice.Name = "txtReadoutDevice";
-            this.txtReadoutDevice.Size = new System.Drawing.Size(66, 20);
-            this.txtReadoutDevice.TabIndex = 2;
-            this.txtReadoutDevice.Text = "3";
-            this.txtReadoutDevice.TextChanged += new System.EventHandler(this.txtReadoutDevice_TextChanged);
-            this.txtReadoutDevice.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtReadoutDevice_KeyPress);
+            this.txtVoltageReadout.Location = new System.Drawing.Point(379, 77);
+            this.txtVoltageReadout.MaxLength = 2;
+            this.txtVoltageReadout.Name = "txtVoltageReadout";
+            this.txtVoltageReadout.Size = new System.Drawing.Size(66, 20);
+            this.txtVoltageReadout.TabIndex = 10;
+            this.txtVoltageReadout.Text = "9";
+            this.txtVoltageReadout.TextChanged += new System.EventHandler(this.TxtVoltageReadout_TextChanged);
+            // 
+            // cboCurrentSweepDeviceType
+            // 
+            this.cboCurrentSweepDeviceType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboCurrentSweepDeviceType.FormattingEnabled = true;
+            this.cboCurrentSweepDeviceType.Items.AddRange(new object[] {
+            "Yokogawa",
+            "Keithley"});
+            this.cboCurrentSweepDeviceType.Location = new System.Drawing.Point(168, 21);
+            this.cboCurrentSweepDeviceType.Name = "cboCurrentSweepDeviceType";
+            this.cboCurrentSweepDeviceType.Size = new System.Drawing.Size(168, 21);
+            this.cboCurrentSweepDeviceType.TabIndex = 9;
+            this.cboCurrentSweepDeviceType.SelectedIndexChanged += new System.EventHandler(this.cboCurrentSweep_SelectedIndexChanged);
+            // 
+            // label182
+            // 
+            this.label182.AutoSize = true;
+            this.label182.Location = new System.Drawing.Point(15, 53);
+            this.label182.Name = "label182";
+            this.label182.Size = new System.Drawing.Size(148, 13);
+            this.label182.TabIndex = 8;
+            this.label182.Text = "Field/Gate control DC source:";
+            // 
+            // label181
+            // 
+            this.label181.AutoSize = true;
+            this.label181.Location = new System.Drawing.Point(352, 53);
+            this.label181.Name = "label181";
+            this.label181.Size = new System.Drawing.Size(21, 13);
+            this.label181.TabIndex = 7;
+            this.label181.Text = "ID:";
+            // 
+            // cboReadoutDevice
+            // 
+            this.cboReadoutDevice.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboReadoutDevice.FormattingEnabled = true;
+            this.cboReadoutDevice.Items.AddRange(new object[] {
+            "Leonardo board",
+            "Keithley nanovoltmeter"});
+            this.cboReadoutDevice.Location = new System.Drawing.Point(168, 77);
+            this.cboReadoutDevice.Name = "cboReadoutDevice";
+            this.cboReadoutDevice.Size = new System.Drawing.Size(168, 21);
+            this.cboReadoutDevice.TabIndex = 4;
+            this.cboReadoutDevice.SelectedIndexChanged += new System.EventHandler(this.CboReadoutDevice_SelectedIndexChanged);
+            // 
+            // cboFieldGateDevice
+            // 
+            this.cboFieldGateDevice.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboFieldGateDevice.FormattingEnabled = true;
+            this.cboFieldGateDevice.Items.AddRange(new object[] {
+            "Yokogawa"});
+            this.cboFieldGateDevice.Location = new System.Drawing.Point(168, 50);
+            this.cboFieldGateDevice.Name = "cboFieldGateDevice";
+            this.cboFieldGateDevice.Size = new System.Drawing.Size(168, 21);
+            this.cboFieldGateDevice.TabIndex = 6;
+            this.cboFieldGateDevice.SelectedIndexChanged += new System.EventHandler(this.CboFieldGateDevice_SelectedIndexChanged);
+            // 
+            // label180
+            // 
+            this.label180.AutoSize = true;
+            this.label180.Location = new System.Drawing.Point(352, 25);
+            this.label180.Name = "label180";
+            this.label180.Size = new System.Drawing.Size(21, 13);
+            this.label180.TabIndex = 5;
+            this.label180.Text = "ID:";
+            // 
+            // txtFieldOrGateDevice
+            // 
+            this.txtFieldOrGateDevice.Location = new System.Drawing.Point(379, 50);
+            this.txtFieldOrGateDevice.MaxLength = 2;
+            this.txtFieldOrGateDevice.Name = "txtFieldOrGateDevice";
+            this.txtFieldOrGateDevice.Size = new System.Drawing.Size(66, 20);
+            this.txtFieldOrGateDevice.TabIndex = 3;
+            this.txtFieldOrGateDevice.Text = "6";
+            this.txtFieldOrGateDevice.TextChanged += new System.EventHandler(this.TxtFieldOrGateDevice_TextChanged);
+            this.txtFieldOrGateDevice.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtExcitationDevice_KeyPress);
+            // 
+            // txtCurrentSweepDevice
+            // 
+            this.txtCurrentSweepDevice.Location = new System.Drawing.Point(379, 22);
+            this.txtCurrentSweepDevice.MaxLength = 2;
+            this.txtCurrentSweepDevice.Name = "txtCurrentSweepDevice";
+            this.txtCurrentSweepDevice.Size = new System.Drawing.Size(66, 20);
+            this.txtCurrentSweepDevice.TabIndex = 2;
+            this.txtCurrentSweepDevice.Text = "3";
+            this.txtCurrentSweepDevice.TextChanged += new System.EventHandler(this.txtCurrentSweepDevice_TextChanged);
+            this.txtCurrentSweepDevice.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtReadoutDevice_KeyPress);
             // 
             // label43
             // 
             this.label43.AutoSize = true;
-            this.label43.Location = new System.Drawing.Point(15, 53);
+            this.label43.Location = new System.Drawing.Point(15, 81);
             this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(91, 13);
+            this.label43.Size = new System.Drawing.Size(120, 13);
             this.label43.TabIndex = 1;
-            this.label43.Text = "Excitation device:";
+            this.label43.Text = "Voltage readout device:";
             // 
             // label42
             // 
             this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(15, 25);
+            this.label42.Location = new System.Drawing.Point(15, 24);
             this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(86, 13);
+            this.label42.Size = new System.Drawing.Size(131, 13);
             this.label42.TabIndex = 0;
-            this.label42.Text = "Readout device:";
+            this.label42.Text = "Current sweep DC source:";
             // 
             // button1
             // 
@@ -7142,50 +7234,6 @@
             this.cmdExploreData.Text = "Open data folder";
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
-            // 
-            // cboReadoutDevice
-            // 
-            this.cboReadoutDevice.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboReadoutDevice.FormattingEnabled = true;
-            this.cboReadoutDevice.Items.AddRange(new object[] {
-            "Leonardo board",
-            "Keithley nanovoltmeter"});
-            this.cboReadoutDevice.Location = new System.Drawing.Point(107, 22);
-            this.cboReadoutDevice.Name = "cboReadoutDevice";
-            this.cboReadoutDevice.Size = new System.Drawing.Size(168, 21);
-            this.cboReadoutDevice.TabIndex = 4;
-            this.cboReadoutDevice.SelectedIndexChanged += new System.EventHandler(this.CboReadoutDevice_SelectedIndexChanged);
-            // 
-            // label180
-            // 
-            this.label180.AutoSize = true;
-            this.label180.Location = new System.Drawing.Point(297, 25);
-            this.label180.Name = "label180";
-            this.label180.Size = new System.Drawing.Size(21, 13);
-            this.label180.TabIndex = 5;
-            this.label180.Text = "ID:";
-            // 
-            // cboExcitationDevice
-            // 
-            this.cboExcitationDevice.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboExcitationDevice.FormattingEnabled = true;
-            this.cboExcitationDevice.Items.AddRange(new object[] {
-            "Yokogawa",
-            "Keithley"});
-            this.cboExcitationDevice.Location = new System.Drawing.Point(107, 50);
-            this.cboExcitationDevice.Name = "cboExcitationDevice";
-            this.cboExcitationDevice.Size = new System.Drawing.Size(168, 21);
-            this.cboExcitationDevice.TabIndex = 6;
-            this.cboExcitationDevice.SelectedIndexChanged += new System.EventHandler(this.CboExcitationDevice_SelectedIndexChanged);
-            // 
-            // label181
-            // 
-            this.label181.AutoSize = true;
-            this.label181.Location = new System.Drawing.Point(297, 53);
-            this.label181.Name = "label181";
-            this.label181.Size = new System.Drawing.Size(21, 13);
-            this.label181.TabIndex = 7;
-            this.label181.Text = "ID:";
             // 
             // Form1
             // 
@@ -7671,8 +7719,8 @@
         private System.Windows.Forms.GroupBox groupBox45;
         private System.Windows.Forms.Label label43;
         private System.Windows.Forms.Label label42;
-        private System.Windows.Forms.TextBox txtExcitationDevice;
-        private System.Windows.Forms.TextBox txtReadoutDevice;
+        private System.Windows.Forms.TextBox txtFieldOrGateDevice;
+        private System.Windows.Forms.TextBox txtCurrentSweepDevice;
         private System.Windows.Forms.GroupBox groupBox46;
         private System.Windows.Forms.Label label44;
         private System.Windows.Forms.TextBox txtLakeShoreID;
@@ -8043,7 +8091,11 @@
         private System.Windows.Forms.Label label180;
         private System.Windows.Forms.ComboBox cboReadoutDevice;
         private System.Windows.Forms.Label label181;
-        private System.Windows.Forms.ComboBox cboExcitationDevice;
+        private System.Windows.Forms.ComboBox cboFieldGateDevice;
+        private System.Windows.Forms.ComboBox cboCurrentSweepDeviceType;
+        private System.Windows.Forms.Label label182;
+        private System.Windows.Forms.Label label183;
+        private System.Windows.Forms.TextBox txtVoltageReadout;
     }
 }
 

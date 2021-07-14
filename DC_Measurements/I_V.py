@@ -12,7 +12,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, user_params = ParseCommandLine()
+    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'simple_I_V')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
@@ -22,9 +22,9 @@ Log.AddGenericEntry(
 # step_delay = 0.02
 # num_samples = 500
 Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
+    else Keithley2182A(device_num=read_device_id)
 Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley2182A(device_num=yok_write)
+    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 
 f_exit = False
 
