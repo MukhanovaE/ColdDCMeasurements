@@ -432,7 +432,7 @@
             this.txtGateT_VoltStep = new System.Windows.Forms.TextBox();
             this.label102 = new System.Windows.Forms.Label();
             this.label103 = new System.Windows.Forms.Label();
-            this.txtGateT_VoltRange = new System.Windows.Forms.TextBox();
+            this.txtGateT_VoltFrom = new System.Windows.Forms.TextBox();
             this.label104 = new System.Windows.Forms.Label();
             this.label105 = new System.Windows.Forms.Label();
             this.pictureBox9 = new System.Windows.Forms.PictureBox();
@@ -640,6 +640,8 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
+            this.txtGateT_VoltTo = new System.Windows.Forms.TextBox();
+            this.label184 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -4895,6 +4897,8 @@
             // 
             // groupBox61
             // 
+            this.groupBox61.Controls.Add(this.label184);
+            this.groupBox61.Controls.Add(this.txtGateT_VoltTo);
             this.groupBox61.Controls.Add(this.label106);
             this.groupBox61.Controls.Add(this.txtGateT_TempStep);
             this.groupBox61.Controls.Add(this.label107);
@@ -4909,7 +4913,7 @@
             this.groupBox61.Controls.Add(this.txtGateT_VoltStep);
             this.groupBox61.Controls.Add(this.label102);
             this.groupBox61.Controls.Add(this.label103);
-            this.groupBox61.Controls.Add(this.txtGateT_VoltRange);
+            this.groupBox61.Controls.Add(this.txtGateT_VoltFrom);
             this.groupBox61.Controls.Add(this.label104);
             this.groupBox61.Controls.Add(this.label105);
             this.groupBox61.Location = new System.Drawing.Point(721, 16);
@@ -5025,7 +5029,7 @@
             // 
             // txtGateT_VoltStep
             // 
-            this.txtGateT_VoltStep.Location = new System.Drawing.Point(93, 83);
+            this.txtGateT_VoltStep.Location = new System.Drawing.Point(70, 83);
             this.txtGateT_VoltStep.MaxLength = 8;
             this.txtGateT_VoltStep.Name = "txtGateT_VoltStep";
             this.txtGateT_VoltStep.Size = new System.Drawing.Size(33, 20);
@@ -5046,31 +5050,32 @@
             // label103
             // 
             this.label103.AutoSize = true;
-            this.label103.Location = new System.Drawing.Point(133, 53);
+            this.label103.Location = new System.Drawing.Point(182, 53);
             this.label103.Name = "label103";
             this.label103.Size = new System.Drawing.Size(14, 13);
             this.label103.TabIndex = 3;
             this.label103.Text = "V";
             // 
-            // txtGateT_VoltRange
+            // txtGateT_VoltFrom
             // 
-            this.txtGateT_VoltRange.Location = new System.Drawing.Point(93, 50);
-            this.txtGateT_VoltRange.MaxLength = 8;
-            this.txtGateT_VoltRange.Name = "txtGateT_VoltRange";
-            this.txtGateT_VoltRange.Size = new System.Drawing.Size(33, 20);
-            this.txtGateT_VoltRange.TabIndex = 2;
-            this.txtGateT_VoltRange.Text = "1.5";
-            this.txtGateT_VoltRange.TextChanged += new System.EventHandler(this.txtGateT_VoltRange_TextChanged);
-            this.txtGateT_VoltRange.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtGateT_VoltRange_KeyPress);
+            this.txtGateT_VoltFrom.Location = new System.Drawing.Point(83, 50);
+            this.txtGateT_VoltFrom.MaxLength = 8;
+            this.txtGateT_VoltFrom.Name = "txtGateT_VoltFrom";
+            this.txtGateT_VoltFrom.Size = new System.Drawing.Size(33, 20);
+            this.txtGateT_VoltFrom.TabIndex = 2;
+            this.txtGateT_VoltFrom.Text = "1.5";
+            this.txtGateT_VoltFrom.TextChanged += new System.EventHandler(this.txtGateT_VoltRange_TextChanged);
+            this.txtGateT_VoltFrom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtGateT_VoltRange_KeyPress);
             // 
             // label104
             // 
             this.label104.AutoSize = true;
             this.label104.Location = new System.Drawing.Point(13, 53);
             this.label104.Name = "label104";
-            this.label104.Size = new System.Drawing.Size(76, 13);
+            this.label104.Size = new System.Drawing.Size(68, 13);
             this.label104.TabIndex = 1;
-            this.label104.Text = "Range, -x to x:";
+            this.label104.Text = "Range, from:";
+            this.label104.Click += new System.EventHandler(this.Label104_Click);
             // 
             // label105
             // 
@@ -7235,6 +7240,25 @@
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
             // 
+            // txtGateT_VoltTo
+            // 
+            this.txtGateT_VoltTo.Location = new System.Drawing.Point(143, 50);
+            this.txtGateT_VoltTo.MaxLength = 8;
+            this.txtGateT_VoltTo.Name = "txtGateT_VoltTo";
+            this.txtGateT_VoltTo.Size = new System.Drawing.Size(33, 20);
+            this.txtGateT_VoltTo.TabIndex = 22;
+            this.txtGateT_VoltTo.TextChanged += new System.EventHandler(this.TextBox1_TextChanged);
+            this.txtGateT_VoltTo.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtGateT_VoltTo_KeyPress);
+            // 
+            // label184
+            // 
+            this.label184.AutoSize = true;
+            this.label184.Location = new System.Drawing.Point(121, 53);
+            this.label184.Name = "label184";
+            this.label184.Size = new System.Drawing.Size(16, 13);
+            this.label184.TabIndex = 23;
+            this.label184.Text = "to";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -7848,7 +7872,7 @@
         private System.Windows.Forms.TextBox txtGateT_VoltStep;
         private System.Windows.Forms.Label label102;
         private System.Windows.Forms.Label label103;
-        private System.Windows.Forms.TextBox txtGateT_VoltRange;
+        private System.Windows.Forms.TextBox txtGateT_VoltFrom;
         private System.Windows.Forms.Label label104;
         private System.Windows.Forms.Label label105;
         private System.Windows.Forms.Label label106;
@@ -8096,6 +8120,8 @@
         private System.Windows.Forms.Label label182;
         private System.Windows.Forms.Label label183;
         private System.Windows.Forms.TextBox txtVoltageReadout;
+        private System.Windows.Forms.TextBox txtGateT_VoltTo;
+        private System.Windows.Forms.Label label184;
     }
 }
 

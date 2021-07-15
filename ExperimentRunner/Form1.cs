@@ -193,7 +193,7 @@ namespace ExperimentRunner
                     fStart = chkGateT_FromCurrent.Checked ? 0 : RunParams.GetValueFromField(txtGateT_TempStart);
                     fEnd = RunParams.GetValueFromField(txtGateT_TempEnd);
                     fStep = RunParams.GetValueFromField(txtGateT_TempStep);
-                    fRange = RunParams.GetValueFromField(txtGateT_VoltRange);
+                    fRange = RunParams.GetValueFromField(txtGateT_VoltFrom);
                     return CheckGateVoltage(fRange) && CheckTemperature(fStart, fEnd, fStep);
                 case tabGateB: //I-U-Gate with different B
                     fRange = RunParams.GetValueFromField(txtgateB_FieldSweep);
@@ -517,27 +517,31 @@ namespace ExperimentRunner
                 case tabGateT: //I-V with gate and T sweep
                     if (sett.TryLoadSetting("I_V_Gate_T_param0", ref strRead))
                     {
-                        txtGateT_VoltRange.Text = strRead;
+                        txtGateT_VoltFrom.Text = strRead;
                     }
                     if (sett.TryLoadSetting("I_V_Gate_T_param1", ref strRead))
                     {
-                        txtGateT_VoltStep.Text = strRead;
+                        txtGateT_VoltTo.Text = strRead;
                     }
                     if (sett.TryLoadSetting("I_V_Gate_T_param2", ref strRead))
+                    {
+                        txtGateT_VoltStep.Text = strRead;
+                    }
+                    if (sett.TryLoadSetting("I_V_Gate_T_param3", ref strRead))
                     {
                         txtGateT_TempStart.Text = strRead;
                         chkGateT_FromCurrent.Checked = (strRead == "0");
                         txtGateT_TempStart.Enabled = (strRead != "0");
                     }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param3", ref strRead))
+                    if (sett.TryLoadSetting("I_V_Gate_T_param4", ref strRead))
                     {
                         txtGateT_TempEnd.Text = strRead;
                     }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param4", ref strRead))
+                    if (sett.TryLoadSetting("I_V_Gate_T_param5", ref strRead))
                     {
                         txtGateT_TempStep.Text = strRead;
                     }
-                    meas_params.SetParameters(txtGateT_VoltRange.Text, txtGateT_VoltStep.Text, txtGateT_TempStart.Text, txtGateT_TempEnd.Text, txtGateT_TempStep.Text);
+                    meas_params.SetParameters(txtGateT_VoltFrom.Text, txtGateT_VoltTo.Text, txtGateT_VoltStep.Text, txtGateT_TempStart.Text, txtGateT_TempEnd.Text, txtGateT_TempStep.Text);
                     break;
                 case tabGateB: //I-V with gate and B sweep
                     if (sett.TryLoadSetting("I_V_Gate_B_param0", ref strRead))
@@ -719,7 +723,7 @@ namespace ExperimentRunner
                 case tabGateT: //I-V with gate and T sweep
                     meas_params.UpdateControls(i, btngateT_mkV, btngateT_mV, btngateT_nA, btngateT_mkA, btngateT_mA, txtgateT_Resistance, btngateT_KOhm, btngateT_MOhm,
                         txtgateT_Range, txtgateT_Step, txtgateT_RangeI, txtgateT_StepI, txtgateT_Gain, txtgateT_Delay, txtgateT_Samples);
-                    meas_params.SetParameters(txtGateT_VoltRange.Text, txtGateT_VoltStep.Text, txtGateT_TempStart.Text, txtGateT_TempEnd.Text, txtGateT_TempStep.Text);
+                    meas_params.SetParameters(txtGateT_VoltFrom.Text, txtGateT_VoltTo.Text, txtGateT_VoltStep.Text, txtGateT_TempStart.Text, txtGateT_TempEnd.Text, txtGateT_TempStep.Text);
                     break;
                 case tabGateB: //I-V with gate and B sweep
                     meas_params.UpdateControls(i, btngateB_mkV, btngateB_mV, btngateB_nA, btngateB_mkA, btngateB_mA, txtgateB_Resistance, btngateB_KOhm, btngateB_MOhm,
@@ -1036,31 +1040,31 @@ namespace ExperimentRunner
         private void txtGateT_VoltRange_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(0, txtGateT_VoltRange.Text);
+            meas_params.UpdateParameter(0, txtGateT_VoltFrom.Text);
         }
 
         private void txtGateT_VoltStep_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(1, txtGateT_VoltStep.Text);
+            meas_params.UpdateParameter(2, txtGateT_VoltStep.Text);
         }
 
         private void txtGateT_TempStart_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(2, txtGateT_TempStart.Text);
+            meas_params.UpdateParameter(3, txtGateT_TempStart.Text);
         }
 
         private void txtGateT_TempEnd_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(3, txtGateT_TempEnd.Text);
+            meas_params.UpdateParameter(4, txtGateT_TempEnd.Text);
         }
 
         private void txtGateT_TempStep_TextChanged(object sender, EventArgs e)
         {
             if (!bFullInitialized) return;
-            meas_params.UpdateParameter(4, txtGateT_TempStep.Text);
+            meas_params.UpdateParameter(5, txtGateT_TempStep.Text);
         }
 
         private void chkGateT_FromCurrent_CheckedChanged(object sender, EventArgs e)
@@ -1068,9 +1072,9 @@ namespace ExperimentRunner
             if (!bFullInitialized) return;
             txtGateT_TempStart.Enabled = !chkGateT_FromCurrent.Checked;
             if (chkGateT_FromCurrent.Checked)
-                meas_params.UpdateParameter(2, "0");
+                meas_params.UpdateParameter(3, "0");
             else
-                meas_params.UpdateParameter(2, txtGateT_TempStart.Text);
+                meas_params.UpdateParameter(3, txtGateT_TempStart.Text);
         }
         //
 
@@ -1426,6 +1430,23 @@ namespace ExperimentRunner
                 meas_params.SetReadoutDeviceID(nReadoutDevID);
                 nIDDeviceReadout = nReadoutDevID;
             }
+        }
+
+        private void Label104_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void TextBox1_TextChanged(object sender, EventArgs e)
+        {
+            if (!bFullInitialized) return;
+            meas_params.UpdateParameter(1, txtGateT_VoltTo.Text);
+        }
+
+        private void TxtGateT_VoltTo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!bFullInitialized) return;
+            InputValidator.HandleKeyEvent(e, true, false);
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)
