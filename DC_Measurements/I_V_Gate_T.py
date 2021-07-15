@@ -122,7 +122,7 @@ def DataSave(T):
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
     SaveData({'V_gate, V': curr_voltages, f'I, {I_units}A': currValues,
-              f'U, {I_units}V': voltValues, 'R': np.gradient(voltValues)},
+              f'U, {V_units}V': voltValues, 'R': np.gradient(voltValues)},
              R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     SaveData({'V_gate, V': voltValuesGate[:len(resistancesMeas)], 'Ic-': crit_curs[0, :][:len(resistancesMeas)],
               'Ic+': crit_curs[1, :][:len(resistancesMeas)]}, R, caption=caption + '_Ic',
@@ -294,10 +294,10 @@ def thread_proc():
                     pw.updateLine2D(tabIV, this_field_A, this_field_V)
 
                 # measure resistance on 2D plot
-                if volt > upper_R_bound:
-                    this_RIValues.append(curr_curr)
-                    this_RUValues.append(V_meas / k_V_meas)
-                    last_resistance = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * k_A, np.array(this_RUValues) * k_V_meas)
+                # if volt > upper_R_bound:
+                this_RIValues.append(curr_curr)
+                this_RUValues.append(V_meas / k_V_meas)
+                last_resistance = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * k_A, np.array(this_RUValues) * k_V_meas)
 
                 if f_exit.is_set():
                     exit(0)
