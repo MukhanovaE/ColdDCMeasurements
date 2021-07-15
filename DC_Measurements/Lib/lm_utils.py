@@ -195,7 +195,7 @@ def preprocess_string_for_filename(s):
 # Parameters:
 # caption - additional string to be added to the end of file
 def GetSaveFolder(R, k_R=1, caption=""):
-    global experimentDate
+    global experimentDate, sample_name
     # get current date only one time
     # to prevent case when part of saved files will have date, for example, 12:00
     # and another part - 12:01
@@ -219,7 +219,7 @@ def GetSaveFolder(R, k_R=1, caption=""):
 # Parameters:
 # caption - additional string to be added to the end of file
 def GetSaveFileName(R, k_R=1, caption="", ext="dat", preserve_unique=True):
-    global experimentDate
+    global experimentDate, sample_name
 
     save_path = GetSaveFolder(R, k_R, caption)
     cd = experimentDate.strftime('%d-%m-%Y_%H-%M')
