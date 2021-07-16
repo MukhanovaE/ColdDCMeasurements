@@ -1,6 +1,6 @@
 import numpy as np
 
-from sys import exit
+from sys import exit, argv
 import time
 from datetime import datetime
 import pandas as pd
@@ -15,8 +15,9 @@ from matplotlib.colors import LinearSegmentedColormap
 from Drivers.LakeShore import *
 from Lib.lm_utils import *
 
+device_id = int(sys.argv[1])
 
-LakeShore = LakeShoreController(device_num=17, mode='passive')
+LakeShore = LakeShoreController(device_num=device_id, mode='passive')
 
 
 # behavior on program exit - save data

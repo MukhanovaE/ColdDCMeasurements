@@ -1376,7 +1376,7 @@ namespace ExperimentRunner
 
         private void btnStartTempObserver_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("python.exe", "Temperature.py");
+            System.Diagnostics.Process.Start("python.exe", String.Format("Temperature.py {0}", txtLakeShoreID.Text));
         }
 
         private void txtIVTA_OneCurveTimes_KeyPress(object sender, KeyPressEventArgs e)
