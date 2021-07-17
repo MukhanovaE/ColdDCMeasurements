@@ -34,17 +34,17 @@ Log.AddGenericEntry(
 
 # define a program mode (sweep power or frequency) and sweep parameters
 try:
-    kind, range_start, range_stop, range_step, fixed_value,  = [float(i) for i in user_params.split(';')]
+    kind, range_start, range_stop, range_step, fixed_value, generator_id = [float(i) for i in user_params.split(';')]
     kind = int(kind)
     swept_range = np.arange(range_start, range_stop, range_step)
 except Exception as e:
     print(e)
     range_start, range_stop, range_step, fixed_value, kind = -18, 5, 0.5, 2.5, 0
 if kind == MODE_POWER:  # power
-    KeysightGenerator = KeysightN51(device_num=18, sweep='power', freq=fixed_value, power_range=swept_range)
+    KeysightGenerator = KeysightN51(device_num=generator_id, sweep='power', freq=fixed_value, power_range=swept_range)
     print(f'Sweeping power, in range: [{range_start}, {range_stop}), step is: {range_step}, frequency={fixed_value} GHz')
 else:  # 1 - frequency
-    KeysightGenerator = KeysightN51(device_num=18, sweep='freq', power=fixed_value, freq_range=swept_range)
+    KeysightGenerator = KeysightN51(device_num=generator_id, sweep='freq', power=fixed_value, freq_range=swept_range)
     print(f'Sweeping frequency, in range: [{range_start}, {range_stop}), step is: {range_step}, power={fixed_value} dBm')
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------

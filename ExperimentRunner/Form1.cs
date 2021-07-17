@@ -19,6 +19,7 @@ namespace ExperimentRunner
         // Device IDs
         private int nIDDeviceSweep, nIDDeviceFieldGate, nIDDeviceReadout, nIDLakeShore;
         private String strAMI;
+        private int nGeneratorID;
 
         // Settings names in Windows registry
         private const String strSettingsTab = "ActiveTab";
@@ -28,11 +29,11 @@ namespace ExperimentRunner
         private const String strFieldGateDeviceID = "SourceExcitation";
         private const String strLakeShoreID = "LakeShore";
         private const String strReadoutDeviceID = "SourceReadout";
-
         // private const String strFieldGateDeviceType = "FieldGateDevice";
         private const String strSweepDeviceType = "SweepDevice";
         private const String strReadoutDeviceType = "ReadoutDevice";
         private const String strAMIController = "AMI_controller";
+        private const String strGeneratorID = "Signal_generator";
 
         private const String sShapiroStartPower = "Shapiro_power_start";
         private const String sShapiroEndPower = "Shapiro_power_end";
@@ -277,6 +278,7 @@ namespace ExperimentRunner
             sett.SaveSetting(strReadoutDeviceID, nIDDeviceReadout);
 
             sett.SaveSetting(strAMIController, strAMI);
+            sett.SaveSetting(strGeneratorID, nGeneratorID);
             
             // sett.SaveSetting(strFieldGateDevice, cboFieldGateDevice.SelectedIndex);
             sett.SaveSetting(strSweepDeviceType, cboCurrentSweepDeviceType.SelectedIndex);
@@ -297,6 +299,7 @@ namespace ExperimentRunner
             int settSweepDeviceType = RunParams.EXCITATION_YOKOGAWA, settReadoutDeviceType = RunParams.READOUT_LEONARDO;
 
             String settAMI = txtAMIAddress.Text;
+            int settGenID = 18;
 
             String strSampName="Sample 1";
             sett.TryLoadSetting(strSettingsTab, ref nCurrentTab); //default value is 0, so the first tab will be opened if there is no settings
@@ -308,12 +311,14 @@ namespace ExperimentRunner
             sett.TryLoadSetting(strReadoutDeviceID, ref settDevReadout);
 
             sett.TryLoadSetting(strAMIController, ref settAMI);
+            sett.TryLoadSetting(strGeneratorID, ref settGenID);
 
             sett.TryLoadSetting(strSweepDeviceType, ref settSweepDeviceType);
             sett.TryLoadSetting(strReadoutDeviceType, ref settReadoutDeviceType);
 
             nIDDeviceSweep = settDevSweep; nIDDeviceFieldGate = settDevFieldGate; nIDLakeShore = settDevLakeShore; nIDDeviceReadout = settDevReadout;
             strAMI = settAMI;
+            nGeneratorID = settGenID;
             meas_params.SetEquipmentIDs(nIDDeviceSweep, nIDDeviceFieldGate, nIDLakeShore);
             meas_params.SetSweepDeviceType(settSweepDeviceType);
             meas_params.SetReadoutDeviceType(settReadoutDeviceType);
@@ -324,6 +329,7 @@ namespace ExperimentRunner
             txtVoltageReadout.Text = nIDDeviceReadout.ToString();
 
             txtAMIAddress.Text = strAMI;
+            txtGeneratorID.Text = nGeneratorID.ToString();
 
             cboCurrentSweepDeviceType.SelectedIndex = settSweepDeviceType;
             cboReadoutDevice.SelectedIndex = settReadoutDeviceType;
@@ -1099,8 +1105,17 @@ namespace ExperimentRunner
             int nListSelected = 0;
             ss.TryLoadSetting(sShapiroSelected, ref nListSelected);
 
+            if (nListSelected != 0 && nListSelected != 1)
+                nListSelected = 0;
+
             UpdateShapiroSettings(nListSelected);
             cboShapiroType.SelectedIndex = nListSelected; // select an item from a list and update labels (an event handler will be called)
+        }
+
+        private void SetShapiroParameters()
+        {
+
+
         }
 
         private void UpdateShapiroSettings(int nSelected)
@@ -1133,7 +1148,7 @@ namespace ExperimentRunner
             ss.TryLoadSetting(sSettingFixed, ref sRead);
             txtShapiro_Fixed.Text = sRead;
 
-            meas_params.SetParameters(nSelected.ToString(), txtShapiroStart.Text, txtShapiroEnd.Text, txtShapiroStep.Text, txtShapiro_Fixed.Text);
+            meas_params.SetParameters(nSelected.ToString(), txtShapiroStart.Text, txtShapiroEnd.Text, txtShapiroStep.Text, txtShapiro_Fixed.Text, nGeneratorID.ToString());
         }
 
         private void UpdateShapiroUI(int i)
@@ -1164,7 +1179,7 @@ namespace ExperimentRunner
                 UpdateShapiroSettings(i); //load new values
             }
 
-            meas_params.SetParameters(i.ToString(), txtShapiroStart.Text, txtShapiroEnd.Text, txtShapiroStep.Text, txtShapiro_Fixed.Text); 
+            //meas_params.SetParameters(i.ToString(), txtShapiroStart.Text, txtShapiroEnd.Text, txtShapiroStep.Text, txtShapiro_Fixed.Text); 
         }
 
         private void txtShapiroStart_TextChanged(object sender, EventArgs e)
@@ -1447,6 +1462,14 @@ namespace ExperimentRunner
         {
             if (!bFullInitialized) return;
             InputValidator.HandleKeyEvent(e, true, false);
+        }
+
+        private void TxtGeneratorID_TextChanged(object sender, EventArgs e)
+        {
+            int nGenID = HandleTextFieldChange(txtGeneratorID);
+            if (nGenID != -1) nGeneratorID = nGenID;
+
+            meas_params.UpdateParameter(5, txtGeneratorID.Text);
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)

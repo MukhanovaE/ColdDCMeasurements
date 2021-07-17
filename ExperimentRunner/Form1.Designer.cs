@@ -418,6 +418,8 @@
             this.btnGate_mkV = new System.Windows.Forms.RadioButton();
             this.tabPage10 = new System.Windows.Forms.TabPage();
             this.groupBox61 = new System.Windows.Forms.GroupBox();
+            this.label184 = new System.Windows.Forms.Label();
+            this.txtGateT_VoltTo = new System.Windows.Forms.TextBox();
             this.label106 = new System.Windows.Forms.Label();
             this.txtGateT_TempStep = new System.Windows.Forms.TextBox();
             this.label107 = new System.Windows.Forms.Label();
@@ -640,8 +642,9 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
-            this.txtGateT_VoltTo = new System.Windows.Forms.TextBox();
-            this.label184 = new System.Windows.Forms.Label();
+            this.groupBox94 = new System.Windows.Forms.GroupBox();
+            this.label185 = new System.Windows.Forms.Label();
+            this.txtGeneratorID = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -770,6 +773,7 @@
             this.groupBox90.SuspendLayout();
             this.groupBox46.SuspendLayout();
             this.groupBox45.SuspendLayout();
+            this.groupBox94.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -4923,6 +4927,25 @@
             this.groupBox61.TabStop = false;
             this.groupBox61.Text = "Additional parameters";
             // 
+            // label184
+            // 
+            this.label184.AutoSize = true;
+            this.label184.Location = new System.Drawing.Point(121, 53);
+            this.label184.Name = "label184";
+            this.label184.Size = new System.Drawing.Size(16, 13);
+            this.label184.TabIndex = 23;
+            this.label184.Text = "to";
+            // 
+            // txtGateT_VoltTo
+            // 
+            this.txtGateT_VoltTo.Location = new System.Drawing.Point(143, 50);
+            this.txtGateT_VoltTo.MaxLength = 8;
+            this.txtGateT_VoltTo.Name = "txtGateT_VoltTo";
+            this.txtGateT_VoltTo.Size = new System.Drawing.Size(33, 20);
+            this.txtGateT_VoltTo.TabIndex = 22;
+            this.txtGateT_VoltTo.TextChanged += new System.EventHandler(this.TextBox1_TextChanged);
+            this.txtGateT_VoltTo.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtGateT_VoltTo_KeyPress);
+            // 
             // label106
             // 
             this.label106.AutoSize = true;
@@ -6946,6 +6969,7 @@
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.groupBox94);
             this.tabPage9.Controls.Add(this.groupBox90);
             this.tabPage9.Controls.Add(this.groupBox46);
             this.tabPage9.Controls.Add(this.groupBox45);
@@ -7047,7 +7071,7 @@
             this.groupBox45.Size = new System.Drawing.Size(510, 114);
             this.groupBox45.TabIndex = 0;
             this.groupBox45.TabStop = false;
-            this.groupBox45.Text = "Devices";
+            this.groupBox45.Text = "Main devices";
             // 
             // label183
             // 
@@ -7240,24 +7264,33 @@
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
             // 
-            // txtGateT_VoltTo
+            // groupBox94
             // 
-            this.txtGateT_VoltTo.Location = new System.Drawing.Point(143, 50);
-            this.txtGateT_VoltTo.MaxLength = 8;
-            this.txtGateT_VoltTo.Name = "txtGateT_VoltTo";
-            this.txtGateT_VoltTo.Size = new System.Drawing.Size(33, 20);
-            this.txtGateT_VoltTo.TabIndex = 22;
-            this.txtGateT_VoltTo.TextChanged += new System.EventHandler(this.TextBox1_TextChanged);
-            this.txtGateT_VoltTo.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtGateT_VoltTo_KeyPress);
+            this.groupBox94.Controls.Add(this.txtGeneratorID);
+            this.groupBox94.Controls.Add(this.label185);
+            this.groupBox94.Location = new System.Drawing.Point(270, 157);
+            this.groupBox94.Name = "groupBox94";
+            this.groupBox94.Size = new System.Drawing.Size(249, 88);
+            this.groupBox94.TabIndex = 3;
+            this.groupBox94.TabStop = false;
+            this.groupBox94.Text = "Signal generator";
             // 
-            // label184
+            // label185
             // 
-            this.label184.AutoSize = true;
-            this.label184.Location = new System.Drawing.Point(121, 53);
-            this.label184.Name = "label184";
-            this.label184.Size = new System.Drawing.Size(16, 13);
-            this.label184.TabIndex = 23;
-            this.label184.Text = "to";
+            this.label185.AutoSize = true;
+            this.label185.Location = new System.Drawing.Point(16, 28);
+            this.label185.Name = "label185";
+            this.label185.Size = new System.Drawing.Size(133, 13);
+            this.label185.TabIndex = 0;
+            this.label185.Text = "Signal generator device ID";
+            // 
+            // txtGeneratorID
+            // 
+            this.txtGeneratorID.Location = new System.Drawing.Point(155, 24);
+            this.txtGeneratorID.Name = "txtGeneratorID";
+            this.txtGeneratorID.Size = new System.Drawing.Size(48, 20);
+            this.txtGeneratorID.TabIndex = 1;
+            this.txtGeneratorID.TextChanged += new System.EventHandler(this.TxtGeneratorID_TextChanged);
             // 
             // Form1
             // 
@@ -7502,6 +7535,8 @@
             this.groupBox46.PerformLayout();
             this.groupBox45.ResumeLayout(false);
             this.groupBox45.PerformLayout();
+            this.groupBox94.ResumeLayout(false);
+            this.groupBox94.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -8122,6 +8157,9 @@
         private System.Windows.Forms.TextBox txtVoltageReadout;
         private System.Windows.Forms.TextBox txtGateT_VoltTo;
         private System.Windows.Forms.Label label184;
+        private System.Windows.Forms.GroupBox groupBox94;
+        private System.Windows.Forms.TextBox txtGeneratorID;
+        private System.Windows.Forms.Label label185;
     }
 }
 
