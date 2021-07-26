@@ -37,7 +37,7 @@ SWEEP_MODE_DECR_INCR_ONE_CURVE = 5
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'V_B')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
@@ -171,12 +171,9 @@ def EquipmentCleanup():
     Yokogawa_I.SetOutput(0)
 
 
-# @MeasurementProc(EquipmentCleanup)
+@MeasurementProc(EquipmentCleanup)
 def MainThreadProc():
     global curr_curr
-
-    # Move current down, 0 => -A
-    # FieldUtils.SlowlyChange(Field_controller, pw, np.linspace(0, -rangeA_B, 15), 'prepairing...')
 
     # offset algorithm initialization
     min_pred_inc = max_pred_inc = 0
@@ -269,7 +266,7 @@ def MainThreadProc():
         
         # decreasing sweep
         if decr_now:
-            print('Ramping field upwards')
+            print('Ramping field downwards')
             for curr_field in sweeper_decr:
                 curr_volt = Leonardo.MeasureNow(6) / gain  # in volts
                 fieldValues_dec.append(curr_field)
@@ -310,7 +307,6 @@ def MainThreadProc():
         if sweep_mode in [SWEEP_MODE_INCR_DECR_ONE_CURVE, SWEEP_MODE_DECR_INCR_ONE_CURVE]:
             incr_now = not incr_now
             decr_now = not decr_now
-                     
 
         time_mgr.OneSweepStepEnd(k + 1)
 

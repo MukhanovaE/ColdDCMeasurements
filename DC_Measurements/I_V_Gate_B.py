@@ -25,7 +25,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'Gate_B')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
