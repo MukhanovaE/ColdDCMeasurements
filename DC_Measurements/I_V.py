@@ -41,7 +41,7 @@ currValues = []
 
 
 pw = plotWindow("I-V")
-tabIV = pw.addLine2D('I-V', f'I, {I_units}A', f'U, {I_units}V')
+tabIV = pw.addLine2D('I-V', f'I, {I_units}A', f'U, {V_units}V')
 tabR = pw.addLine2D(r'dV/dI', f'I, {I_units}A', r'$\frac{dV}{dI}$')
 f_exit = threading.Event()
 
@@ -51,7 +51,7 @@ def DataSave():
     if not f_save:
         return
     caption = "simple_I_V"
-    SaveData(data_dict={f'I, {I_units}A': currValues, f'U, {I_units}V': voltValues},
+    SaveData(data_dict={f'I, {I_units}A': currValues, f'U, {V_units}V': voltValues},
              R=R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
 
     fname = GetSaveFileName(R, k_R, caption, 'pdf')
@@ -65,7 +65,7 @@ def DataSave():
     print('Plots were successfully saved to PDF:', fname)
 
     print('Uploading to clouds')
-    # UploadToClouds(GetSaveFolder(R, k_R, caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
 def Cleanup():
@@ -88,7 +88,7 @@ def MeasurementThreadProc():
         currValues.append((volt / R) / k_A)
 
         if fMeasDeriv:
-            R_values = np.gradient(voltValues)
+            R_values = np.gradient(np.array(voltValues) * k_V_meas / k_A)  # in Ohms
 
         # resistance measurement
         if volt < lower_R_bound or volt > upper_R_bound:
