@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
 from Drivers.Keithley2182A import *
 from Drivers.Keithley6200 import *
 
@@ -51,7 +51,7 @@ try:
 except Exception:
     temp0, max_temp, temp_step = None, 1.1, 100 * 1E-3
 
-LakeShore = LakeShoreController(device_num=ls, temp0=temp0, max_temp=max_temp, tempStep=temp_step)
+LakeShore = LakeShore370(device_num=ls, temp0=temp0, max_temp=max_temp, tempStep=temp_step)
 voltValuesGate = np.linspace(0, gate_amplitude, int(gate_points))
 
 print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0} K to {max_temp} K, with step: {temp_step} K')

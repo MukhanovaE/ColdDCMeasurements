@@ -12,12 +12,12 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LinearSegmentedColormap
 
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
 from Lib.lm_utils import *
 
 device_id = int(sys.argv[1])
 
-LakeShore = LakeShoreController(device_num=device_id, mode='passive')
+LakeShore = LakeShore370(device_num=device_id, mode='passive')
 
 
 # behavior on program exit - save data

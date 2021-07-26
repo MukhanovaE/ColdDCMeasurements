@@ -1,4 +1,4 @@
-from . import visa_device
+from Drivers import visa_device
 import time
 
 

@@ -1,7 +1,4 @@
-import numpy as np
-import visa
-
-from . import visa_device
+from Drivers import visa_device
 
 MODE_POWER = 0
 MODE_FREQ = 1

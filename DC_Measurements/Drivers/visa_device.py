@@ -42,6 +42,7 @@ class visa_device:
 
     def GetFloat(self, cmd_str):
         device = self.device
+        resp = ""
 
         try:
             resp = device.query(cmd_str)

@@ -17,6 +17,8 @@ namespace ExperimentRunner
         public const int EXCITATION_KEITHLEY = 1;
         public const int READOUT_LEONARDO = 0;
         public const int READOUT_KEITHLEY = 1;
+        public const int LAKESHORE_370 = 0;
+        public const int LAKESHORE_335 = 1;
 
         //settings registry key names
         private const string strSettingsIUnits = "_I_units";
@@ -56,6 +58,7 @@ namespace ExperimentRunner
         private string strSampleName;
         private int mIDDeviceSweep, mIDDeviceFieldOrGate, mIDLakeShore, mIDDeviceReadout;  //device IDs
         private int mSweepDeviceType, mReadDeviceType;  //device types
+        private int mLakeShoreModel;
         private String mAMI;
         private bool fSaveData = true;
         private List<String> UserParams = new List<String>();
@@ -514,10 +517,17 @@ namespace ExperimentRunner
                 -RR readout device VISA ID, ignored if Leonardo board is used
                 -RT readout device type; 0 if Leonardo board, 1 if Keithley nanovoltmeter is used
                 -WT IV curve current sweep device type, 0 if Yokogawa, 1 if Keithley
+                -LT LakeShore model: 0 if 370, 1 if 335 (to be continued...)
+                Resistance (in selected units)
+                Voltage sweep range (in volts)
+                Voltage sweep step (in volts)
+                Voltage amplifier gain
+                Sweep step delay (in seconds)
+                Number of samples to measure and average at one point (only for Leonardo)
             */
 
-            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7} -RR {8}", strUnitR, strUnitU, strUnitI, 
-                mIDDeviceSweep, strYokWrite, mIDLakeShore, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout);
+            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7} -RR {8} -LT {9}", strUnitR, strUnitU, strUnitI, 
+                mIDDeviceSweep, strYokWrite, mIDLakeShore, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout, mLakeShoreModel);
             if (!fSaveData) strKwargs += " -nosave";
 
             if (UserParams.Count != 0)
@@ -579,6 +589,11 @@ namespace ExperimentRunner
         public void SetReadoutDeviceID(int nID)
         {
             mIDDeviceReadout = nID;
+        }
+
+        public void SetLakeShoreModel(int nModel)
+        {
+            mLakeShoreModel = nModel;
         }
 
         public void SetReadoutDeviceType(int nType)

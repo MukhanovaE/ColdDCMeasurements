@@ -15,7 +15,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
 from Drivers.Keithley2182A import *
 from Drivers.Keithley6200 import *
 
@@ -65,7 +65,7 @@ voltValuesGate = np.linspace(gate_from, gate_to, int(gate_points))
 print('Gate voltages will be: ', voltValuesGate)
 print(
     f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {tempRange} K, with step: {tempStep * 1e+3:.3f} mK')
-LakeShore = LakeShoreController(mode='active', device_num=ls, temp0=temp0, max_temp=tempRange, tempStep=tempStep)
+LakeShore = LakeShore370(mode='active', device_num=ls, temp0=temp0, max_temp=tempRange, tempStep=tempStep)
 
 N_points = len(down_line_1)
 

@@ -15,7 +15,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
 from Drivers.AMI430 import *
 from Drivers.Keithley2182A import *
 from Drivers.Keithley6200 import *
@@ -69,7 +69,7 @@ if isinstance(yok_write, int):
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(yok_write, fields)
-LakeShore = LakeShoreController(device_num=ls, mode='passive')
+LakeShore = LakeShore370(device_num=ls, mode='passive')
 # ------------------------------------------------------------------------------------------------------------
 
 # Resistance measurement

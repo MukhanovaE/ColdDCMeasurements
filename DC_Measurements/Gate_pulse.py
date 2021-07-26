@@ -6,7 +6,7 @@ import sys
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
 from Drivers.KeysightAWG import *
 from Drivers.Keithley2182A import *
 from Drivers.Keithley6200 import *
@@ -26,7 +26,7 @@ Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOU
     else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
     else Keithley2182A(device_num=yok_write)
-LakeShore = LakeShoreController(mode='passive', device_num=ls)
+LakeShore = LakeShore370(mode='passive', device_num=ls)
 # parse user-defined parameters
 try:
     length0, length_end, length_step, n_repeat, amplitude, current, device_id = [float(i) for i in user_params.split(';')]
