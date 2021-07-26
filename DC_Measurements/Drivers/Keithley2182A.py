@@ -14,19 +14,21 @@ class Keithley2182A(visa_device.visa_device):
         self.SendString('SYSTem:LSYNc ON')
         self.SendString('SENSe:VOLTage:CHANnel1:RANGe:AUTO ON')
         self.SendString('SENSe:VOLTage:CHANnel1:LPASs OFF')
+        # self.SendString('OUTPut:RELative ON')
         self.SendString('INITiate')
-        self.SendString('INITiate:CONTinuous OFF')
-        self._channel = 1
+        # self.SendString('INITiate:CONTinuous OFF')
+        self._set_channel(1)
 
-        print('Keithley 2182A series connection success')
+        print('Keithley 2182A series connection success, device ID:', device_num)
 
     def _set_channel(self, channel):
         self._channel = channel
         self.SendString(f'SENSe:CHANnel {channel}')
+        self.SendString('INITiate:CONTinuous OFF')
 
     # returns voltage in volts
     def MeasureNow(self, channel):
         # TODO: check voltage units!
         if channel != self._channel:
             self._set_channel(channel)
-        return self.GetFloat(':READ?') * 1e-9
+        return self.GetFloat(':READ?') * 100
