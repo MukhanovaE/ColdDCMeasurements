@@ -19,8 +19,8 @@ class LakeShore335(LakeShoreBase):
     def _get_intype(self):
         chan = self._temp_channel
         read_data = self.GetString(f'INTYPE? {chan}')
-        inp, sensor_type, autorange, rng, compensation, units = [int(i) for i in read_data.split()]
-        self._intype_input = inp
+        sensor_type, autorange, rng, compensation, units = [int(i) for i in read_data.split(',')]
+        self._intype_input = chan
         self._intype_sensor_type = sensor_type
         self._intype_autorange = autorange
         self._intype_range = rng
