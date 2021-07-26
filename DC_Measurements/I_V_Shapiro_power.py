@@ -39,7 +39,8 @@ try:
     swept_range = np.arange(range_start, range_stop, range_step)
 except Exception as e:
     print(e)
-    range_start, range_stop, range_step, fixed_value, kind = -18, 5, 0.5, 2.5, 0
+    range_start, range_stop, range_step, fixed_value, kind, generator_id = -18, 5, 0.5, 2.5, 0, 18
+    swept_range = np.arange(range_start, range_stop, range_step)
 if kind == MODE_POWER:  # power
     KeysightGenerator = KeysightN51(device_num=generator_id, sweep='power', freq=fixed_value, power_range=swept_range)
     print(f'Sweeping power, in range: [{range_start}, {range_stop}), step is: {range_step}, frequency={fixed_value} GHz')
