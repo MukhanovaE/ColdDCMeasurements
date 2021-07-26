@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from tkinter import TclError
+import threading
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
@@ -26,8 +27,6 @@ Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOU
 Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
     else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 
-f_exit = False
-
 # all Yokogawa generated values (always in volts!!!)
 upper_line_1 = np.arange(0, rangeA, stepA)
 down_line_1 = np.arange(rangeA, -rangeA, -stepA)
@@ -41,38 +40,72 @@ voltValues = []
 currValues = []
 
 
-# rocedure after window closed - write results to a file
-def OnClose(_):
-    global f_exit, f_save, fig
+pw = plotWindow("I-V")
+tabIV = pw.addLine2D('I-V', f'I, {I_units}A', f'U, {I_units}V')
+tabR = pw.addLine2D(r'dV/dI', f'I, {I_units}A', r'$\frac{dV}{dI}$')
+f_exit = threading.Event()
+
+
+# Write results to a file
+def DataSave():
+    if not f_save:
+        return
     caption = "simple_I_V"
     SaveData(data_dict={f'I, {I_units}A': currValues, f'U, {I_units}V': voltValues},
              R=R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
 
     fname = GetSaveFileName(R, k_R, caption, 'pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
-    pp.savefig(fig)
-    Log.Save()
+    pw.SaveFigureToPDF(tabIV, pp)
+    pw.SaveFigureToPDF(tabR, pp)
     pp.close()
+
+    Log.Save()
+
     print('Plots were successfully saved to PDF:', fname)
 
     print('Uploading to clouds')
-    UploadToClouds(GetSaveFolder(R, k_R, caption))
-    f_exit = f_save = True
+    # UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
-# Initialize a plot
-plt.ion()
-fig, ax1 = plt.subplots(figsize=(14, 8))
-fig.canvas.mpl_connect('close_event', OnClose)
-line, = ax1.plot([], [])
-ax1.set_xlabel(fr'$I, {core_units[k_A]}A$', fontsize=15)
-ax1.set_ylabel(fr"$U, {core_units[k_V_meas]}V$", fontsize=15)
-ax1.grid()
-fig.show()
+def Cleanup():
+    Yokogawa.SetOutput(0)
 
-print('Measurement started.\nTotal points:', len(currValues))
-print('When all points wil be measured, data will be saved automatically.')
-print('Close a plot window to stop measurement and save only currently obtained data.')
+
+@MeasurementProc(Cleanup)
+def MeasurementThreadProc():
+    print('Measurement started.\nTotal points:', len(currValues))
+    print('When all points wil be measured, data will be saved automatically.')
+    print('Close a plot window to stop measurement and save only currently obtained data.')
+    fMeasDeriv = False
+
+    for i, volt in enumerate(voltValues0):
+        Yokogawa.SetOutput(volt)
+        time.sleep(step_delay)
+
+        V_meas = Leonardo.MeasureNow(6) / gain
+        voltValues.append(V_meas / k_V_meas)
+        currValues.append((volt / R) / k_A)
+
+        if fMeasDeriv:
+            R_values = np.gradient(voltValues)
+
+        # resistance measurement
+        if volt < lower_R_bound or volt > upper_R_bound:
+            R_IValues.append(volt / R)  # Amperes forever!
+            R_UValues.append(V_meas)  # volts
+
+            UpdateResistance(pw.Axes[tabIV], np.array(R_IValues), np.array(R_UValues))
+
+        pw.updateLine2D(tabIV, currValues, voltValues)
+        if fMeasDeriv:
+            pw.updateLine2D(tabR, currValues, R_values)
+
+        fMeasDeriv = True
+        if f_exit.is_set():
+            break
+    Yokogawa.SetOutput(0)
+
 
 # Resistance measurement
 # ----------------------------------------------------------------------------------------------------
@@ -86,48 +119,12 @@ upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
 N_half = len(upper_line_1) + 1
 # ----------------------------------------------------------------------------------------------------
 
-# Perform measurements!
-try:
-    for i, volt in enumerate(voltValues0):
-        Yokogawa.SetOutput(volt)
-        time.sleep(step_delay)
-        # delay at curve ends to prevent hysteresis
-        '''if (i == N_half or i == 3*N_half) and step_delay < 0.01:
-             print('!!')
-             time.sleep(1) '''
 
-        V_meas = Leonardo.MeasureNow(6) / gain
-        voltValues.append(V_meas / k_V_meas)  # volts / coeff
-        currValues.append((volt / R) / k_A)  # (volts/Ohms always) / coeff
+meas_thread = threading.Thread(target=MeasurementThreadProc)
+meas_thread.start()
 
-        # resistance measurement
-        if volt < lower_R_bound or volt > upper_R_bound:
-            R_IValues.append(volt / R)  # Amperes forever!
-            R_UValues.append(V_meas)  # volts
-            UpdateResistance(ax1, np.array(R_IValues), np.array(R_UValues))
+pw.show()
+f_exit.set()
 
-        line.set_xdata(currValues)
-        line.set_ydata(voltValues)
-        ax1.relim()
-        ax1.autoscale_view()
-        try:
-            plt.pause(step_delay)
-        except TclError:  # don't throw exception after plot closure
-            pass
-        if f_exit:
-            break
-    Yokogawa.SetOutput(0)
-
-except Exception as e:
-    print('An error has occurred during measurement process.')
-    print(e)
-    print('Turning current off...')
-    Yokogawa.SetOutput(0)
-
-if not f_save:  # if window was not closed
-    OnClose(None)
-
-plt.ioff()
-plt.show()
-Yokogawa.SetOutput(0)
-del Yokogawa
+DataSave()
+Cleanup()
