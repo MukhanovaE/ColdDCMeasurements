@@ -25,7 +25,7 @@ class YokogawaMeasurer(visa_device.visa_device):
         self.SendString('OUTPut ON')
 
         if self.__verbose:
-            print('Yokogawa connection success')
+            print('Yokogawa connection success, device ID:', device_num)
 
     def SetOutput(self, value: float):
         self.SendString(f":SOURce:LEVel {value}")

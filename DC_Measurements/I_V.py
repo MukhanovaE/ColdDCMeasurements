@@ -116,6 +116,7 @@ try:
             pass
         if f_exit:
             break
+    Yokogawa.SetOutput(0)
 
 except Exception as e:
     print('An error has occurred during measurement process.')

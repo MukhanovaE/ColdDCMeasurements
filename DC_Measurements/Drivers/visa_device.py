@@ -50,6 +50,6 @@ class visa_device:
         except visa.VisaIOError as e:
             print('Unable to read data from device.\n', e)
             self.__error_message()
-            return ""
+            return 0
         except Exception:
             print('Device returned an invalid responce:', resp)
