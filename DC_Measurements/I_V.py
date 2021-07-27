@@ -38,7 +38,7 @@ voltValues0 = np.hstack((upper_line_1,
                          upper_line_2))
 voltValues = []
 currValues = []
-
+R_values = []
 
 pw = plotWindow("I-V")
 tabIV = pw.addLine2D('I-V', f'I, {I_units}A', f'U, {V_units}V')
@@ -51,7 +51,7 @@ def DataSave():
     if not f_save:
         return
     caption = "simple_I_V"
-    SaveData(data_dict={f'I, {I_units}A': currValues, f'U, {V_units}V': voltValues},
+    SaveData(data_dict={f'I, {I_units}A': currValues, f'U, {V_units}V': voltValues, 'R, Ohm': R_values},
              R=R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
 
     fname = GetSaveFileName(R, k_R, caption, 'pdf')
@@ -74,6 +74,7 @@ def Cleanup():
 
 @MeasurementProc(Cleanup)
 def MeasurementThreadProc():
+    global R_values
     print('Measurement started.\nTotal points:', len(currValues))
     print('When all points wil be measured, data will be saved automatically.')
     print('Close a plot window to stop measurement and save only currently obtained data.')
