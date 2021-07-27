@@ -12,8 +12,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-LT', action='store', required=False, default=LAKESHORE_MODEL_370)
 parser.add_argument('-L', action='store', required=True)
 args, unknown = parser.parse_known_args()
-device_id = args.L
-lakeshore_model = args.LT
+device_id = int(args.L)
+lakeshore_model = int(args.LT)
 
 LakeShore = LakeShore370(device_num=device_id, mode='passive', control_channel=6) if lakeshore_model == LAKESHORE_MODEL_370 \
     else LakeShore335(device_num=device_id, mode='passive', control_channel='A', heater_channel=1)
