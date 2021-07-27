@@ -1,32 +1,27 @@
 import numpy as np
-
-from sys import exit, argv
 import time
-from datetime import datetime
-import pandas as pd
-import os
 import threading
-
+import argparse
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.colors import LinearSegmentedColormap
 
 from Drivers.LakeShore370 import *
+from Drivers.LakeShore335 import *
 from Lib.lm_utils import *
 
-device_id = int(sys.argv[1])
+parser = argparse.ArgumentParser()
+parser.add_argument('-LT', action='store', required=False, default=LAKESHORE_MODEL_370)
+parser.add_argument('-L', action='store', required=True)
+args, unknown = parser.parse_known_args()
+device_id = args.L
+lakeshore_model = args.LT
 
-LakeShore = LakeShore370(device_num=device_id, mode='passive')
+LakeShore = LakeShore370(device_num=device_id, mode='passive', control_channel=6) if lakeshore_model == LAKESHORE_MODEL_370 \
+    else LakeShore335(device_num=device_id, mode='passive', control_channel='A', heater_channel=1)
 
-
-# behavior on program exit - save data
 f_exit = threading.Event()
-
-
 pw = plotWindow("Temperature control", color_buttons=False)
 
-channels = [6, 2, 3, 5]
+channels = [6, 2, 3, 5] if lakeshore_model == LAKESHORE_MODEL_370 else ['A', 'B']
 tabs = []
 times_arrays = []
 temps_arrays = []
@@ -78,5 +73,4 @@ thermometer_thread = threading.Thread(target=TemperatureThreadProc)
 thermometer_thread.start()
 
 pw.show()  # show main tabbed window
-
 f_exit.set()
