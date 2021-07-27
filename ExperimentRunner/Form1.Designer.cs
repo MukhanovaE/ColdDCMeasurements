@@ -623,6 +623,8 @@
             this.txtAMIAddress = new System.Windows.Forms.TextBox();
             this.label176 = new System.Windows.Forms.Label();
             this.groupBox46 = new System.Windows.Forms.GroupBox();
+            this.cboLakeShoreModel = new System.Windows.Forms.ComboBox();
+            this.label186 = new System.Windows.Forms.Label();
             this.btnStartTempObserver = new System.Windows.Forms.Button();
             this.txtLakeShoreID = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
@@ -645,8 +647,6 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
-            this.label186 = new System.Windows.Forms.Label();
-            this.cboLakeShoreModel = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -955,11 +955,11 @@
             // label47
             // 
             this.label47.AutoSize = true;
-            this.label47.Location = new System.Drawing.Point(220, 56);
+            this.label47.Location = new System.Drawing.Point(216, 56);
             this.label47.Name = "label47";
-            this.label47.Size = new System.Drawing.Size(45, 13);
+            this.label47.Size = new System.Drawing.Size(51, 13);
             this.label47.TabIndex = 10;
-            this.label47.Text = "Step, A:";
+            this.label47.Text = "Step, nA:";
             // 
             // txtIV_RangeI
             // 
@@ -974,9 +974,9 @@
             this.label48.AutoSize = true;
             this.label48.Location = new System.Drawing.Point(13, 55);
             this.label48.Name = "label48";
-            this.label48.Size = new System.Drawing.Size(67, 13);
+            this.label48.Size = new System.Drawing.Size(73, 13);
             this.label48.TabIndex = 8;
-            this.label48.Text = "Range (± A):";
+            this.label48.Text = "Range (± nA):";
             // 
             // txtIV_Step
             // 
@@ -989,7 +989,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(220, 24);
+            this.label2.Location = new System.Drawing.Point(216, 24);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(45, 13);
             this.label2.TabIndex = 2;
@@ -1320,11 +1320,11 @@
             // label49
             // 
             this.label49.AutoSize = true;
-            this.label49.Location = new System.Drawing.Point(220, 56);
+            this.label49.Location = new System.Drawing.Point(216, 56);
             this.label49.Name = "label49";
-            this.label49.Size = new System.Drawing.Size(45, 13);
+            this.label49.Size = new System.Drawing.Size(51, 13);
             this.label49.TabIndex = 10;
-            this.label49.Text = "Step, A:";
+            this.label49.Text = "Step, nA:";
             // 
             // txtIVTM_RangeI
             // 
@@ -1339,9 +1339,9 @@
             this.label50.AutoSize = true;
             this.label50.Location = new System.Drawing.Point(13, 55);
             this.label50.Name = "label50";
-            this.label50.Size = new System.Drawing.Size(67, 13);
+            this.label50.Size = new System.Drawing.Size(73, 13);
             this.label50.TabIndex = 8;
-            this.label50.Text = "Range (± A):";
+            this.label50.Text = "Range (± nA):";
             // 
             // txtIVTM_Step
             // 
@@ -1354,7 +1354,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(220, 24);
+            this.label8.Location = new System.Drawing.Point(216, 24);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(45, 13);
             this.label8.TabIndex = 2;
@@ -1838,11 +1838,11 @@
             // label51
             // 
             this.label51.AutoSize = true;
-            this.label51.Location = new System.Drawing.Point(220, 56);
+            this.label51.Location = new System.Drawing.Point(216, 56);
             this.label51.Name = "label51";
-            this.label51.Size = new System.Drawing.Size(45, 13);
+            this.label51.Size = new System.Drawing.Size(51, 13);
             this.label51.TabIndex = 10;
-            this.label51.Text = "Step, A:";
+            this.label51.Text = "Step, nA:";
             // 
             // txtIVTA_RangeI
             // 
@@ -1857,9 +1857,9 @@
             this.label52.AutoSize = true;
             this.label52.Location = new System.Drawing.Point(13, 55);
             this.label52.Name = "label52";
-            this.label52.Size = new System.Drawing.Size(67, 13);
+            this.label52.Size = new System.Drawing.Size(73, 13);
             this.label52.TabIndex = 8;
-            this.label52.Text = "Range (± A):";
+            this.label52.Text = "Range (± nA):";
             // 
             // txtIVTA_Step
             // 
@@ -1872,7 +1872,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(220, 24);
+            this.label14.Location = new System.Drawing.Point(216, 24);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(45, 13);
             this.label14.TabIndex = 2;
@@ -2292,11 +2292,11 @@
             // label53
             // 
             this.label53.AutoSize = true;
-            this.label53.Location = new System.Drawing.Point(220, 56);
+            this.label53.Location = new System.Drawing.Point(216, 56);
             this.label53.Name = "label53";
-            this.label53.Size = new System.Drawing.Size(45, 13);
+            this.label53.Size = new System.Drawing.Size(51, 13);
             this.label53.TabIndex = 10;
-            this.label53.Text = "Step, A:";
+            this.label53.Text = "Step, nA:";
             // 
             // txtIVB_RangeI
             // 
@@ -2311,9 +2311,9 @@
             this.label54.AutoSize = true;
             this.label54.Location = new System.Drawing.Point(13, 55);
             this.label54.Name = "label54";
-            this.label54.Size = new System.Drawing.Size(67, 13);
+            this.label54.Size = new System.Drawing.Size(73, 13);
             this.label54.TabIndex = 8;
-            this.label54.Text = "Range (± A):";
+            this.label54.Text = "Range (± nA):";
             // 
             // txtIVB_Step
             // 
@@ -2326,7 +2326,7 @@
             // label19
             // 
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(220, 24);
+            this.label19.Location = new System.Drawing.Point(216, 24);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(45, 13);
             this.label19.TabIndex = 2;
@@ -2962,9 +2962,9 @@
             this.label55.AutoSize = true;
             this.label55.Location = new System.Drawing.Point(220, 56);
             this.label55.Name = "label55";
-            this.label55.Size = new System.Drawing.Size(45, 13);
+            this.label55.Size = new System.Drawing.Size(51, 13);
             this.label55.TabIndex = 10;
-            this.label55.Text = "Step, A:";
+            this.label55.Text = "Step, nA:";
             // 
             // txtVB_RangeI
             // 
@@ -2979,9 +2979,9 @@
             this.label56.AutoSize = true;
             this.label56.Location = new System.Drawing.Point(13, 55);
             this.label56.Name = "label56";
-            this.label56.Size = new System.Drawing.Size(67, 13);
+            this.label56.Size = new System.Drawing.Size(73, 13);
             this.label56.TabIndex = 8;
-            this.label56.Text = "Range (± A):";
+            this.label56.Text = "Range (± nA):";
             // 
             // txtVB_Step
             // 
@@ -3326,11 +3326,11 @@
             // label45
             // 
             this.label45.AutoSize = true;
-            this.label45.Location = new System.Drawing.Point(220, 56);
+            this.label45.Location = new System.Drawing.Point(216, 56);
             this.label45.Name = "label45";
-            this.label45.Size = new System.Drawing.Size(45, 13);
+            this.label45.Size = new System.Drawing.Size(51, 13);
             this.label45.TabIndex = 6;
-            this.label45.Text = "Step, A:";
+            this.label45.Text = "Step, nA:";
             // 
             // txtStats_RangeI
             // 
@@ -3345,9 +3345,9 @@
             this.label46.AutoSize = true;
             this.label46.Location = new System.Drawing.Point(13, 55);
             this.label46.Name = "label46";
-            this.label46.Size = new System.Drawing.Size(67, 13);
+            this.label46.Size = new System.Drawing.Size(73, 13);
             this.label46.TabIndex = 4;
-            this.label46.Text = "Range (± A):";
+            this.label46.Text = "Range (± nA):";
             // 
             // txtStats_Step
             // 
@@ -3360,7 +3360,7 @@
             // label29
             // 
             this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(220, 24);
+            this.label29.Location = new System.Drawing.Point(216, 24);
             this.label29.Name = "label29";
             this.label29.Size = new System.Drawing.Size(45, 13);
             this.label29.TabIndex = 2;
@@ -3702,11 +3702,11 @@
             // label57
             // 
             this.label57.AutoSize = true;
-            this.label57.Location = new System.Drawing.Point(220, 56);
+            this.label57.Location = new System.Drawing.Point(216, 56);
             this.label57.Name = "label57";
-            this.label57.Size = new System.Drawing.Size(45, 13);
+            this.label57.Size = new System.Drawing.Size(51, 13);
             this.label57.TabIndex = 10;
-            this.label57.Text = "Step, A:";
+            this.label57.Text = "Step, nA:";
             // 
             // txtRT_RangeI
             // 
@@ -3721,9 +3721,9 @@
             this.label58.AutoSize = true;
             this.label58.Location = new System.Drawing.Point(13, 55);
             this.label58.Name = "label58";
-            this.label58.Size = new System.Drawing.Size(67, 13);
+            this.label58.Size = new System.Drawing.Size(73, 13);
             this.label58.TabIndex = 8;
-            this.label58.Text = "Range (± A):";
+            this.label58.Text = "Range (± nA):";
             // 
             // txtRT_Step
             // 
@@ -3736,7 +3736,7 @@
             // label34
             // 
             this.label34.AutoSize = true;
-            this.label34.Location = new System.Drawing.Point(220, 24);
+            this.label34.Location = new System.Drawing.Point(216, 24);
             this.label34.Name = "label34";
             this.label34.Size = new System.Drawing.Size(45, 13);
             this.label34.TabIndex = 2;
@@ -4262,11 +4262,11 @@
             // label141
             // 
             this.label141.AutoSize = true;
-            this.label141.Location = new System.Drawing.Point(220, 56);
+            this.label141.Location = new System.Drawing.Point(216, 56);
             this.label141.Name = "label141";
-            this.label141.Size = new System.Drawing.Size(45, 13);
+            this.label141.Size = new System.Drawing.Size(51, 13);
             this.label141.TabIndex = 10;
-            this.label141.Text = "Step, A:";
+            this.label141.Text = "Step, nA:";
             // 
             // txtRTGate_RangeI
             // 
@@ -4281,9 +4281,9 @@
             this.label142.AutoSize = true;
             this.label142.Location = new System.Drawing.Point(13, 55);
             this.label142.Name = "label142";
-            this.label142.Size = new System.Drawing.Size(67, 13);
+            this.label142.Size = new System.Drawing.Size(73, 13);
             this.label142.TabIndex = 8;
-            this.label142.Text = "Range (± A):";
+            this.label142.Text = "Range (± nA):";
             // 
             // txtRTGate_Step
             // 
@@ -4296,7 +4296,7 @@
             // label143
             // 
             this.label143.AutoSize = true;
-            this.label143.Location = new System.Drawing.Point(220, 24);
+            this.label143.Location = new System.Drawing.Point(216, 24);
             this.label143.Name = "label143";
             this.label143.Size = new System.Drawing.Size(45, 13);
             this.label143.TabIndex = 2;
@@ -4671,11 +4671,11 @@
             // label59
             // 
             this.label59.AutoSize = true;
-            this.label59.Location = new System.Drawing.Point(220, 56);
+            this.label59.Location = new System.Drawing.Point(216, 56);
             this.label59.Name = "label59";
-            this.label59.Size = new System.Drawing.Size(45, 13);
+            this.label59.Size = new System.Drawing.Size(51, 13);
             this.label59.TabIndex = 10;
-            this.label59.Text = "Step, A:";
+            this.label59.Text = "Step, nA:";
             // 
             // txtGate_RangeI
             // 
@@ -4690,9 +4690,9 @@
             this.label60.AutoSize = true;
             this.label60.Location = new System.Drawing.Point(13, 55);
             this.label60.Name = "label60";
-            this.label60.Size = new System.Drawing.Size(67, 13);
+            this.label60.Size = new System.Drawing.Size(73, 13);
             this.label60.TabIndex = 8;
-            this.label60.Text = "Range (± A):";
+            this.label60.Text = "Range (± nA):";
             // 
             // txtGate_Step
             // 
@@ -4705,7 +4705,7 @@
             // label40
             // 
             this.label40.AutoSize = true;
-            this.label40.Location = new System.Drawing.Point(220, 24);
+            this.label40.Location = new System.Drawing.Point(216, 24);
             this.label40.Name = "label40";
             this.label40.Size = new System.Drawing.Size(45, 13);
             this.label40.TabIndex = 2;
@@ -5217,11 +5217,11 @@
             // label64
             // 
             this.label64.AutoSize = true;
-            this.label64.Location = new System.Drawing.Point(220, 56);
+            this.label64.Location = new System.Drawing.Point(216, 56);
             this.label64.Name = "label64";
-            this.label64.Size = new System.Drawing.Size(45, 13);
+            this.label64.Size = new System.Drawing.Size(51, 13);
             this.label64.TabIndex = 10;
-            this.label64.Text = "Step, A:";
+            this.label64.Text = "Step, nA:";
             // 
             // txtgateT_RangeI
             // 
@@ -5236,9 +5236,9 @@
             this.label65.AutoSize = true;
             this.label65.Location = new System.Drawing.Point(13, 55);
             this.label65.Name = "label65";
-            this.label65.Size = new System.Drawing.Size(67, 13);
+            this.label65.Size = new System.Drawing.Size(73, 13);
             this.label65.TabIndex = 8;
-            this.label65.Text = "Range (± A):";
+            this.label65.Text = "Range (± nA):";
             // 
             // txtgateT_Step
             // 
@@ -5251,7 +5251,7 @@
             // label66
             // 
             this.label66.AutoSize = true;
-            this.label66.Location = new System.Drawing.Point(220, 24);
+            this.label66.Location = new System.Drawing.Point(216, 24);
             this.label66.Name = "label66";
             this.label66.Size = new System.Drawing.Size(45, 13);
             this.label66.TabIndex = 2;
@@ -5696,11 +5696,11 @@
             // label133
             // 
             this.label133.AutoSize = true;
-            this.label133.Location = new System.Drawing.Point(220, 56);
+            this.label133.Location = new System.Drawing.Point(216, 56);
             this.label133.Name = "label133";
-            this.label133.Size = new System.Drawing.Size(45, 13);
+            this.label133.Size = new System.Drawing.Size(51, 13);
             this.label133.TabIndex = 10;
-            this.label133.Text = "Step, A:";
+            this.label133.Text = "Step, nA:";
             // 
             // txtgateB_RangeI
             // 
@@ -5715,9 +5715,9 @@
             this.label134.AutoSize = true;
             this.label134.Location = new System.Drawing.Point(13, 55);
             this.label134.Name = "label134";
-            this.label134.Size = new System.Drawing.Size(67, 13);
+            this.label134.Size = new System.Drawing.Size(73, 13);
             this.label134.TabIndex = 8;
-            this.label134.Text = "Range (± A):";
+            this.label134.Text = "Range (± nA):";
             // 
             // txtgateB_Step
             // 
@@ -5730,7 +5730,7 @@
             // label135
             // 
             this.label135.AutoSize = true;
-            this.label135.Location = new System.Drawing.Point(220, 24);
+            this.label135.Location = new System.Drawing.Point(216, 24);
             this.label135.Name = "label135";
             this.label135.Size = new System.Drawing.Size(45, 13);
             this.label135.TabIndex = 2;
@@ -6188,11 +6188,11 @@
             // label115
             // 
             this.label115.AutoSize = true;
-            this.label115.Location = new System.Drawing.Point(220, 56);
+            this.label115.Location = new System.Drawing.Point(216, 56);
             this.label115.Name = "label115";
-            this.label115.Size = new System.Drawing.Size(45, 13);
+            this.label115.Size = new System.Drawing.Size(51, 13);
             this.label115.TabIndex = 10;
-            this.label115.Text = "Step, A:";
+            this.label115.Text = "Step, nA:";
             // 
             // txtShapiro_RangeI
             // 
@@ -6207,9 +6207,9 @@
             this.label116.AutoSize = true;
             this.label116.Location = new System.Drawing.Point(13, 55);
             this.label116.Name = "label116";
-            this.label116.Size = new System.Drawing.Size(67, 13);
+            this.label116.Size = new System.Drawing.Size(73, 13);
             this.label116.TabIndex = 8;
-            this.label116.Text = "Range (± A):";
+            this.label116.Text = "Range (± nA):";
             // 
             // txtShapiro_Step
             // 
@@ -6222,7 +6222,7 @@
             // label117
             // 
             this.label117.AutoSize = true;
-            this.label117.Location = new System.Drawing.Point(220, 24);
+            this.label117.Location = new System.Drawing.Point(216, 24);
             this.label117.Name = "label117";
             this.label117.Size = new System.Drawing.Size(45, 13);
             this.label117.TabIndex = 2;
@@ -6756,11 +6756,11 @@
             // label165
             // 
             this.label165.AutoSize = true;
-            this.label165.Location = new System.Drawing.Point(220, 56);
+            this.label165.Location = new System.Drawing.Point(216, 56);
             this.label165.Name = "label165";
-            this.label165.Size = new System.Drawing.Size(45, 13);
+            this.label165.Size = new System.Drawing.Size(51, 13);
             this.label165.TabIndex = 10;
-            this.label165.Text = "Step, A:";
+            this.label165.Text = "Step, nA:";
             // 
             // txtGatePulses_RangeI
             // 
@@ -6775,9 +6775,9 @@
             this.label166.AutoSize = true;
             this.label166.Location = new System.Drawing.Point(13, 55);
             this.label166.Name = "label166";
-            this.label166.Size = new System.Drawing.Size(67, 13);
+            this.label166.Size = new System.Drawing.Size(73, 13);
             this.label166.TabIndex = 8;
-            this.label166.Text = "Range (± A):";
+            this.label166.Text = "Range (± nA):";
             // 
             // txtGatePulses_Step
             // 
@@ -6790,7 +6790,7 @@
             // label167
             // 
             this.label167.AutoSize = true;
-            this.label167.Location = new System.Drawing.Point(220, 24);
+            this.label167.Location = new System.Drawing.Point(216, 24);
             this.label167.Name = "label167";
             this.label167.Size = new System.Drawing.Size(45, 13);
             this.label167.TabIndex = 2;
@@ -7054,6 +7054,28 @@
             this.groupBox46.TabStop = false;
             this.groupBox46.Text = "Heat control";
             // 
+            // cboLakeShoreModel
+            // 
+            this.cboLakeShoreModel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboLakeShoreModel.FormattingEnabled = true;
+            this.cboLakeShoreModel.Items.AddRange(new object[] {
+            "Model 370",
+            "Model 335"});
+            this.cboLakeShoreModel.Location = new System.Drawing.Point(96, 57);
+            this.cboLakeShoreModel.Name = "cboLakeShoreModel";
+            this.cboLakeShoreModel.Size = new System.Drawing.Size(123, 21);
+            this.cboLakeShoreModel.TabIndex = 7;
+            this.cboLakeShoreModel.SelectedIndexChanged += new System.EventHandler(this.CboLakeShoreModel_SelectedIndexChanged);
+            // 
+            // label186
+            // 
+            this.label186.AutoSize = true;
+            this.label186.Location = new System.Drawing.Point(15, 60);
+            this.label186.Name = "label186";
+            this.label186.Size = new System.Drawing.Size(75, 13);
+            this.label186.TabIndex = 6;
+            this.label186.Text = "Device model:";
+            // 
             // btnStartTempObserver
             // 
             this.btnStartTempObserver.Location = new System.Drawing.Point(18, 87);
@@ -7295,28 +7317,6 @@
             this.cmdExploreData.Text = "Open data folder";
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
-            // 
-            // label186
-            // 
-            this.label186.AutoSize = true;
-            this.label186.Location = new System.Drawing.Point(15, 60);
-            this.label186.Name = "label186";
-            this.label186.Size = new System.Drawing.Size(75, 13);
-            this.label186.TabIndex = 6;
-            this.label186.Text = "Device model:";
-            // 
-            // cboLakeShoreModel
-            // 
-            this.cboLakeShoreModel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboLakeShoreModel.FormattingEnabled = true;
-            this.cboLakeShoreModel.Items.AddRange(new object[] {
-            "Model 370",
-            "Model 335"});
-            this.cboLakeShoreModel.Location = new System.Drawing.Point(96, 57);
-            this.cboLakeShoreModel.Name = "cboLakeShoreModel";
-            this.cboLakeShoreModel.Size = new System.Drawing.Size(123, 21);
-            this.cboLakeShoreModel.TabIndex = 7;
-            this.cboLakeShoreModel.SelectedIndexChanged += new System.EventHandler(this.CboLakeShoreModel_SelectedIndexChanged);
             // 
             // Form1
             // 

@@ -98,13 +98,13 @@ namespace ExperimentRunner
         //Convert voltage to current using values from text fields
         private float U_to_I(float U)
         {
-            return U / fResistance;
+            return (U / fResistance) * 1e+9f;
         }
 
         //Convert current to voltage using values from text fields
         private float I_to_U(float I)
         {
-            return I * fResistance;
+            return I * 1e-9f  * fResistance;
         }
 
         // Writes a selected resistance (in Ohms) to a class variable
