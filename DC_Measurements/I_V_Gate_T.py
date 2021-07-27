@@ -15,7 +15,8 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
+from Drivers.LakeShore335 import *
 from Drivers.Keithley2182A import *
 from Drivers.Keithley6200 import *
 
@@ -24,7 +25,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'Gate_T')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
@@ -65,7 +66,10 @@ voltValuesGate = np.linspace(gate_from, gate_to, int(gate_points))
 print('Gate voltages will be: ', voltValuesGate)
 print(
     f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {tempRange} K, with step: {tempStep * 1e+3:.3f} mK')
-LakeShore = LakeShoreController(mode='active', device_num=ls, temp0=temp0, max_temp=tempRange, tempStep=tempStep)
+LakeShore = LakeShore370(mode='active', control_channel=6, device_num=ls, temp_0=temp0,
+                         max_temp=tempRange, temp_step=tempStep) if ls_model == LAKESHORE_MODEL_370 \
+                            else LakeShore335(mode='active', control_channel='A', heater_channel=1, device_num=ls,
+                                              temp_0=temp0, max_temp=tempRange, temp_step=tempStep)
 
 N_points = len(down_line_1)
 
@@ -227,7 +231,7 @@ curr_curr = 0
 last_resistance = 0
 
 
-# @MeasurementProc(EquipmentCleanup)
+@MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global Leonardo, Yokogawa_V, Yokogawa_I, LakeShore, pw, f_exit, currValues, voltValues, voltValuesGate, curr_curr  # tempsMomental,
     global last_resistance

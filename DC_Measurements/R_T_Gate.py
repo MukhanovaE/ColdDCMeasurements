@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.optimize import curve_fit
 import warnings
 from sys import exit
 from matplotlib import pyplot as plt
@@ -9,7 +8,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore import *
+from Drivers.LakeShore370 import *
+from Drivers.LakeShore335 import *
 from Drivers.Keithley2182A import *
 from Drivers.Keithley6200 import *
 
@@ -18,7 +18,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'R_T_Gate')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
@@ -49,9 +49,13 @@ try:
     if temp0 == 0:
         temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
 except Exception:
-    temp0, max_temp, temp_step = None, 1.1, 100 * 1E-3
+    temp0, max_temp, temp_step, gate_amplitude, gate_points = None, 1.1, 100 * 1E-3, 5, 0.5
 
-LakeShore = LakeShoreController(device_num=ls, temp0=temp0, max_temp=max_temp, tempStep=temp_step)
+LakeShore = LakeShore370(mode='active', control_channel=6, device_num=ls, temp_0=temp0,
+                         max_temp=max_temp, temp_step=temp_step) if ls_model == LAKESHORE_MODEL_370 \
+                            else LakeShore335(mode='active', control_channel='A', heater_channel=1, device_num=ls,
+                                              temp_0=temp0, max_temp=max_temp, temp_step=temp_step)
+
 voltValuesGate = np.linspace(0, gate_amplitude, int(gate_points))
 
 print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0} K to {max_temp} K, with step: {temp_step} K')
@@ -146,6 +150,7 @@ def MeasureProc():
         vg_now = vgate_now
         T_values = []
         R_values = []
+        R_meas = 0
         for curr_temp in LakeShore:
             # measure I_V 3 times
             Log.AddParametersEntry('T', curr_temp, 'K', Vg=vgate_now, PID=LakeShore.pid, HeaterRange=LakeShore.htrrng,

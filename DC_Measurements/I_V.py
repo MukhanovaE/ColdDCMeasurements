@@ -13,7 +13,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'simple_I_V')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
@@ -25,7 +25,7 @@ Log.AddGenericEntry(
 Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
     else Keithley2182A(device_num=read_device_id)
 Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
+    else Keithley6200(device_num=yok_read, what='VOLT', R=R, max_current=(rangeA / R))
 
 # all Yokogawa generated values (always in volts!!!)
 upper_line_1 = np.arange(0, rangeA, stepA)
@@ -79,11 +79,15 @@ def MeasurementThreadProc():
     print('Close a plot window to stop measurement and save only currently obtained data.')
     fMeasDeriv = False
 
+    # Set zero current and calculate offset (if it is present)
+    Yokogawa.SetOutput(0)
+    zero_value = Leonardo.MeasureNow(6) / gain
+
     for i, volt in enumerate(voltValues0):
         Yokogawa.SetOutput(volt)
         time.sleep(step_delay)
 
-        V_meas = Leonardo.MeasureNow(6) / gain
+        V_meas = Leonardo.MeasureNow(6) / gain - zero_value
         voltValues.append(V_meas / k_V_meas)
         currValues.append((volt / R) / k_A)
 
@@ -104,7 +108,7 @@ def MeasurementThreadProc():
         fMeasDeriv = True
         if f_exit.is_set():
             break
-    Yokogawa.SetOutput(0)
+    Cleanup()
 
 
 # Resistance measurement
@@ -124,7 +128,8 @@ meas_thread = threading.Thread(target=MeasurementThreadProc)
 meas_thread.start()
 
 pw.show()
+Cleanup()
 f_exit.set()
 
 DataSave()
-Cleanup()
+

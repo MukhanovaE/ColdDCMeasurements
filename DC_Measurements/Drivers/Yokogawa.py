@@ -1,4 +1,4 @@
-from . import visa_device
+from Drivers import visa_device
 
 
 class YokogawaMeasurer(visa_device.visa_device):

@@ -616,6 +616,9 @@
             this.btnGatePulses_mV = new System.Windows.Forms.RadioButton();
             this.btnGatePulses_mkV = new System.Windows.Forms.RadioButton();
             this.tabPage9 = new System.Windows.Forms.TabPage();
+            this.groupBox94 = new System.Windows.Forms.GroupBox();
+            this.txtGeneratorID = new System.Windows.Forms.TextBox();
+            this.label185 = new System.Windows.Forms.Label();
             this.groupBox90 = new System.Windows.Forms.GroupBox();
             this.txtAMIAddress = new System.Windows.Forms.TextBox();
             this.label176 = new System.Windows.Forms.Label();
@@ -642,9 +645,8 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
-            this.groupBox94 = new System.Windows.Forms.GroupBox();
-            this.label185 = new System.Windows.Forms.Label();
-            this.txtGeneratorID = new System.Windows.Forms.TextBox();
+            this.label186 = new System.Windows.Forms.Label();
+            this.cboLakeShoreModel = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -770,10 +772,10 @@
             this.groupBox88.SuspendLayout();
             this.groupBox89.SuspendLayout();
             this.tabPage9.SuspendLayout();
+            this.groupBox94.SuspendLayout();
             this.groupBox90.SuspendLayout();
             this.groupBox46.SuspendLayout();
             this.groupBox45.SuspendLayout();
-            this.groupBox94.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -6981,13 +6983,41 @@
             this.tabPage9.Text = "Equipment parameters";
             this.tabPage9.UseVisualStyleBackColor = true;
             // 
+            // groupBox94
+            // 
+            this.groupBox94.Controls.Add(this.txtGeneratorID);
+            this.groupBox94.Controls.Add(this.label185);
+            this.groupBox94.Location = new System.Drawing.Point(271, 266);
+            this.groupBox94.Name = "groupBox94";
+            this.groupBox94.Size = new System.Drawing.Size(249, 62);
+            this.groupBox94.TabIndex = 3;
+            this.groupBox94.TabStop = false;
+            this.groupBox94.Text = "Signal generator";
+            // 
+            // txtGeneratorID
+            // 
+            this.txtGeneratorID.Location = new System.Drawing.Point(155, 24);
+            this.txtGeneratorID.Name = "txtGeneratorID";
+            this.txtGeneratorID.Size = new System.Drawing.Size(48, 20);
+            this.txtGeneratorID.TabIndex = 1;
+            this.txtGeneratorID.TextChanged += new System.EventHandler(this.TxtGeneratorID_TextChanged);
+            // 
+            // label185
+            // 
+            this.label185.AutoSize = true;
+            this.label185.Location = new System.Drawing.Point(16, 28);
+            this.label185.Name = "label185";
+            this.label185.Size = new System.Drawing.Size(133, 13);
+            this.label185.TabIndex = 0;
+            this.label185.Text = "Signal generator device ID";
+            // 
             // groupBox90
             // 
             this.groupBox90.Controls.Add(this.txtAMIAddress);
             this.groupBox90.Controls.Add(this.label176);
             this.groupBox90.Location = new System.Drawing.Point(10, 266);
             this.groupBox90.Name = "groupBox90";
-            this.groupBox90.Size = new System.Drawing.Size(213, 62);
+            this.groupBox90.Size = new System.Drawing.Size(239, 62);
             this.groupBox90.TabIndex = 2;
             this.groupBox90.TabStop = false;
             this.groupBox90.Text = "Magnetic field controller";
@@ -6996,7 +7026,7 @@
             // 
             this.txtAMIAddress.Location = new System.Drawing.Point(67, 26);
             this.txtAMIAddress.Name = "txtAMIAddress";
-            this.txtAMIAddress.Size = new System.Drawing.Size(141, 20);
+            this.txtAMIAddress.Size = new System.Drawing.Size(166, 20);
             this.txtAMIAddress.TabIndex = 1;
             this.txtAMIAddress.Text = "TCPIP0::192.168.1.12::7185::SOCKET";
             this.txtAMIAddress.TextChanged += new System.EventHandler(this.txtAMIAddress_TextChanged);
@@ -7012,21 +7042,23 @@
             // 
             // groupBox46
             // 
+            this.groupBox46.Controls.Add(this.cboLakeShoreModel);
+            this.groupBox46.Controls.Add(this.label186);
             this.groupBox46.Controls.Add(this.btnStartTempObserver);
             this.groupBox46.Controls.Add(this.txtLakeShoreID);
             this.groupBox46.Controls.Add(this.label44);
-            this.groupBox46.Location = new System.Drawing.Point(10, 157);
+            this.groupBox46.Location = new System.Drawing.Point(10, 135);
             this.groupBox46.Name = "groupBox46";
-            this.groupBox46.Size = new System.Drawing.Size(214, 89);
+            this.groupBox46.Size = new System.Drawing.Size(239, 120);
             this.groupBox46.TabIndex = 1;
             this.groupBox46.TabStop = false;
-            this.groupBox46.Text = "Heat controller";
+            this.groupBox46.Text = "Heat control";
             // 
             // btnStartTempObserver
             // 
-            this.btnStartTempObserver.Location = new System.Drawing.Point(18, 53);
+            this.btnStartTempObserver.Location = new System.Drawing.Point(18, 87);
             this.btnStartTempObserver.Name = "btnStartTempObserver";
-            this.btnStartTempObserver.Size = new System.Drawing.Size(190, 23);
+            this.btnStartTempObserver.Size = new System.Drawing.Size(201, 23);
             this.btnStartTempObserver.TabIndex = 5;
             this.btnStartTempObserver.Text = "Start temperature observer";
             this.btnStartTempObserver.UseVisualStyleBackColor = true;
@@ -7034,7 +7066,7 @@
             // 
             // txtLakeShoreID
             // 
-            this.txtLakeShoreID.Location = new System.Drawing.Point(142, 25);
+            this.txtLakeShoreID.Location = new System.Drawing.Point(153, 25);
             this.txtLakeShoreID.MaxLength = 2;
             this.txtLakeShoreID.Name = "txtLakeShoreID";
             this.txtLakeShoreID.Size = new System.Drawing.Size(66, 20);
@@ -7048,9 +7080,9 @@
             this.label44.AutoSize = true;
             this.label44.Location = new System.Drawing.Point(15, 28);
             this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(125, 13);
+            this.label44.Size = new System.Drawing.Size(58, 13);
             this.label44.TabIndex = 4;
-            this.label44.Text = "Heat controller device ID";
+            this.label44.Text = "Device ID:";
             // 
             // groupBox45
             // 
@@ -7264,33 +7296,27 @@
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
             // 
-            // groupBox94
+            // label186
             // 
-            this.groupBox94.Controls.Add(this.txtGeneratorID);
-            this.groupBox94.Controls.Add(this.label185);
-            this.groupBox94.Location = new System.Drawing.Point(270, 157);
-            this.groupBox94.Name = "groupBox94";
-            this.groupBox94.Size = new System.Drawing.Size(249, 88);
-            this.groupBox94.TabIndex = 3;
-            this.groupBox94.TabStop = false;
-            this.groupBox94.Text = "Signal generator";
+            this.label186.AutoSize = true;
+            this.label186.Location = new System.Drawing.Point(15, 60);
+            this.label186.Name = "label186";
+            this.label186.Size = new System.Drawing.Size(75, 13);
+            this.label186.TabIndex = 6;
+            this.label186.Text = "Device model:";
             // 
-            // label185
+            // cboLakeShoreModel
             // 
-            this.label185.AutoSize = true;
-            this.label185.Location = new System.Drawing.Point(16, 28);
-            this.label185.Name = "label185";
-            this.label185.Size = new System.Drawing.Size(133, 13);
-            this.label185.TabIndex = 0;
-            this.label185.Text = "Signal generator device ID";
-            // 
-            // txtGeneratorID
-            // 
-            this.txtGeneratorID.Location = new System.Drawing.Point(155, 24);
-            this.txtGeneratorID.Name = "txtGeneratorID";
-            this.txtGeneratorID.Size = new System.Drawing.Size(48, 20);
-            this.txtGeneratorID.TabIndex = 1;
-            this.txtGeneratorID.TextChanged += new System.EventHandler(this.TxtGeneratorID_TextChanged);
+            this.cboLakeShoreModel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboLakeShoreModel.FormattingEnabled = true;
+            this.cboLakeShoreModel.Items.AddRange(new object[] {
+            "Model 370",
+            "Model 335"});
+            this.cboLakeShoreModel.Location = new System.Drawing.Point(96, 57);
+            this.cboLakeShoreModel.Name = "cboLakeShoreModel";
+            this.cboLakeShoreModel.Size = new System.Drawing.Size(123, 21);
+            this.cboLakeShoreModel.TabIndex = 7;
+            this.cboLakeShoreModel.SelectedIndexChanged += new System.EventHandler(this.CboLakeShoreModel_SelectedIndexChanged);
             // 
             // Form1
             // 
@@ -7529,14 +7555,14 @@
             this.groupBox89.ResumeLayout(false);
             this.groupBox89.PerformLayout();
             this.tabPage9.ResumeLayout(false);
+            this.groupBox94.ResumeLayout(false);
+            this.groupBox94.PerformLayout();
             this.groupBox90.ResumeLayout(false);
             this.groupBox90.PerformLayout();
             this.groupBox46.ResumeLayout(false);
             this.groupBox46.PerformLayout();
             this.groupBox45.ResumeLayout(false);
             this.groupBox45.PerformLayout();
-            this.groupBox94.ResumeLayout(false);
-            this.groupBox94.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -8160,6 +8186,8 @@
         private System.Windows.Forms.GroupBox groupBox94;
         private System.Windows.Forms.TextBox txtGeneratorID;
         private System.Windows.Forms.Label label185;
+        private System.Windows.Forms.ComboBox cboLakeShoreModel;
+        private System.Windows.Forms.Label label186;
     }
 }
 

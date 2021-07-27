@@ -21,7 +21,7 @@ from Lib.lm_utils import *
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 Log = Logger(R, k_R, 'I_V_T')
 Log.AddGenericEntry(
     f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
@@ -54,18 +54,21 @@ def DataSave():
     global f_save
     if not f_save:
         return
+    caption = f"I_V_T_{T}"
+
     if not isTemperatureObtained.is_set():
         print('Waiting newest logs to get current temperature...')
     isTemperatureObtained.wait()
     SaveData({f'I, {I_units}A': currValues,
               f'U, {I_units}V': voltValues, 'T, mK': [T] * len(currValues)},
-             R, caption=f"I_V_T_{T}", k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+             R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     f_save = True
 
     Log.Save()
 
     # upload to cloud services
     UploadToClouds(GetSaveFolder(R, k_R, caption))
+
 
 # Procedure after window closed - write results to a file
 def OnClose(e):
@@ -141,7 +144,7 @@ temperature_thread = threading.Thread(target=LoadTemperatureThreadProc)
 temperature_thread.run()
 Measurement()
 
-if (not f_save) and b_save:  # if window was not closed
+if f_save:
     DataSave()
 
 plt.ioff()

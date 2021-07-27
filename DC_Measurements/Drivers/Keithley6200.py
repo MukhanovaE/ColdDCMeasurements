@@ -1,4 +1,4 @@
-from . import visa_device
+from Drivers import visa_device
 import time
 import numpy as np
 
@@ -30,6 +30,7 @@ class Keithley6200(visa_device.visa_device):
     def SetOutput(self, value: float):
         if self._volt_mode:
             value /= self.R  # volts -> amperes
+        self.SendString('OUTPut ON')
         self.SendString(f'CURRent {value}')
 
     def GetOutput(self):

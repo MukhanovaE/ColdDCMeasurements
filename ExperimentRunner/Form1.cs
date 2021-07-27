@@ -20,6 +20,7 @@ namespace ExperimentRunner
         private int nIDDeviceSweep, nIDDeviceFieldGate, nIDDeviceReadout, nIDLakeShore;
         private String strAMI;
         private int nGeneratorID;
+        private int nLakeShoreModel;
 
         // Settings names in Windows registry
         private const String strSettingsTab = "ActiveTab";
@@ -34,6 +35,7 @@ namespace ExperimentRunner
         private const String strReadoutDeviceType = "ReadoutDevice";
         private const String strAMIController = "AMI_controller";
         private const String strGeneratorID = "Signal_generator";
+        private const String strLakeShoreModel = "LakeShoreModel";
 
         private const String sShapiroStartPower = "Shapiro_power_start";
         private const String sShapiroEndPower = "Shapiro_power_end";
@@ -279,6 +281,7 @@ namespace ExperimentRunner
 
             sett.SaveSetting(strAMIController, strAMI);
             sett.SaveSetting(strGeneratorID, nGeneratorID);
+            sett.SaveSetting(strLakeShoreModel, nLakeShoreModel);
             
             // sett.SaveSetting(strFieldGateDevice, cboFieldGateDevice.SelectedIndex);
             sett.SaveSetting(strSweepDeviceType, cboCurrentSweepDeviceType.SelectedIndex);
@@ -297,6 +300,7 @@ namespace ExperimentRunner
             // Default values
             int settDevSweep = 3, settDevFieldGate = 6, settDevReadout = 9, settDevLakeShore = 17;
             int settSweepDeviceType = RunParams.EXCITATION_YOKOGAWA, settReadoutDeviceType = RunParams.READOUT_LEONARDO;
+            int nLakeShoreModel = 0;
 
             String settAMI = txtAMIAddress.Text;
             int settGenID = 18;
@@ -312,6 +316,7 @@ namespace ExperimentRunner
 
             sett.TryLoadSetting(strAMIController, ref settAMI);
             sett.TryLoadSetting(strGeneratorID, ref settGenID);
+            sett.TryLoadSetting(strLakeShoreModel, ref nLakeShoreModel);
 
             sett.TryLoadSetting(strSweepDeviceType, ref settSweepDeviceType);
             sett.TryLoadSetting(strReadoutDeviceType, ref settReadoutDeviceType);
@@ -330,6 +335,7 @@ namespace ExperimentRunner
 
             txtAMIAddress.Text = strAMI;
             txtGeneratorID.Text = nGeneratorID.ToString();
+            cboLakeShoreModel.SelectedIndex = nLakeShoreModel;
 
             cboCurrentSweepDeviceType.SelectedIndex = settSweepDeviceType;
             cboReadoutDevice.SelectedIndex = settReadoutDeviceType;
@@ -1470,6 +1476,12 @@ namespace ExperimentRunner
             if (nGenID != -1) nGeneratorID = nGenID;
 
             meas_params.UpdateParameter(5, txtGeneratorID.Text);
+        }
+
+        private void CboLakeShoreModel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            nLakeShoreModel = cboLakeShoreModel.SelectedIndex;
+            meas_params.SetLakeShoreModel(nLakeShoreModel);
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)
