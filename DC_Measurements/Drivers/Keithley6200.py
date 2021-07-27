@@ -38,11 +38,7 @@ class Keithley6200(visa_device.visa_device):
 
     def __del__(self):
         print('Switching Keithley 6200 series current off')
-        now_curr = self.GetOutput()
-        currents = np.linspace(now_curr, 0, 20)
-        for curr in currents:
-            self.SetOutput(curr)
-            time.sleep(0.1)
+        self.SetOutput(0)
 
 
 class DebugKeithley6200:

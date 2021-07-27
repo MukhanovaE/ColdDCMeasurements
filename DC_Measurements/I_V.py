@@ -42,7 +42,7 @@ currValues = []
 
 pw = plotWindow("I-V")
 tabIV = pw.addLine2D('I-V', f'I, {I_units}A', f'U, {V_units}V')
-tabR = pw.addLine2D(r'dV/dI', f'I, {I_units}A', r'$\frac{dV}{dI}$')
+tabR = pw.addLine2D(r'dV/dI', f'I, {I_units}A', r'$\frac{dV}{dI}$, $\Omega$')
 f_exit = threading.Event()
 
 
@@ -92,7 +92,7 @@ def MeasurementThreadProc():
         currValues.append((volt / R) / k_A)
 
         if fMeasDeriv:
-            R_values = np.gradient(np.array(voltValues) * k_V_meas / k_A)  # in Ohms
+            R_values = np.abs(np.gradient(voltValues) * k_V_meas * 1e+7)  # in Ohms
 
         # resistance measurement
         if volt < lower_R_bound or volt > upper_R_bound:
@@ -108,6 +108,7 @@ def MeasurementThreadProc():
         fMeasDeriv = True
         if f_exit.is_set():
             break
+    print('Measurement finished, turning off')
     Cleanup()
 
 
