@@ -1,24 +1,16 @@
 import numpy as np
-from scipy.optimize import curve_fit
-import matplotlib
-matplotlib.use('Qt5Agg')
-import pandas as pd
 import seaborn
 
-from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 import time
 import threading
 from sys import exit
 
-from Drivers.Leonardo import *
-from Drivers.Yokogawa import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
-
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
 import warnings
+
 warnings.filterwarnings("ignore")  # A critical current function may give warnings in case of bad data, delete them
 
 # User input
@@ -27,10 +19,8 @@ k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_
     ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
 # ------------------------------------------------------------------------------------------------------------
 
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=read_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
 
 # all Yokogawa generated values (always in volts!!!)
 upper_line_1 = np.arange(0, rangeA, stepA)
@@ -63,7 +53,7 @@ tabStats = pw.addEmptyPlot('Distribution')
 
 
 def ErrorCleanup():
-    Yokogawa.SetOutput(0)
+    iv_sweeper.SetOutput(0)
 
 
 def GetTemperatureThreadProc():
@@ -91,10 +81,10 @@ def main_thread():
 
         for nv, volt in enumerate(voltValues0):
             # Measure
-            Yokogawa.SetOutput(volt)
+            iv_sweeper.SetOutput(volt)
             time.sleep(step_delay)
 
-            V_meas = Leonardo.MeasureNow(6) / gain  # volts
+            V_meas = iv_sweeper.MeasureNow(6) / gain  # volts
 
             V = V_meas / k_V_meas
             A = (volt / R) / k_A
@@ -109,7 +99,7 @@ def main_thread():
             U_values.append(V)
 
             # only superconductor->normal transfer states
-            if nv < N_points // 4 or (nv > N_points // 2 and nv < N_points * 3 // 4):
+            if nv < N_points // 4 or (N_points // 2 < nv < N_points * 3 // 4):
                 voltValues_IC.append(V)
                 currValues_IC.append(A)
 

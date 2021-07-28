@@ -4,14 +4,11 @@ import time
 import threading
 import sys
 
-from Drivers.Leonardo import *
-from Drivers.Yokogawa import *
-from Drivers.LakeShore370 import *
 from Drivers.KeysightAWG import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
 
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
+
 # User input
 # ------------------------------------------------------------------------------------------------------------
 k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
@@ -22,11 +19,9 @@ Log.AddGenericEntry(f'Gain={gain}; LeonardoPoints={num_samples}')
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley2182A(device_num=yok_write)
-LakeShore = LakeShore370(mode='passive', device_num=ls)
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='passive')
 # parse user-defined parameters
 try:
     length0, length_end, length_step, n_repeat, amplitude, current, device_id = [float(i) for i in user_params.split(';')]
@@ -47,7 +42,7 @@ print('Ome length will be repeated:', n_repeat, 'times, pulse amplitude:', ampli
 print('Bias current:', current*1e+9, 'nA')
 print('Keysight AWG device ID:', device_id)
 # generate required sequences and values
-swept_lengths = [5, 0.5, 0.05, 0.005]#np.arange(length0, length_end, length_step)  # TODO: return!
+swept_lengths = np.arange(length0, length_end, length_step)
 volt_yok = current * R  # voltage to set on Yokogawa (one point on I-V curve) U=IR
 # set up the AWG device
 AWG = KeysightAWG(device_num=device_id, voltageAmplitude=amplitude)
@@ -135,7 +130,7 @@ def DataSave(length):
 
 # turns off all equipment if an error occurs
 def EquipmentCleanup():
-    Yokogawa.SetOutput(0)
+    iv_sweeper.SetOutput(0)
     # del AWG
     f_exit.set()
 
@@ -149,7 +144,7 @@ def GraphingThread():
 # Measure one voltage point
 def MeasureOneVoltage():
     t = measureTimeNow()
-    v = Leonardo.MeasureNow(6) / gain
+    v = iv_sweeper.MeasureNow(6) / gain
 
     times.append(t)
     voltages.append(v)
@@ -160,7 +155,7 @@ def HandleTrigger():
     global triggerState, nStarts
     threshold = 2  # volts
 
-    trig = Leonardo.MeasureNow(4) 
+    trig = iv_sweeper.MeasureNow(4)
     trig_now = (trig > threshold)
 
     if trig_now and not triggerState:  # if trigger turned on - begin of a cycle

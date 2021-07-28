@@ -1,23 +1,16 @@
 import numpy as np
-from scipy.optimize import curve_fit
-from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from scipy.signal import savgol_filter
 
-import os
-import time
 import threading
 from copy import copy
 from sys import exit
 
-from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
 from Drivers.AMI430 import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
 
 from Lib import FieldUtils
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
 
 
 # Write temperature obtained from BlueFors log jnto a plot
@@ -78,13 +71,11 @@ fields_decr = np.arange(toA_B, fromA_B, -stepA_B)
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa_I = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
 if isinstance(yok_write, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = YokogawaMeasurer(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
+    Field_controller = YokogawaGS200(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(yok_write, fields_incr)
@@ -92,7 +83,7 @@ else:
 
 
 # Current parameters
-v0_sweep = np.array([15,30]) * 1e-9 * R #,1, 0.5 #np.linspace(bias_start*1E-6 * R, bias_end*1E-6 * R, int(bias_step)) # U=IR
+v0_sweep = np.linspace(bias_start*1E-6 * R, bias_end*1E-6 * R, int(bias_step))
 print(len(v0_sweep), 'points')
 # Measurement result
 data_dict_inc = {}
@@ -133,11 +124,13 @@ def LocalSaveIncr():
     print('Saving forward curve...')
     # Append a measured curve to a file
     SaveData(data_dict_inc, R, caption=caption + "_forward", k_A=k_A, k_V_meas=k_V_meas, k_R=k_R, preserve_unique=False)
-    
+
+
 def LocalSaveDecr():
     caption = "V_B"
     print('Saving reverse curve...')
     SaveData(data_dict_dec, R, caption=caption + "_reverse", k_A=k_A, k_V_meas=k_V_meas, k_R=k_R, preserve_unique=False)
+
 
 def LocalSave():
     if len(data_dict_inc) > 1:
@@ -168,7 +161,7 @@ else:
     
 def EquipmentCleanup():
     sweeper_incr.error_cleanup()
-    Yokogawa_I.SetOutput(0)
+    iv_sweeper.SetOutput(0)
 
 
 @MeasurementProc(EquipmentCleanup)
@@ -206,7 +199,7 @@ def MainThreadProc():
         print('-------------Bias current now is:', now_current*1e+9, 'nA', '-----------------')
         
         time_mgr.OneSweepStepBegin()
-        Yokogawa_I.SetOutput(v0)
+        iv_sweeper.SetOutput(v0)
 
         voltValues_inc = []
         voltValues_dec = []
@@ -222,7 +215,7 @@ def MainThreadProc():
             for curr_field in sweeper_incr:
                 pw.SetHeader(tabVB, f'I={(v0 / R) / k_A:.5f} {core_units[k_A]}A, U={v0:.5f}, T={FormatTemperature(T)}')
 
-                curr_volt = Leonardo.MeasureNow(6) / gain  # in volts
+                curr_volt = iv_sweeper.MeasureNow(6) / gain  # in volts
                 
                 fieldValues_inc.append(curr_field)
                 voltValues_inc.append(curr_volt / k_V_meas)  # in required units
@@ -268,7 +261,7 @@ def MainThreadProc():
         if decr_now:
             print('Ramping field downwards')
             for curr_field in sweeper_decr:
-                curr_volt = Leonardo.MeasureNow(6) / gain  # in volts
+                curr_volt = iv_sweeper.MeasureNow(6) / gain  # in volts
                 fieldValues_dec.append(curr_field)
                 voltValues_dec.append(curr_volt / k_V_meas)  # in required units
 

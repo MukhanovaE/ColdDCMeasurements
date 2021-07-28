@@ -6,14 +6,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LinearSegmentedColormap
 
-from Drivers.Leonardo import *
-from Drivers.Yokogawa import *
-from Drivers.LakeShore370 import *
-from Drivers.LakeShore335 import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
-
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
 
 # User input
 # ------------------------------------------------------------------------------------------------------------
@@ -37,16 +31,11 @@ print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0*1
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa_I = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
-LakeShore = LakeShore370(mode='active', control_channel=6, device_num=ls, temp_0=temp0,
-                         max_temp=max_temp, temp_step=temp_step) if ls_model == LAKESHORE_MODEL_370 \
-                            else LakeShore335(mode='active', control_channel='A', heater_channel=1, device_num=ls,
-                                              temp_0=temp0, max_temp=max_temp, temp_step=temp_step)
-print('Temperatures will be:\n', LakeShore.TempRange)
-
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
+print('Temperatures will be:\n', iv_sweeper.lakeshore.TempRange)
+# ------------------------------------------------------------------------------------------------------------
 # Yokogawa voltage values
 n_points = int(2 * rangeA // stepA)
 upper_line_1 = np.arange(0, rangeA, stepA)  # np.linspace(0, rangeA, n_points // 2)
@@ -57,7 +46,7 @@ voltValues0 = np.hstack((upper_line_1,
                          upper_line_2))
 print(n_points)
 N_points = len(down_line_1)
-N_temps = len(LakeShore.TempRange)
+N_temps = len(iv_sweeper.lakeshore.TempRange)
 # ------------------------------------------------------------------------------------------------------------
 
 
@@ -82,7 +71,7 @@ tempValues = []
 voltValues = []
 crit_curs = np.zeros((2, N_temps))
 currValues_axis = ((-down_line_1 / R) / k_A)
-tempValues_axis = LakeShore.TempRange
+tempValues_axis = iv_sweeper.lakeshore.TempRange
 tempsMomental = []  # for temperatures plot
 
 tempValuesR = []
@@ -189,7 +178,7 @@ times = []
 
 
 def EquipmentCleanup():
-    Yokogawa.SetOutput(0)
+    iv_sweeper.SetOutput(0)
 
 
 def UpdateRealtimeThermometer():
@@ -227,7 +216,7 @@ resist = 0
 
 @MeasurementProc(EquipmentCleanup)
 def thread_proc():
-    global Leonardo, Yokogawa, LakeShore, pw, f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, resist
+    global f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, resist
 
     # Temperature change and measurement process!
     for i, temp in enumerate(LakeShore):
@@ -270,7 +259,7 @@ def thread_proc():
                     yok.SetOutput(volt)
                     time.sleep(step_delay)
                     curr_curr = (volt / R) / k_A
-                    V_meas = Leonardo.MeasureNow(6) / gain
+                    V_meas = iv_sweeper.MeasureNow(6) / gain
 
                     result_data = V_meas / k_V_meas
                     #currValues.append(curr_curr)
@@ -305,13 +294,13 @@ def thread_proc():
 
                 # 1/3: 0 - max curr, Ic+
                 for j, volt in enumerate(upper_line_1):
-                    res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
+                    res = PerformStep(iv_sweeper, currValues, tempValues, voltValues,
                                       volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
                     this_temp_buff_ic[j + N_points // 2] = res
 
                 # 2/3: max curr -> min curr, Ir+, Ic-
                 for j, volt in enumerate(down_line_1):
-                    res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
+                    res = PerformStep(iv_sweeper, currValues, tempValues, voltValues,
                                       volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
                     if j < (len(down_line_1) // 2):
                         this_temp_buff_ir[N_points - j - 1] = res
@@ -320,7 +309,7 @@ def thread_proc():
 
                 # 3/3: min curr -> 0, Ir-
                 for j, volt in enumerate(upper_line_2):
-                    res = PerformStep(Yokogawa, currValues, tempValues, voltValues,
+                    res = PerformStep(iv_sweeper, currValues, tempValues, voltValues,
                                       volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
                     this_temp_buff_ir[j] = res
 

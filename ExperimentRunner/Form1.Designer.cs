@@ -7152,7 +7152,8 @@
             this.cboCurrentSweepDeviceType.FormattingEnabled = true;
             this.cboCurrentSweepDeviceType.Items.AddRange(new object[] {
             "Yokogawa",
-            "Keithley"});
+            "Keithley 6220",
+            "Keithley 2400"});
             this.cboCurrentSweepDeviceType.Location = new System.Drawing.Point(168, 21);
             this.cboCurrentSweepDeviceType.Name = "cboCurrentSweepDeviceType";
             this.cboCurrentSweepDeviceType.Size = new System.Drawing.Size(168, 21);
@@ -7183,7 +7184,8 @@
             this.cboReadoutDevice.FormattingEnabled = true;
             this.cboReadoutDevice.Items.AddRange(new object[] {
             "Leonardo board",
-            "Keithley nanovoltmeter"});
+            "Keithley 2182 nanovoltmeter",
+            "Keithley 2400"});
             this.cboReadoutDevice.Location = new System.Drawing.Point(168, 77);
             this.cboReadoutDevice.Name = "cboReadoutDevice";
             this.cboReadoutDevice.Size = new System.Drawing.Size(168, 21);

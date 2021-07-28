@@ -6,14 +6,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.backends.backend_pdf import PdfPages
 
-from Drivers.Leonardo import *
-from Drivers.Yokogawa import *
-from Drivers.LakeShore370 import *
-from Drivers.LakeShore335 import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
-
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
 
 # User input
 # ------------------------------------------------------------------------------------------------------------
@@ -27,12 +21,15 @@ Log.AddGenericEntry(
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
+'''Leonardo = Leonardo(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
     else Keithley2182A(device_num=read_device_id)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
+Yokogawa = YokogawaGS200(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
     else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 LakeShore = LakeShore370(device_num=ls, mode='passive', control_channel=6) if ls_model == LAKESHORE_MODEL_370 \
-    else LakeShore335(device_num=ls, mode='passive', control_channel='A', heater_channel=1)
+    else LakeShore335(device_num=ls, mode='passive', control_channel='A', heater_channel=1)'''
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='passive')
 
 # Yokogawa voltage values
 upper_line_1 = np.arange(0, rangeA, stepA)
@@ -100,7 +97,7 @@ times = []
 
 def UpdateRealtimeThermometer():
     global t, tempsMomental, times
-    T_curr = LakeShore.GetTemperature()
+    T_curr = iv_sweeper.lakeshore.GetTemperature()
     times.append(t)
     t += 1
     tempsMomental.append(T_curr)
@@ -132,7 +129,7 @@ def MeasureProc():
         return (2 * len_line - percent_points * len_line < num < 2 * len_line + percent_points * len_line) \
                or (num > 0 * len_line + percent_points * len_line) or (num < N_points - percent_points * len_line)
 
-    curr_temp = LakeShore.GetTemperature()
+    curr_temp = iv_sweeper.lakeshore.GetTemperature()
     while not f_exit.is_set():
         # measure I_V
         V_for_R = []
@@ -143,9 +140,9 @@ def MeasureProc():
 
         for i, volt in enumerate(voltValues0):
             # measure I-V point
-            Yokogawa.SetOutput(volt)
+            iv_sweeper.SetOutput(volt)
             time.sleep(step_delay)
-            V_meas = Leonardo.MeasureNow(6) / gain
+            V_meas = iv_sweeper.MeasureNow(6) / gain
             I_values.append((volt / R) / k_A)
             V_values.append(V_meas / k_V_meas)
 
@@ -181,7 +178,7 @@ def MeasureProc():
         print(s)
         time.sleep(10)
 
-        curr_temp = LakeShore.GetTemperature()  # for next measurement
+        curr_temp = iv_sweeper.lakeshore.GetTemperature()  # for next measurement
     # end while
     f_exit.set()
     exit(0)

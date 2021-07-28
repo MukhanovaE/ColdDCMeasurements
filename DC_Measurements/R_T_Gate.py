@@ -1,19 +1,12 @@
 import numpy as np
 import warnings
 from sys import exit
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.backends.backend_pdf import PdfPages
 
-from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore370 import *
-from Drivers.LakeShore335 import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
 
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
 
 # User input
 # ------------------------------------------------------------------------------------------------------------
@@ -27,11 +20,6 @@ Log.AddGenericEntry(
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
-Yokogawa_gate = YokogawaMeasurer(device_num=yok_write, dev_range='1E+1', what='VOLT')
 
 # Yokogawa voltage values
 upper_line_1 = np.arange(0, rangeA, stepA)
@@ -51,16 +39,16 @@ try:
 except Exception:
     temp0, max_temp, temp_step, gate_amplitude, gate_points = None, 1.1, 100 * 1E-3, 5, 0.5
 
-LakeShore = LakeShore370(mode='active', control_channel=6, device_num=ls, temp_0=temp0,
-                         max_temp=max_temp, temp_step=temp_step) if ls_model == LAKESHORE_MODEL_370 \
-                            else LakeShore335(mode='active', control_channel='A', heater_channel=1, device_num=ls,
-                                              temp_0=temp0, max_temp=max_temp, temp_step=temp_step)
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
+Yokogawa_gate = YokogawaGS200(device_num=yok_write, dev_range='1E+1', what='VOLT')
 
 voltValuesGate = np.linspace(0, gate_amplitude, int(gate_points))
 
 print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0} K to {max_temp} K, with step: {temp_step} K')
 print('Gate voltage sweep amplitude:', gate_amplitude, 'swept points:', int(gate_points))
-print('Temperatures will be:', LakeShore.TempRange)
+print('Temperatures will be:', iv_sweeper.lakeshore.TempRange)
 
 # Main program window
 pw = plotWindow("R(T)", color_buttons=False)
@@ -75,6 +63,7 @@ tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
 tabRT = pw.addScatter2D('R(T)', 'T, K', r'R, $\Omega$')
 
 warnings.filterwarnings('ignore')
+
 
 def EquipmentCleanup():
     pass
@@ -110,7 +99,7 @@ times = []
 
 def UpdateRealtimeThermometer():
     global t, tempsMomental, times
-    T_curr = LakeShore.GetTemperature()
+    T_curr = iv_sweeper.lakeshore.GetTemperature()
     times.append(t)
     t += 1
     tempsMomental.append(T_curr)
@@ -151,10 +140,11 @@ def MeasureProc():
         T_values = []
         R_values = []
         R_meas = 0
-        for curr_temp in LakeShore:
+        for curr_temp in iv_sweeper.lakeshore:
             # measure I_V 3 times
-            Log.AddParametersEntry('T', curr_temp, 'K', Vg=vgate_now, PID=LakeShore.pid, HeaterRange=LakeShore.htrrng,
-                                   Excitation=LakeShore.excitation)
+            Log.AddParametersEntry('T', curr_temp, 'K', Vg=vgate_now, PID=iv_sweeper.lakeshore.pid,
+                                   HeaterRange=iv_sweeper.lakeshore.htrrng,
+                                   Excitation=iv_sweeper.lakeshore.excitation)
             UpdateRealtimeThermometer()
             pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
 
@@ -165,9 +155,9 @@ def MeasureProc():
                     if f_exit.is_set():
                         exit(0)
                     # measure I-V point
-                    Yokogawa.SetOutput(volt)
+                    iv_sweeper.SetOutput(volt)
                     time.sleep(step_delay)
-                    V_meas = Leonardo.MeasureNow(6) / gain
+                    V_meas = iv_sweeper.MeasureNow(6) / gain
                     I_values.append((volt / R) / k_A)
                     V_values.append(V_meas / k_V_meas)
 

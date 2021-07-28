@@ -13,15 +13,12 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LinearSegmentedColormap
 
-from Drivers.Leonardo import *
 from Drivers.Yokogawa import *
-from Drivers.LakeShore370 import *
 from Drivers.AMI430 import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
 
 from Lib import FieldUtils
 from Lib.lm_utils import *
+from Lib.EquipmentBase import EquipmentBase
 
 # User input
 # ------------------------------------------------------------------------------------------------------------
@@ -59,17 +56,16 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa_I = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 if isinstance(yok_write, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = YokogawaMeasurer(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
+    Field_controller = YokogawaGS200(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(yok_write, fields)
-LakeShore = LakeShore370(device_num=ls, mode='passive')
+
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='passive')
 # ------------------------------------------------------------------------------------------------------------
 
 # Resistance measurement
@@ -187,8 +183,8 @@ t = 0
 
 
 def UpdateRealtimeThermometer():
-    global times, tempsMomental, LakeShore, t, pw
-    T_curr = LakeShore.GetTemperature()
+    global times, tempsMomental, t, pw
+    T_curr = iv_sweeper.lakeshore.GetTemperature()
     times.append(t)
     t += 1
     tempsMomental.append(T_curr)
@@ -225,7 +221,7 @@ def TemperatureThreadProc():
 def EquipmentCleanup():
     print('Returning magnetic field to zero...')
     sweeper.error_cleanup()
-    Yokogawa_I.SetOutput(0)
+    iv_sweeper.SetOutput(0)
 
 
 # main thread - runs when PyQt5 application is started
@@ -234,7 +230,7 @@ R_now = 0
 
 @MeasurementProc(EquipmentCleanup)
 def thread_proc():
-    global Leonardo, Yokogawa_I, Field_controller, LakeShore, pw, f_exit, currValues, voltValues, fieldValues, tempsMomental, \
+    global Field_controller, pw, f_exit, currValues, voltValues, fieldValues, tempsMomental, \
         curr_curr, f_saved, R_now
 
     # Slowly change: 0 -> min. field
@@ -266,7 +262,7 @@ def thread_proc():
             yok.SetOutput(volt)
             time.sleep(step_delay)
             curr_curr = (volt / R) / k_A
-            V_meas = Leonardo.MeasureNow(6) / gain
+            V_meas = iv_sweeper.MeasureNow(6) / gain
 
             result = V_meas / k_V_meas
             currValues.append(curr_curr)
@@ -297,13 +293,13 @@ def thread_proc():
 
         # 1/3: 0 - max curr, Ic+
         for j, volt in enumerate(upper_line_1):
-            res = PerformStep(Yokogawa_I, currValues, fieldValues, voltValues,
+            res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
                               volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
             data_buff_C[j + N_points // 2, i] = res
 
         # 2/3: max curr -> min curr, Ir+, Ic-
         for j, volt in enumerate(down_line_1):
-            res = PerformStep(Yokogawa_I, currValues, fieldValues, voltValues,
+            res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
                               volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
             if j <= (len(down_line_1) // 2):
                 data_buff_R[N_points - j - 1, i] = res
@@ -313,7 +309,7 @@ def thread_proc():
 
         # 3/3: max curr -> min curr, Ir-
         for j, volt in enumerate(upper_line_2):
-            res = PerformStep(Yokogawa_I, currValues, fieldValues, voltValues,
+            res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
                               volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
             data_buff_R[j, i] = res
         
@@ -383,4 +379,3 @@ if not f_saved:
 # FieldUtils.CheckAtExit(Yokogawa_B, pw)
 
 f_exit.set()
-

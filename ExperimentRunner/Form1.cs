@@ -1422,20 +1422,42 @@ namespace ExperimentRunner
             });
         }
 
-        private void CboExcitationDevice_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            meas_params.SetSweepDeviceType(cboFieldGateDevice.SelectedIndex);
-        }
-
         private void cboCurrentSweep_SelectedIndexChanged(object sender, EventArgs e)
+
         {
-            meas_params.SetSweepDeviceType(cboCurrentSweepDeviceType.SelectedIndex);
+            int nSelected = cboCurrentSweepDeviceType.SelectedIndex;
+            meas_params.SetSweepDeviceType(nSelected);
+
+            //2400 devices must be selected in both lists or not selected in any of them
+            if (nSelected == RunParams.EXCITATION_KEITHLEY_2400)
+                cboReadoutDevice.SelectedIndex = RunParams.READOUT_KEITHLEY_2400;
+            else
+            { 
+                if (cboReadoutDevice.SelectedIndex == RunParams.READOUT_KEITHLEY_2400)
+                {
+                    cboReadoutDevice.SelectedIndex = 0;
+                }
+            }
         }
 
         private void CboReadoutDevice_SelectedIndexChanged(object sender, EventArgs e)
         {
-            meas_params.SetReadoutDeviceType(cboReadoutDevice.SelectedIndex);
+            int nSelected = cboReadoutDevice.SelectedIndex;
+            meas_params.SetReadoutDeviceType(nSelected);
+
+            // Readout device ID is meaningless if Leonardo is selected
             txtVoltageReadout.Enabled = (cboReadoutDevice.SelectedIndex != 0);
+
+            //2400 devices must be selected in both lists  or not selected in any of them
+            if (nSelected == RunParams.READOUT_KEITHLEY_2400)
+                cboCurrentSweepDeviceType.SelectedIndex = RunParams.EXCITATION_KEITHLEY_2400;
+            else
+            { 
+                if (cboCurrentSweepDeviceType.SelectedIndex == RunParams.EXCITATION_KEITHLEY_2400)
+                {
+                    cboCurrentSweepDeviceType.SelectedIndex = 0;
+                }
+            }
         }
 
         private void CboFieldGateDevice_SelectedIndexChanged(object sender, EventArgs e)

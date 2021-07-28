@@ -10,13 +10,8 @@ from datetime import datetime
 import threading
 from tkinter import TclError
 
-from Drivers.Leonardo import *
-from Drivers.Yokogawa import *
-from Drivers.Keithley2182A import *
-from Drivers.Keithley6200 import *
-
 from Lib.lm_utils import *
-
+from Lib.EquipmentBase import EquipmentBase
 
 # User input
 # ------------------------------------------------------------------------------------------------------------
@@ -29,13 +24,10 @@ Log.AddGenericEntry(
 # ------------------------------------------------------------------------------------------------------------
 k_temp = 1000  # to millikelvin from logged value
 T = 0  # current measurement temperature
-Leonardo = LeonardoMeasurer(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa = YokogawaMeasurer(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
 f_exit = False
-f_save = False
 
 # all Yokogawa generated values (always in volts!!!)
 upper_line_1 = np.arange(0, rangeA, stepA)
@@ -51,9 +43,6 @@ currValues = []
 
 
 def DataSave():
-    global f_save
-    if not f_save:
-        return
     caption = f"I_V_T_{T}"
 
     if not isTemperatureObtained.is_set():
@@ -62,7 +51,6 @@ def DataSave():
     SaveData({f'I, {I_units}A': currValues,
               f'U, {I_units}V': voltValues, 'T, mK': [T] * len(currValues)},
              R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
-    f_save = True
 
     Log.Save()
 
@@ -85,13 +73,13 @@ def LoadTemperatureThreadProc():
     print('T=', T, 'mK')
 
 
-@MeasurementProc(lambda: Yokogawa.SetOutput(0))
+@MeasurementProc(lambda: iv_sweeper.SetOutput(0))
 def Measurement():
     for volt in voltValues0:
-        Yokogawa.SetOutput(volt)
+        iv_sweeper.SetOutput(volt)
         time.sleep(step_delay)
 
-        V_meas = Leonardo.MeasureNow(6) / gain
+        V_meas = iv_sweeper.MeasureNow(6) / gain
         voltValues.append(V_meas / k_V_meas)  # volts / coeff
         currValues.append((volt / R) / k_A)  # (volts/Ohms always) / coeff
 

@@ -1,7 +1,7 @@
 from Drivers import visa_device
 
 
-class YokogawaMeasurer(visa_device.visa_device):
+class YokogawaGS200(visa_device.visa_device):
     def __init__(self, device_num=4, dev_range='1E+0', what='VOLT', verbose=True):
         self.__verbose = verbose
 

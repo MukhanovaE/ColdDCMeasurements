@@ -14,9 +14,11 @@ namespace ExperimentRunner
         // excitation and readout device types
         // (corresponding to combo boxes element IDs on a form)
         public const int EXCITATION_YOKOGAWA = 0;
-        public const int EXCITATION_KEITHLEY = 1;
+        public const int EXCITATION_KEITHLEY_6220 = 1;
+        public const int EXCITATION_KEITHLEY_2400 = 2;
         public const int READOUT_LEONARDO = 0;
-        public const int READOUT_KEITHLEY = 1;
+        public const int READOUT_KEITHLEY_2182 = 1;
+        public const int READOUT_KEITHLEY_2400 = 2;
         public const int LAKESHORE_370 = 0;
         public const int LAKESHORE_335 = 1;
 
