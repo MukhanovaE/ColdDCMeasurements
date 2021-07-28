@@ -103,16 +103,20 @@ class LakeShoreBase(visa_device.visa_device):
 
         # check if previous request was too close in time
         curr_meas = time.time()
-        time.sleep(0.5)
         if curr_meas - self.__prev_measured < 1:
             time.sleep(1)
-        try:
-            resp = self._meas_temperature()
-            temp = np.float64(resp)
-            res = temp
-        except Exception:
-            res = 0
-            print('Error while measuring temperature')
+        res = 0
+        count = 0
+        while res == 0 and count <5:
+            time.sleep(0.5)
+            try:
+                resp = self._meas_temperature()
+                temp = np.float64(resp)
+                res = temp
+            except Exception:
+                res = 0
+                print('Error while measuring temperature')
+            count += 1
 
         self.__prev_measured = time.time()
         self.__SensorFree.set()  # unlock
