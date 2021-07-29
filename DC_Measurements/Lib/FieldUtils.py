@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 
-'''# Current to magnetic field
+# Current to magnetic field
 def I_to_B(I):  # I in mA
     k_magnet = 100  # Gauss/A
     return (I / 1000) * k_magnet  # milliamperes to amperes
@@ -50,7 +50,7 @@ def CheckAtExit(yok_B, pw_output):
         ReturnAtExit(yok_B, pw_output)
         print('Magnetic field was returned to zero.')
 
-'''
+
 class FieldSweeper:
     def __init__(self, field_range, plot_window=None):
         self.field_range = field_range

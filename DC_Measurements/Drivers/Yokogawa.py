@@ -15,7 +15,7 @@ class YokogawaGS200(visa_device.visa_device):
 
         # Load and configure a device
         if self.__verbose:
-            print('Connecting Yokogawa...')
+            print('Connecting Yokogawa, device ID = ', device_num)
 
         super().__init__(device_num)
 
@@ -25,7 +25,7 @@ class YokogawaGS200(visa_device.visa_device):
         self.SendString('OUTPut ON')
 
         if self.__verbose:
-            print('Yokogawa connection success, device ID:', device_num)
+            print('Yokogawa connection success')
 
     def SetOutput(self, value: float):
         self.SendString(f":SOURce:LEVel {value}")

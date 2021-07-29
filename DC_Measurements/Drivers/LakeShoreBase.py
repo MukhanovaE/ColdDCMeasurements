@@ -187,7 +187,7 @@ class LakeShoreBase(visa_device.visa_device):
 
         # Load and configure a device
         if self._verbose:
-            print('Connecting LakeShore bridge...')
+            print('Connecting LakeShore bridge, device ID = ', device_num)
 
         # connect to device
         super().__init__(device_num)

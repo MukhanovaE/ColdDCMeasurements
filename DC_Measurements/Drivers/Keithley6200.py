@@ -5,7 +5,7 @@ import numpy as np
 
 class Keithley6200(visa_device.visa_device):
     def __init__(self, device_num, R=None, what='CURR', max_current=2E-5):
-        print('Connecting Keithley 6200 series...')
+        print('Connecting Keithley 6200 series, device id = ', device_num)
         if what not in ['VOLT', 'CURR']:
             raise ValueError('Invalid control type.\n Please use "CURR" or "VOLT"')
         else:
@@ -24,7 +24,7 @@ class Keithley6200(visa_device.visa_device):
         self.SendString('CURRent:COMPliance 15')
         self.SendString(f'CURRent:RANGe {max_current}')
         self.SendString('OUTPut ON')
-        print('Keithley 6200 series init success, device ID:', device_num)
+        print('Keithley 6200 series init success')
 
     # value in volts or amperes
     def SetOutput(self, value: float):

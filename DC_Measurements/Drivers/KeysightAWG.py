@@ -5,7 +5,7 @@ import time
 class KeysightAWG(visa_device.visa_device):
 
     def __init__(self, device_num, voltageAmplitude):
-        print('Initializing Keysight AWG...')
+        print('Initializing Keysight AWG, device ID = ', device_num)
         self.__vmax = voltageAmplitude
         super().__init__(device_num)
 

@@ -154,7 +154,7 @@ def DataSave():
 
         print('Data were successfully saved to: ', fname)
         # upload to cloud services
-        UploadToClouds(GetSaveFolder(R, k_R, caption))
+        UploadToClouds(GetSaveFolder(R, k_R, main_caption))
         Log.Save()
     except Exception:  # to avoid data loss when an error occured
         fname = GetSaveFileName(R, k_R, caption=main_caption + 'CrashDump', ext='pickle')

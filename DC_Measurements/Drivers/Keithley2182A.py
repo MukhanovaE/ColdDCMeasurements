@@ -3,7 +3,7 @@ from Drivers import visa_device
 
 class Keithley2182A(visa_device.visa_device):
     def __init__(self, device_num):
-        print('Connecting Keithley 2182A series...')
+        print('Connecting Keithley 2182A series, ddevice id = ', device_num)
 
         super().__init__(device_num)
         self.SendString('SENSe:VOLTage')
@@ -19,7 +19,7 @@ class Keithley2182A(visa_device.visa_device):
         self.SendString('INITiate:CONTinuous OFF')
         self._set_channel(1)
 
-        print('Keithley 2182A series connection success, device ID:', device_num)
+        print('Keithley 2182A series connection success')
 
     def _set_channel(self, channel):
         self._channel = channel

@@ -19,10 +19,14 @@ class EquipmentBase:
             self._source = YokogawaGS200(device_num=source_id, what='VOLT')
             print('Yokogawa, ID =', source_id)
         elif source_model == EXCITATION_KEITHLEY_6200:
-            self._source = Keithley6200(device_num=source_id, what='CURR', R=R, max_current=max_range_value)
+            self._source = Keithley6200(device_num=source_id, what='VOLT', R=R, max_current=max_range_value)
             print('Keithley 6200, ID =', source_id)
         elif source_model == EXCITATION_KEITHLEY_2400:
-            self._source = Keithley2400(device_num=source_id, R=R, what='CURR', max_current=max_range_value)
+            if source_model == sense_model:
+                mode = Keithley2400WorkMode.MODE_BOTH
+            else:
+                mode = Keithley2400WorkMode.MODE_SOURCE
+            self._source = Keithley2400(device_num=source_id, R=R, what='VOLT', max_current=max_range_value, mode=mode)
             print('Keithley 2400, ID =', source_id)
         else:
             raise ValueError(error_message)
@@ -34,8 +38,12 @@ class EquipmentBase:
         elif sense_model == READOUT_KEITHLEY_2182A:
             self._sense = Keithley2182A(device_num=sense_id)
             print('Keithley 2182A, ID =', source_id)
-        elif sense_model == READOUT_KEITHLEY_2400 or source_model == EXCITATION_KEITHLEY_2400:
-            self._sense = self._source  # one device performs two functions
+        elif sense_model == READOUT_KEITHLEY_2400:
+            if sense_model == source_model:
+                self._sense = self._source  # one device performs two functions
+            else:
+                self._sense = Keithley2400(device_num=source_id, R=R, what='VOLT', max_current=max_range_value,
+                                           mode=Keithley2400WorkMode.MODE_VOLTMETER)
             print('Keithley 2400, ID =', source_id)
         else:
             raise ValueError(error_message)

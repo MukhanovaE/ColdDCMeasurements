@@ -10,6 +10,7 @@ class KeysightN51(visa_device.visa_device):
     # k = KeysightN51(device_num=18, sweep='power', freq=1, power_range=np.linspace(-50, 10, 40))
     # k = KeysightN51(device_num=18, sweep='freq', power=-50, freq_range=np.linspace(-50, 10, 40))
     def __init__(self, device_num=18, sweep='power', **kwargs):
+        print('Initializing Keysight N51, device ID = ', device_num)
         super().__init__(device_num)
 
         if sweep == 'power':
