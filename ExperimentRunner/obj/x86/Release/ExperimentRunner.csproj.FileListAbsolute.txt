@@ -14,4 +14,3 @@ D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.cspr
 D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.csproj.CoreCompileInputs.cache
 D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.exe
 D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.pdb
-D:\RQC\ColdDCMeasurements\ExperimentRunner\obj\x86\Release\ExperimentRunner.csprojAssemblyReference.cache

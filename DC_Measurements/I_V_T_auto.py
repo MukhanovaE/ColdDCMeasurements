@@ -31,7 +31,7 @@ print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0*1
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
                            temp_id=ls, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
 print('Temperatures will be:\n', iv_sweeper.lakeshore.TempRange)

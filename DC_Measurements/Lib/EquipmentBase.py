@@ -14,37 +14,38 @@ class EquipmentBase:
                  temp_id=None, temp_model=None, temp_mode='passive', temp_start=None, temp_end=None, temp_step=None):
         max_range_value = (max_voltage / R)
         error_message = 'This device type is not supported yet!'
-        print('Excitation device is: ', end='')
+        print('Excitation device is: ')
         if source_model == EXCITATION_YOKOGAWA:
-            self._source = YokogawaGS200(device_num=source_id, what='VOLT')
             print('Yokogawa, ID =', source_id)
+            self._source = YokogawaGS200(device_num=source_id, what='VOLT')
         elif source_model == EXCITATION_KEITHLEY_6200:
-            self._source = Keithley6200(device_num=source_id, what='VOLT', R=R, max_current=max_range_value)
             print('Keithley 6200, ID =', source_id)
+            self._source = Keithley6200(device_num=source_id, what='VOLT', R=R, max_current=max_range_value)
         elif source_model == EXCITATION_KEITHLEY_2400:
+            print('Keithley 2400, ID =', source_id)
             if source_model == sense_model:
                 mode = Keithley2400WorkMode.MODE_BOTH
             else:
                 mode = Keithley2400WorkMode.MODE_SOURCE
             self._source = Keithley2400(device_num=source_id, R=R, what='VOLT', max_current=max_range_value, mode=mode)
-            print('Keithley 2400, ID =', source_id)
+            
         else:
             raise ValueError(error_message)
 
-        print('Readout device is: ', end='')
+        print('\n Readout device is: ')
         if sense_model == READOUT_LEONARDO:
-            self._sense = Leonardo(n_samples=sense_samples)
             print('Leonardo')
+            self._sense = Leonardo(n_samples=sense_samples)
         elif sense_model == READOUT_KEITHLEY_2182A:
+            print('Keithley 2182A, ID =', sense_id)
             self._sense = Keithley2182A(device_num=sense_id)
-            print('Keithley 2182A, ID =', source_id)
         elif sense_model == READOUT_KEITHLEY_2400:
+            print('Keithley 2400, ID =', sense_id)
             if sense_model == source_model:
                 self._sense = self._source  # one device performs two functions
             else:
-                self._sense = Keithley2400(device_num=source_id, R=R, what='VOLT', max_current=max_range_value,
+                self._sense = Keithley2400(device_num=sense_id, R=R, what='VOLT', max_current=max_range_value,
                                            mode=Keithley2400WorkMode.MODE_VOLTMETER)
-            print('Keithley 2400, ID =', source_id)
         else:
             raise ValueError(error_message)
 

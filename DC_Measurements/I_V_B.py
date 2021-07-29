@@ -63,7 +63,7 @@ else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(yok_write, fields)
 
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
                            temp_id=ls, temp_mode='passive')
 # ------------------------------------------------------------------------------------------------------------

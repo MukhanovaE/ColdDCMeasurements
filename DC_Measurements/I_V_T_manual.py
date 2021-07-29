@@ -25,7 +25,7 @@ Log.AddGenericEntry(
 k_temp = 1000  # to millikelvin from logged value
 T = 0  # current measurement temperature
 
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
 f_exit = False
 

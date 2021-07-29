@@ -29,7 +29,7 @@ Log.AddGenericEntry(
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
 Yokogawa_V = YokogawaGS200(device_num=yok_write, dev_range='1E+1', what='VOLT')
 # ------------------------------------------------------------------------------------------------------------

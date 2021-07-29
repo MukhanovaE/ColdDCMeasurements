@@ -208,10 +208,10 @@ namespace ExperimentRunner
             float voltageRange = GetValueFromField(txtRange);
             float voltageStep = GetValueFromField(txtStep);
 
-            if (voltageRange > 32)
+            if (voltageRange > 32  && mSweepDeviceType == EXCITATION_YOKOGAWA)
             {
                 // max 32 V: Yokogawa user manual, p. 2-4
-                MessageBox.Show("Voltage range is set more than the source can give (32 V)", sError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Voltage range is set more than Yokogawa can give (32 V)", sError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 

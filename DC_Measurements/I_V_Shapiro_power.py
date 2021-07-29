@@ -49,7 +49,7 @@ else:  # 1 - frequency
     else Keithley2182A(device_num=read_device_id)
 Yokogawa_I = YokogawaGS200(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
     else Keithley6200(device_num=yok_read, what='VOLT', R=R)'''
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
                            temp_id=ls, temp_mode='passive')
 #LakeShore = LakeShore370(device_num=ls, mode='passive')

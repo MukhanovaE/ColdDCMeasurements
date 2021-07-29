@@ -39,7 +39,7 @@ try:
 except Exception:
     temp0, max_temp, temp_step, gate_amplitude, gate_points = None, 1.1, 100 * 1E-3, 5, 0.5
 
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
                            temp_id=ls, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
 Yokogawa_gate = YokogawaGS200(device_num=yok_write, dev_range='1E+1', what='VOLT')

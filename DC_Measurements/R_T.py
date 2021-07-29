@@ -27,7 +27,7 @@ Yokogawa = YokogawaGS200(device_num=yok_read, dev_range='1E+1', what='VOLT') if 
     else Keithley6200(device_num=yok_read, what='VOLT', R=R)
 LakeShore = LakeShore370(device_num=ls, mode='passive', control_channel=6) if ls_model == LAKESHORE_MODEL_370 \
     else LakeShore335(device_num=ls, mode='passive', control_channel='A', heater_channel=1)'''
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
                            temp_id=ls, temp_mode='passive')
 

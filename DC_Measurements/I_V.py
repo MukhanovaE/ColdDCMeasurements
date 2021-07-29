@@ -15,7 +15,7 @@ Log.AddGenericEntry(
     f'Gain={gain}; IVPointDelay={step_delay} sec; LeonardoPoints={num_samples}')
 # ------------------------------------------------------------------------------------------------------------
 
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
 
 # all Yokogawa generated values (always in volts!!!)
