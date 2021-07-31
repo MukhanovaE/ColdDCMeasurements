@@ -647,6 +647,11 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
+            this.btnRT_MeasUntilTemperature = new System.Windows.Forms.RadioButton();
+            this.btnRT_MeasUntilEnd = new System.Windows.Forms.RadioButton();
+            this.label187 = new System.Windows.Forms.Label();
+            this.txtRT_WaitTime = new System.Windows.Forms.TextBox();
+            this.label188 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -3558,6 +3563,11 @@
             // 
             // groupBox59
             // 
+            this.groupBox59.Controls.Add(this.label188);
+            this.groupBox59.Controls.Add(this.txtRT_WaitTime);
+            this.groupBox59.Controls.Add(this.label187);
+            this.groupBox59.Controls.Add(this.btnRT_MeasUntilEnd);
+            this.groupBox59.Controls.Add(this.btnRT_MeasUntilTemperature);
             this.groupBox59.Controls.Add(this.label123);
             this.groupBox59.Controls.Add(this.txtRT_TempLimit);
             this.groupBox59.Controls.Add(this.label95);
@@ -3571,7 +3581,7 @@
             // label123
             // 
             this.label123.AutoSize = true;
-            this.label123.Location = new System.Drawing.Point(185, 23);
+            this.label123.Location = new System.Drawing.Point(166, 50);
             this.label123.Name = "label123";
             this.label123.Size = new System.Drawing.Size(22, 13);
             this.label123.TabIndex = 2;
@@ -3579,11 +3589,12 @@
             // 
             // txtRT_TempLimit
             // 
-            this.txtRT_TempLimit.Location = new System.Drawing.Point(142, 20);
+            this.txtRT_TempLimit.Location = new System.Drawing.Point(123, 47);
             this.txtRT_TempLimit.MaxLength = 6;
             this.txtRT_TempLimit.Name = "txtRT_TempLimit";
             this.txtRT_TempLimit.Size = new System.Drawing.Size(36, 20);
             this.txtRT_TempLimit.TabIndex = 1;
+            this.txtRT_TempLimit.Text = "20";
             this.txtRT_TempLimit.TextChanged += new System.EventHandler(this.txtRT_TempLimit_TextChanged);
             this.txtRT_TempLimit.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtRT_TempLimit_KeyPress);
             // 
@@ -3592,9 +3603,9 @@
             this.label95.AutoSize = true;
             this.label95.Location = new System.Drawing.Point(7, 23);
             this.label95.Name = "label95";
-            this.label95.Size = new System.Drawing.Size(132, 13);
+            this.label95.Size = new System.Drawing.Size(51, 13);
             this.label95.TabIndex = 0;
-            this.label95.Text = "Measure until temperature:";
+            this.label95.Text = "Measure:";
             // 
             // pictureBox7
             // 
@@ -7320,6 +7331,59 @@
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
             // 
+            // btnRT_MeasUntilTemperature
+            // 
+            this.btnRT_MeasUntilTemperature.AutoSize = true;
+            this.btnRT_MeasUntilTemperature.Checked = true;
+            this.btnRT_MeasUntilTemperature.Location = new System.Drawing.Point(10, 48);
+            this.btnRT_MeasUntilTemperature.Name = "btnRT_MeasUntilTemperature";
+            this.btnRT_MeasUntilTemperature.Size = new System.Drawing.Size(108, 17);
+            this.btnRT_MeasUntilTemperature.TabIndex = 3;
+            this.btnRT_MeasUntilTemperature.TabStop = true;
+            this.btnRT_MeasUntilTemperature.Text = "Until temperature:";
+            this.btnRT_MeasUntilTemperature.UseVisualStyleBackColor = true;
+            this.btnRT_MeasUntilTemperature.CheckedChanged += new System.EventHandler(this.BtnRT_MeasUntilTemperature_CheckedChanged);
+            // 
+            // btnRT_MeasUntilEnd
+            // 
+            this.btnRT_MeasUntilEnd.AutoSize = true;
+            this.btnRT_MeasUntilEnd.Location = new System.Drawing.Point(10, 76);
+            this.btnRT_MeasUntilEnd.Name = "btnRT_MeasUntilEnd";
+            this.btnRT_MeasUntilEnd.Size = new System.Drawing.Size(131, 17);
+            this.btnRT_MeasUntilEnd.TabIndex = 4;
+            this.btnRT_MeasUntilEnd.Text = "Until program is closed";
+            this.btnRT_MeasUntilEnd.UseVisualStyleBackColor = true;
+            this.btnRT_MeasUntilEnd.CheckedChanged += new System.EventHandler(this.BtnRT_MeasUntilEnd_CheckedChanged);
+            // 
+            // label187
+            // 
+            this.label187.AutoSize = true;
+            this.label187.Location = new System.Drawing.Point(7, 115);
+            this.label187.Name = "label187";
+            this.label187.Size = new System.Drawing.Size(147, 13);
+            this.label187.TabIndex = 5;
+            this.label187.Text = "Wait between measurements:";
+            // 
+            // txtRT_WaitTime
+            // 
+            this.txtRT_WaitTime.Location = new System.Drawing.Point(156, 112);
+            this.txtRT_WaitTime.MaxLength = 3;
+            this.txtRT_WaitTime.Name = "txtRT_WaitTime";
+            this.txtRT_WaitTime.Size = new System.Drawing.Size(34, 20);
+            this.txtRT_WaitTime.TabIndex = 6;
+            this.txtRT_WaitTime.Text = "1";
+            this.txtRT_WaitTime.TextChanged += new System.EventHandler(this.TxtRT_WaitTime_TextChanged);
+            this.txtRT_WaitTime.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtRT_WaitTime_KeyPress);
+            // 
+            // label188
+            // 
+            this.label188.AutoSize = true;
+            this.label188.Location = new System.Drawing.Point(195, 115);
+            this.label188.Name = "label188";
+            this.label188.Size = new System.Drawing.Size(24, 13);
+            this.label188.TabIndex = 7;
+            this.label188.Text = "sec";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -8190,6 +8254,11 @@
         private System.Windows.Forms.Label label185;
         private System.Windows.Forms.ComboBox cboLakeShoreModel;
         private System.Windows.Forms.Label label186;
+        private System.Windows.Forms.RadioButton btnRT_MeasUntilEnd;
+        private System.Windows.Forms.RadioButton btnRT_MeasUntilTemperature;
+        private System.Windows.Forms.TextBox txtRT_WaitTime;
+        private System.Windows.Forms.Label label187;
+        private System.Windows.Forms.Label label188;
     }
 }
 

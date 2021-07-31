@@ -28,8 +28,6 @@ MB_ICONSTOP = 0x10
 # Coefficients for units transformation and their symbols
 core_units = {1: '', 1e-3: 'm', 1e-6: 'mk', 1e-9: 'n'}
 r_units = {1: '', 1e+3: 'K', 1e+6: 'M'}
-sample_name = ""
-experimentDate = None
 
 # Excitation and readout device types
 EXCITATION_YOKOGAWA = 0
@@ -44,11 +42,10 @@ LAKESHORE_MODEL_370 = 0
 LAKESHORE_MODEL_335 = 1
 
 
-# function ParseCommandLine
-# parses command line and makes user input if command-line parameters were not set
-def ParseCommandLine():
-    global sample_name
-
+# class ScriptShell
+# parses command line, makes user input if command-line parameters were not set,
+# saves data to a folder
+class ScriptShell:
     default_yok_read = 3
     default_yok_write = 6
     default_lakeshore = 17
@@ -57,213 +54,254 @@ def ParseCommandLine():
     default_readout_id = 8
     default_lakeshore_model = LAKESHORE_MODEL_370
 
-    def user_input():
+    @staticmethod
+    def _preprocess_string_for_filename(s):
+        return s.translate(str.maketrans({':': '_', '/': '_', '\\': '_', '*': '_', '?': '_', '"': '_',
+                                          '>': '_', '<': '_', '|': '_'}))
+
+    def _user_input(self):
         # units
-        k_R = list(r_units.keys())[int(input('Enter resistance units (1 - Ohm, 2 - KOhm, 3 - MOhm): ')) - 1]
-        k_V_meas = list(core_units.keys())[int(input('Enter voltage units (1 - V, 2 - mV, 3 - mkV): ')) - 1]
-        k_A = list(core_units.keys())[int(input('Enter current units (2 - mA, 3 - mkA, 4 - nA): ')) - 1]
+        self.k_R = list(r_units.keys())[int(input('Enter resistance units (1 - Ohm, 2 - KOhm, 3 - MOhm): ')) - 1]
+        self.k_V_meas = list(core_units.keys())[int(input('Enter voltage units (1 - V, 2 - mV, 3 - mkV): ')) - 1]
+        self.k_A = list(core_units.keys())[int(input('Enter current units (2 - mA, 3 - mkA, 4 - nA): ')) - 1]
 
         # resistance
-        R = float(input(f'Enter resistance ({r_units[k_R]}Ohms): '))
-        R *= k_R  # always in Ohms
+        self.R = float(input(f'Enter resistance ({r_units[self.k_R]}Ohms): '))
+        self.R *= self.k_R  # always in Ohms
 
         # measure range
-        rangeA = float(input('Enter maximal voltage: '))  # 0.5
-        stepA = float(input('Enter voltage step: '))  # 0.001
+        self.rangeA = float(input('Enter maximal voltage: '))  # 0.5
+        self.stepA = float(input('Enter voltage step: '))  # 0.001
 
         # gain, delay between steps, number of measurements in each point
-        gain = int(input('Enter voltage gain: '))
-        step_delay = float(input('Enter delay between steps (sec.): '))
-        num_samples = int(input('Enter number of measures in each point: '))
+        self.gain = int(input('Enter voltage gain: '))
+        self.step_delay = float(input('Enter delay between steps (sec.): '))
+        self.num_samples = int(input('Enter number of measures in each point: '))
 
         # equipment parameters
-        yok_read = default_yok_read
-        yok_write = default_yok_write
-        lakeshore = default_lakeshore
-        lakeshore_model = LAKESHORE_MODEL_370
+        self.excitation_device_id = self.default_yok_read
+        self.field_gate_device_id = self.default_yok_write
+        self.lakeshore = self.default_lakeshore
+        self.lakeshore_model = LAKESHORE_MODEL_370
 
-        readout_type = default_readout
-        excitation_type = default_excitation
-        readout_id = default_readout_id
+        self.readout_device_type = self.default_readout
+        self.excitation_device_type = self.default_excitation
+        self.readout_device_id = self.default_readout_id
 
-        f_save = True
+        self.f_save = True
+        self.user_params = ""
 
-        return k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-               yok_write, lakeshore, lakeshore_model, readout_type, excitation_type, readout_id
+    def __init__(self):
+        self.sample_name = ""
+        self.experimentDate = datetime.now()
 
-    if len(sys.argv) == 1:  # user did not specify everything in command line
-        k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-                yok_write, lakeshore, lakeshore_model, read_device_type, exc_device_type, read_device_id = user_input()
+        if len(sys.argv) == 1:  # user did not specify everything in command line
+            self._user_input()
 
-    else:
-        # first - key arguments : -mkV, nA, -kOhm etc...
-        # then - possible -nosave argument - don't save data
-        # then 6 positional arguments:
-        # resistance, Yokogawa range, Yokogawa step, voltage gain, delay between steps, number of points to measure
-        try:
-            p = argparse.ArgumentParser()
+        else:
+            # first - key arguments : -mkV, nA, -kOhm etc...
+            # then - possible -nosave argument - don't save data
+            # then 6 positional arguments:
+            # resistance, Yokogawa range, Yokogawa step, voltage gain, delay between steps, number of points to measure
+            try:
+                p = argparse.ArgumentParser()
 
-            p.add_argument('-RT', action='store', required=False, default=default_readout)
-            p.add_argument('-WT', action='store', required=False, default=default_excitation)
-            p.add_argument('-RR', action='store', required=False, default=default_readout_id)
-            p.add_argument('-LT', action='store', required=False, default=default_lakeshore_model)
+                p.add_argument('-RT', action='store', required=False, default=self.default_readout)
+                p.add_argument('-WT', action='store', required=False, default=self.default_excitation)
+                p.add_argument('-RR', action='store', required=False, default=self.default_readout_id)
+                p.add_argument('-LT', action='store', required=False, default=self.default_lakeshore_model)
 
-            p.add_argument('-R', action='store', required=False, default=default_yok_read)
-            p.add_argument('-W', action='store', required=False, default=default_yok_write)
-            p.add_argument('-L', action='store', required=False, default=default_lakeshore)
-            p.add_argument('-P', action='store', required=False, default="")
+                p.add_argument('-R', action='store', required=False, default=self.default_yok_read)
+                p.add_argument('-W', action='store', required=False, default=self.default_yok_write)
+                p.add_argument('-L', action='store', required=False, default=self.default_lakeshore)
+                p.add_argument('-P', action='store', required=False, default="")
 
-            p.add_argument('-nV', action='store_true')
-            p.add_argument('-mkV', action='store_true')
-            p.add_argument('-mV', action='store_true')
-            p.add_argument('-V', action='store_true')
+                p.add_argument('-nV', action='store_true')
+                p.add_argument('-mkV', action='store_true')
+                p.add_argument('-mV', action='store_true')
+                p.add_argument('-V', action='store_true')
 
-            p.add_argument('-nA', action='store_true')
-            p.add_argument('-mkA', action='store_true')
-            p.add_argument('-mA', action='store_true')
-            p.add_argument('-A', action='store_true')
+                p.add_argument('-nA', action='store_true')
+                p.add_argument('-mkA', action='store_true')
+                p.add_argument('-mA', action='store_true')
+                p.add_argument('-A', action='store_true')
 
-            p.add_argument('-KOhm', action='store_true')
-            p.add_argument('-MOhm', action='store_true')
-            p.add_argument('-Ohm', action='store_true')
+                p.add_argument('-KOhm', action='store_true')
+                p.add_argument('-MOhm', action='store_true')
+                p.add_argument('-Ohm', action='store_true')
 
-            p.add_argument('-nosave', action='store_true')
+                p.add_argument('-nosave', action='store_true')
 
-            p.add_argument('Resistance', action='store')
-            p.add_argument('Range', action='store')
-            p.add_argument('Step', action='store')
-            p.add_argument('Gain', action='store')
-            p.add_argument('StepDelay', action='store')
-            p.add_argument('NumSamples', action='store')
-            args, unknown = p.parse_known_args()
+                p.add_argument('Resistance', action='store')
+                p.add_argument('Range', action='store')
+                p.add_argument('Step', action='store')
+                p.add_argument('Gain', action='store')
+                p.add_argument('StepDelay', action='store')
+                p.add_argument('NumSamples', action='store')
+                args, unknown = p.parse_known_args()
 
-            args = vars(args)
-            sample_name = " ".join(unknown)
-            print('Sample:', sample_name)
+                args = vars(args)
+                self.sample_name = " ".join(unknown)
+                print('Sample:', self.sample_name)
 
-            for coef, name in core_units.items():
-                if args[f'{name}A']:
-                    k_A = coef
-                if args[f'{name}V']:
-                    k_V_meas = coef
+                for coef, name in core_units.items():
+                    if args[f'{name}A']:
+                        self.k_A = coef
+                    if args[f'{name}V']:
+                        self.k_V_meas = coef
 
-            for coef, name in r_units.items():
-                if args[f'{name}Ohm']:
-                    k_R = coef
+                for coef, name in r_units.items():
+                    if args[f'{name}Ohm']:
+                        self.k_R = coef
 
-            R = float(args['Resistance'])
-            R *= k_R  # always in Ohms
-            rangeA = float(args['Range'])
-            stepA = float(args['Step'])
-            gain = int(args['Gain'])
-            step_delay = float(args['StepDelay'])
-            num_samples = int(args['NumSamples'])
+                self.R = float(args['Resistance'])
+                self.R *= self.k_R  # always in Ohms
+                self.rangeA = float(args['Range'])
+                self.stepA = float(args['Step'])
+                self.gain = int(args['Gain'])
+                self.step_delay = float(args['StepDelay'])
+                self.num_samples = int(args['NumSamples'])
 
-            f_save = not args['nosave']
-            if not f_save:
-                print('Warning! Data will not be saved!')
+                f_save = not args['nosave']
+                if not f_save:
+                    print('Warning! Data will not be saved!')
+                self.f_save = f_save
 
-            yok_read = int(args['R'])
-            yok_write = args['W']
-            lakeshore = int(args['L'])
+                self.excitation_device_id = int(args['R'])
+                field_gate_device_id = args['W']
+                self.lakeshore = int(args['L'])
 
-            exc_device_type = int(args['WT'])
-            read_device_type = int(args['WT'])
-            read_device_id = int(args['RR'])
-            lakeshore_model = int(args['LT'])
+                self.excitation_device_type = int(args['WT'])
+                self.readout_device_type = int(args['WT'])
+                self.read_device_id = int(args['RR'])
+                self.lakeshore_model = int(args['LT'])
 
-            yok_write = int(yok_write) if yok_write.isdigit() else yok_write
+                self.field_gate_device_id = int(field_gate_device_id) if field_gate_device_id.isdigit() \
+                    else field_gate_device_id
 
-            print(
-                f'Equipment IDs will be used: Yokogawa for current:{yok_read}, Yokogawa for field/gate: {yok_write}, '
-                f'LakeShore controller: {lakeshore}')
-            user_params = args['P'][1:-1]  # remove quotes
-            
-        except Exception as e:
-            print('Error during command line parsing:')
-            print(e)
-            k_R, k_V_meas, k_A, R, k_R, rangeA, stepA, gain, step_delay, num_samples, f_save, yok_read, \
-                yok_write, lakeshore, lakeshore_model,  read_device_type, exc_device_type, read_device_id = user_input()
-            user_params = ""
+                self.user_params = args['P'][1: -1]  # remove quotes
 
-    I_units = core_units[k_A]
-    V_units = core_units[k_V_meas]
-    print('R=', R, 'R*', k_R, 'V*', k_V_meas, 'A*', k_A)  # for debugging
+            except Exception as e:
+                print('Error during command line parsing:')
+                print(e)
+                self._user_input()
 
-    return (k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units,
-            f_save, yok_read, yok_write, lakeshore, lakeshore_model, read_device_type, exc_device_type,
-                read_device_id, user_params)
+        self.I_units = core_units[self.k_A]
+        self.V_units = core_units[self.k_V_meas]
+        self.sample_name = self._preprocess_string_for_filename(self.sample_name)
+        # print('R=', self.R, 'R*', self.k_R, 'V*', self.k_V_meas, 'A*', self.k_A)  # for debugging
 
+    # GetSaveFolder
+    # Get a directory to save experiment data
+    # If folder not exists, creates it
+    # Parameters:
+    # caption - additional string to be added to the end of file
+    def GetSaveFolder(self, caption=""):
+        # get current date only one time
+        # to prevent case when part of saved files will have date, for example, 12:00
+        # and another part - 12:01
 
-def preprocess_string_for_filename(s):
-    return s.translate(str.maketrans({':': '_', '/': '_', '\\': '_', '*': '_', '?': '_', '"': '_',
-                                      '>': '_', '<': '_', '|': '_'}))
+        R_units = r_units[self.k_R]
+        experimentDate = self.experimentDate
 
+        cd_short = experimentDate.strftime('%d-%m-%Y')
+        cd_this_meas = experimentDate.strftime('%H-%M') + \
+                       f'_{self.sample_name}_R_{self.R / self.k_R}_{R_units}Ohm_{caption.split("_")[0]}'
+        save_path = path.join(os.getcwd(), 'Data', cd_short, cd_this_meas)
 
-# Function GetSaveFolder
-# Get a directory to save experiment data
-# If folder not exists, creates it
-# Parameters:
-# caption - additional string to be added to the end of file
-def GetSaveFolder(R, k_R=1, caption=""):
-    global experimentDate, sample_name
-    # get current date only one time
-    # to prevent case when part of saved files will have date, for example, 12:00
-    # and another part - 12:01
-    if experimentDate is None:
-        experimentDate = datetime.now()
+        if not path.isdir(save_path):
+            os.makedirs(save_path)
 
-    R_units = r_units[k_R]
-    sample_name = preprocess_string_for_filename(sample_name)
+        return save_path
 
-    cd_short = experimentDate.strftime('%d-%m-%Y')
-    cd_this_meas = experimentDate.strftime('%H-%M') + f'_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption.split("_")[0]}'
-    save_path = path.join(os.getcwd(), 'Data', cd_short, cd_this_meas)
-    if not path.isdir(save_path):
-        os.makedirs(save_path)
+    # Function GetSaveFileName
+    # Get a filename to save
+    # Parameters:
+    # caption - additional string to be added to the end of file
+    def GetSaveFileName(self, caption="", ext="dat", preserve_unique=True):
+        save_path = self.GetSaveFolder(caption)
 
-    return save_path
+        cd = self.experimentDate.strftime('%d-%m-%Y_%H-%M')
+        R_units = r_units[self.k_R]
 
+        filename = path.join(save_path, f'{cd}_{self.sample_name}_R_{self.R / self.k_R}_{R_units}Ohm_{caption}.{ext}')
 
-# Function GetSaveFileName
-# Get a filename to save
-# Parameters:
-# caption - additional string to be added to the end of file
-def GetSaveFileName(R, k_R=1, caption="", ext="dat", preserve_unique=True):
-    global experimentDate, sample_name
+        # if file, even with this minutes, already exists
+        if preserve_unique:
+            k = 0
+            while os.path.isfile(filename):
+                k += 1
+                filename = os.path.join(os.getcwd(), 'Data',
+                                f'{cd}_{self.sample_name}_R_{self.R / self.k_R}_{R_units}Ohm_{caption}_{k}.{ext}')
 
-    save_path = GetSaveFolder(R, k_R, caption)
-    cd = experimentDate.strftime('%d-%m-%Y_%H-%M')
-    R_units = r_units[k_R]
+        return filename
 
-    sample_name = preprocess_string_for_filename(sample_name)
-    filename = path.join(save_path, f'{cd}_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption}.{ext}')
+    # Function SaveData
+    # Saves measured data into specified file
+    # Parameters:
+    # caption - additional string to be added to the end of file
+    # data_dict - a dictionary which has a format:
+    # {columnName1:[data1, data1,...], columnName2:[data2, data2,...]}
+    def SaveData(self, data_dict, caption="", preserve_unique=True):
+        fname = self.GetSaveFileName(caption=caption, preserve_unique=preserve_unique)
+        I_units = core_units[self.k_A]
+        V_units = core_units[self.k_V_meas]
 
-    # if file, even with this minutes, already exists
-    if preserve_unique:
-        k = 0
-        while os.path.isfile(filename):
-            k += 1
-            filename = os.path.join(os.getcwd(), 'Data', f'{cd}_{sample_name}_R_{R / k_R}_{R_units}Ohm_{caption}_{k}.{ext}')
+        df = pd.DataFrame(data_dict)
+        df.to_csv(fname, sep=" ", header=True, index=False, float_format='%.8f')
 
-    return filename
+        print('Data were successfully saved to:', fname)
 
+    def SaveMatrix(self, all_swept_values, all_currents, all_voltages, rows_header, caption=""):
+        def split_curve(curve):
+            N_points = len(curve) // 4
 
-# Function SaveData
-# Saves measured data into specified file
-# Parameters:
-# caption - additional string to be added to the end of file
-# data_dict - a dictionary which has a format:
-# {columnName1:[data1, data1,...], columnName2:[data2, data2,...]}
-def SaveData(data_dict, R, caption="", k_A=1, k_V_meas=1, k_R=1, preserve_unique=True):
-    fname = GetSaveFileName(R, k_R, caption, preserve_unique=preserve_unique)
-    I_units = core_units[k_A]
-    V_units = core_units[k_V_meas]
+            upper_quarter_1 = curve[:N_points]
+            down_quarter_2 = curve[N_points:2 * N_points]
+            down_quarter_3 = curve[2 * N_points:3 * N_points]
+            upper_quarter_4 = curve[3 * N_points:4 * N_points]
 
-    df = pd.DataFrame(data_dict)
-    df.to_csv(fname, sep=" ", header=True, index=False, float_format='%.8f')
+            crit_curve = np.hstack((down_quarter_3[::-1], upper_quarter_1))
+            retr_curve = np.hstack((upper_quarter_4, down_quarter_2[::-1]))
 
-    print('Data were successfully saved to:', fname)
+            return list(crit_curve), list(retr_curve)
+
+        fname = self.GetSaveFileName(caption + '_matrix')
+        fname_c = self.GetSaveFileName(caption + '_matrix_Ic')
+        fname_r = self.GetSaveFileName(caption + '_matrix_Ir')
+
+        swept_values = sorted(list(set(all_swept_values)))
+        one_stweepstep_length = int(
+            len(all_swept_values) // len(swept_values))  # assume that every sweep step contains the same number of points
+        currents = list(all_currents[:one_stweepstep_length])  # and current (I) points are always equal
+        currents_crit, currents_retr = split_curve(currents)
+
+        left_header = currents
+        columns = {}
+
+        left_header_c = currents_crit
+        columns_c = {}
+
+        left_header_r = currents_retr
+        columns_r = {}
+
+        for i, val in enumerate(swept_values):
+            voltages_now = all_voltages[i * one_stweepstep_length: (i + 1) * one_stweepstep_length]  # add header
+            voltages_crit, voltages_retr = split_curve(voltages_now)
+
+            columns[val] = voltages_now
+            columns_c[val] = voltages_crit
+            columns_r[val] = voltages_retr
+
+        df_save = pd.DataFrame(columns, index=left_header)
+        df_save.to_csv(fname, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
+        print('Data were successfully saved to:', fname)
+
+        df_save_c = pd.DataFrame(columns_c, index=left_header_c)
+        df_save_c.to_csv(fname_c, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
+
+        df_save_r = pd.DataFrame(columns_r, index=left_header_r)
+        df_save_r.to_csv(fname_r, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
 
 
 # Function UploadToClouds
@@ -273,58 +311,6 @@ def UploadToClouds(save_dir):
     up.UploadMeasFolder(save_dir)
     nc = NextCloudUploader()
     nc.UploadFolder(save_dir)
-
-
-def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R=1, caption=""):
-    def split_curve(curve):
-        N_points = len(curve) // 4
-
-        upper_quarter_1 = curve[:N_points]
-        down_quarter_2 = curve[N_points:2 * N_points]
-        down_quarter_3 = curve[2 * N_points:3 * N_points]
-        upper_quarter_4 = curve[3 * N_points:4 * N_points]
-
-        crit_curve = np.hstack((down_quarter_3[::-1], upper_quarter_1))
-        retr_curve = np.hstack((upper_quarter_4, down_quarter_2[::-1]))
-
-        return list(crit_curve), list(retr_curve)
-
-    fname = GetSaveFileName(R, k_R, caption + '_matrix')
-    fname_c = GetSaveFileName(R, k_R, caption + '_matrix_Ic')
-    fname_r = GetSaveFileName(R, k_R, caption + '_matrix_Ir')
-
-    swept_values = sorted(list(set(all_swept_values)))
-    one_stweepstep_length = int(
-        len(all_swept_values) // len(swept_values))  # assume that every sweep step contains the same number of points
-    currents = list(all_currents[:one_stweepstep_length])  # and current (I) points are always equal
-    currents_crit, currents_retr = split_curve(currents)
-
-    left_header = currents
-    columns = {}
-
-    left_header_c = currents_crit
-    columns_c = {}
-
-    left_header_r = currents_retr
-    columns_r = {}
-
-    for i, val in enumerate(swept_values):
-        voltages_now = all_voltages[i * one_stweepstep_length: (i + 1) * one_stweepstep_length]  # add header
-        voltages_crit, voltages_retr = split_curve(voltages_now)
-
-        columns[val] = voltages_now
-        columns_c[val] = voltages_crit
-        columns_r[val] = voltages_retr
-
-    df_save = pd.DataFrame(columns, index=left_header)
-    df_save.to_csv(fname, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
-    print('Data were successfully saved to:', fname)
-
-    df_save_c = pd.DataFrame(columns_c, index=left_header_c)
-    df_save_c.to_csv(fname_c, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
-
-    df_save_r = pd.DataFrame(columns_r, index=left_header_r)
-    df_save_r.to_csv(fname_r, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
 
 
 # Function FindCriticalCurrents
@@ -518,11 +504,11 @@ class plotWindow:
 
         quad.set_clim(min_data, max_data)
         self.canvases[ct].draw()
-    
+
     # Add tab change handler
     def addOnChange(self, callback):
         self.__userCallback = callback
-    
+
     # A base method to add a new tab
     # All another methods call it
     def addPlot(self, title, figure, **user_defined_info):
@@ -755,7 +741,11 @@ class plotWindow:
         return self.__total_tabs
 
     def SaveFigureToPDF(self, nfig, pp=None):
-        pp.savefig(self.__figures[nfig])
+        # sometimes an exception may be raised if a measurement was aborted
+        try:
+            pp.savefig(self.__figures[nfig])
+        except Exception:
+            print('Error saving PDF')
 
     def SaveFigureToOneFile(self, nfig, filename):
         self.__figures[nfig].savefig(filename)
@@ -851,12 +841,16 @@ class TimeEstimator:
 
 
 class Logger:
-    def __init__(self, R, k_R=1, caption="", auto_save=True):
-        self.__filename = GetSaveFileName(R, k_R, caption+'_params', ext='log')
+    def __init__(self, shell, caption):
+        self.__filename = shell.GetSaveFileName(caption + '_params', ext='log')
         self.__lines = []
-        self.auto_save = auto_save
 
-    def AddGenericEntry(self,  text):
+        self.AddGenericEntry(
+            f'CurrentRange={(shell.rangeA / shell.R) / shell.k_A} {core_units[shell.k_A]}A;'
+            f'CurrentStep={(shell.stepA / shell.R) / shell.k_A} {core_units[shell.k_A]}A; '
+            f'Gain={shell.gain}; IVPointDelay={shell.step_delay} sec; LeonardoPoints={shell.num_samples}')
+
+    def AddGenericEntry(self, text):
         self.__lines.append(text + '\n')
 
     def AddParametersEntry(self, swept_caption, swept_value, swept_units, **params):
@@ -870,4 +864,3 @@ class Logger:
             for line in self.__lines:
                 f.write(line)
         print('Log was saved to:', self.__filename)
-

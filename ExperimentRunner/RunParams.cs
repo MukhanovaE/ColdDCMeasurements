@@ -636,8 +636,6 @@ namespace ExperimentRunner
         // Updates additional user-defined parameters for this measurement
         public void UpdateParameter(int nParam, String newValue)
         {
-            if (nParam > UserParams.Count - 1)
-                return;
             UserParams[nParam] = newValue;
         }
 

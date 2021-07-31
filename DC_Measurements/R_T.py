@@ -1,64 +1,10 @@
 import numpy as np
-from scipy.optimize import curve_fit
 from sys import exit
 from matplotlib import pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.backends.backend_pdf import PdfPages
 
 from Lib.lm_utils import *
 from Lib.EquipmentBase import EquipmentBase
-
-# User input
-# ------------------------------------------------------------------------------------------------------------
-k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
-    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
-Log = Logger(R, k_R, 'R_T')
-Log.AddGenericEntry(
-    f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
-    f'Gain={gain}; IVPointDelay={step_delay} sec; LeonardoPoints={num_samples}')
-# ------------------------------------------------------------------------------------------------------------
-
-# Initialize devices
-# ------------------------------------------------------------------------------------------------------------
-'''Leonardo = Leonardo(n_samples=num_samples) if read_device_type == READOUT_LEONARDO \
-    else Keithley2182A(device_num=read_device_id)
-Yokogawa = YokogawaGS200(device_num=yok_read, dev_range='1E+1', what='VOLT') if exc_device_type == EXCITATION_YOKOGAWA \
-    else Keithley6200(device_num=yok_read, what='VOLT', R=R)
-LakeShore = LakeShore370(device_num=ls, mode='passive', control_channel=6) if ls_model == LAKESHORE_MODEL_370 \
-    else LakeShore335(device_num=ls, mode='passive', control_channel='A', heater_channel=1)'''
-iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
-                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
-                           temp_id=ls, temp_mode='passive')
-
-# Yokogawa voltage values
-upper_line_1 = np.arange(0, rangeA, stepA)
-down_line_1 = np.arange(rangeA, -rangeA, -stepA)
-upper_line_2 = np.arange(-rangeA, 0, stepA)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-N_points = len(voltValues0)
-percent_points = 0.05  # 5% points around zero to measure R
-
-# temperature limit from command-line parameters (in mK)
-try:
-    temp_limit = float(user_params[0])
-except Exception:
-    temp_limit = 20
-# print('Measurements will be done until temp limit:', temp_limit, 'mK')
-
-# Main program window
-pw = plotWindow("R(T)", color_buttons=False)
-
-# I-V 2D plot preparation
-tabIV = pw.addLine2D('I-U', fr'$I, {core_units[k_A]}A$', fr"$U, {core_units[k_V_meas]}V$")
-
-# T(t) plot
-tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
-
-# R(T) plot
-tabRT = pw.addScatter2D('R(T)', 'T, K', r'R, $\Omega$')
 
 
 def EquipmentCleanup():
@@ -72,11 +18,10 @@ def DataSave():
     # save main data
     caption = 'R_T'
     # print(len(tempValues), len(currValues), len(voltValues))
-    SaveData({'R, Ohm': R_values, 'T, K': T_values},
-             R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values}, caption=caption)
 
     # save plot to PDF
-    fname = GetSaveFileName(R, k_R, caption, 'pdf')
+    fname = shell.GetSaveFileName(caption, 'pdf')
     pp = PdfPages(fname)
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
@@ -84,15 +29,9 @@ def DataSave():
     Log.Save()
 
     print('Uploading to clouds')
-    UploadToClouds(GetSaveFolder(R, k_R, caption))
+    UploadToClouds(shell.GetSaveFolder(caption))
 
     exit(0)
-
-
-f_exit = threading.Event()
-t = 0
-tempsMomental = []  # for temperatures plot
-times = []
 
 
 def UpdateRealtimeThermometer():
@@ -117,10 +56,6 @@ def UpdateRealtimeThermometer():
         pw.canvases[tabTemp].draw()
 
 
-T_values = []
-R_values = []
-
-
 @MeasurementProc(EquipmentCleanup)
 def MeasureProc():
     len_line = N_points / 4
@@ -130,7 +65,7 @@ def MeasureProc():
                or (num > 0 * len_line + percent_points * len_line) or (num < N_points - percent_points * len_line)
 
     curr_temp = iv_sweeper.lakeshore.GetTemperature()
-    while not f_exit.is_set():
+    while (not f_exit.is_set()) and (curr_temp >= temp_limit or temp_limit == -1):
         # measure I_V
         V_for_R = []
         I_for_R = []
@@ -141,14 +76,14 @@ def MeasureProc():
         for i, volt in enumerate(voltValues0):
             # measure I-V point
             iv_sweeper.SetOutput(volt)
-            time.sleep(step_delay)
-            V_meas = iv_sweeper.MeasureNow(6) / gain
-            I_values.append((volt / R) / k_A)
-            V_values.append(V_meas / k_V_meas)
+            time.sleep(shell.step_delay)
+            V_meas = iv_sweeper.MeasureNow(6) / shell.gain
+            I_values.append((volt / shell.R) / shell.k_A)
+            V_values.append(V_meas / shell.k_V_meas)
 
             # measure R
             if IsNeededNowMeasureR(i):
-                I_for_R.append(volt / R)
+                I_for_R.append(volt / shell.R)
                 V_for_R.append(V_meas)
                 R_meas = UpdateResistance(pw.Axes[tabIV], I_for_R, V_for_R)  # is being updated at each point
 
@@ -176,7 +111,7 @@ def MeasureProc():
         except Exception:
             pass
         print(s)
-        time.sleep(10)
+        time.sleep(time_to_wait)
 
         curr_temp = iv_sweeper.lakeshore.GetTemperature()  # for next measurement
     # end while
@@ -189,6 +124,57 @@ def TemperatureThreadProc():
         UpdateRealtimeThermometer()
         time.sleep(1)
 
+
+# User input
+shell = ScriptShell()
+Log = Logger(shell, 'R_T')
+
+# Initialize devices
+iv_sweeper = EquipmentBase(shell, temp_mode='passive')
+
+# Yokogawa voltage values
+upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
+down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)
+upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)
+voltValues0 = np.hstack((upper_line_1,
+                         down_line_1,
+                         upper_line_2))
+N_points = len(voltValues0)
+percent_points = 0.05  # 5% points around zero to measure R
+
+# temperature limit from command-line parameters (in mK)
+# specify 0 in a command line to perform a measurement without a limit
+# 0 is bad and will be replaced to -1, because in some cases LakeShore can return 0
+# and this will make measurement to end.
+try:
+    temp_limit, time_to_wait = [float(i) for i in shell.user_params.split(';')]
+except Exception:
+    temp_limit = 0
+
+if temp_limit != 0:
+    print('Measurements will be done until temp limit:', temp_limit, 'mK')
+else:
+    print('Close main window to end this measurement, it will not be done automatically')
+    temp_limit = -1
+
+# Main program window
+pw = plotWindow("R(T)", color_buttons=False)
+
+# I-V 2D plot preparation
+tabIV = pw.addLine2D('I-U', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
+
+# T(t) plot
+tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
+
+# R(T) plot
+tabRT = pw.addScatter2D('R(T)', 'T, K', r'R, $\Omega$')
+
+f_exit = threading.Event()
+t = 0
+tempsMomental = []  # for temperatures plot
+times = []
+T_values = []
+R_values = []
 
 gui_thread = threading.Thread(target=MeasureProc)
 gui_thread.start()

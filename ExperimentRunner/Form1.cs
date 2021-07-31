@@ -365,7 +365,7 @@ namespace ExperimentRunner
             Settings sett = new Settings();
             String strRead="";
             String strFieldType="";
-            String sSweepType = "";
+            String sSweepType = "0";
             meas_params.SetAMI("");
             switch (nTab)
             {
@@ -469,7 +469,7 @@ namespace ExperimentRunner
                         }
                     }
 
-                    meas_params.SetParameters(txtVB_FieldFrom.Text,txtVB_FieldTo.Text, txtVB_FieldStep.Text, 
+                    meas_params.SetParameters(txtVB_FieldFrom.Text, txtVB_FieldTo.Text, txtVB_FieldStep.Text, 
                         txtVB_BiasStart.Text, txtVB_BiasEnd.Text, txtVB_BiasStep.Text, sSweepType);
                     LoadAMISettings(tabVB);
                     meas_params.SetAMI(btnVB_AMI.Checked ? txtAMIAddress.Text : "");
@@ -486,8 +486,13 @@ namespace ExperimentRunner
                     if (sett.TryLoadSetting("R_T_param0", ref strRead))
                     {
                         txtRT_TempLimit.Text = strRead;
+                        btnRT_MeasUntilTemperature.Checked = (strRead != "0");
                     }
-                    meas_params.SetParameters(strRead);
+                    meas_params.UpdateParameter(0, txtRT_TempLimit.Text);
+                    if(sett.TryLoadSetting("R_T_param1", ref strRead))
+                    {
+                        txtRT_WaitTime.Text = strRead;
+                    }
                     break;
                 case tabRTGate:
                     if (sett.TryLoadSetting("R_T_Gate_param0", ref strRead))
@@ -642,6 +647,8 @@ namespace ExperimentRunner
 
         private void UpdateVBSweepMode()
         {
+            if (!bFullInitialized)
+                return;
             meas_params.UpdateParameter(6, GetVBSweepType());
         }
 
@@ -720,7 +727,7 @@ namespace ExperimentRunner
                 case tabRT: //R-T
                     meas_params.UpdateControls(i, btnRT_mkV, btnRT_mV, btnRT_nA, btnRT_mkA, btnRT_mA, txtRT_Resistance, btnRT_KOhm, btnRT_MOhm,
                         txtRT_Range, txtRT_Step, txtRT_RangeI, txtRT_StepI, txtRT_Gain, txtRT_Delay, txtRT_Samples);
-                    meas_params.SetParameters(txtRT_TempLimit.Text);
+                    meas_params.SetParameters(txtRT_TempLimit.Text, txtRT_WaitTime.Text);
                     break;
                 case tabRTGate:
                     meas_params.UpdateControls(i, btnRTGate_mkV, btnRTGate_mV, btnRT_nA, btnRTGate_mkA, btnRTGate_mA, txtRTGate_Resistance, btnRTGate_KOhm, btnRTGate_MOhm,
@@ -1496,7 +1503,8 @@ namespace ExperimentRunner
         {
             int nGenID = HandleTextFieldChange(txtGeneratorID);
             if (nGenID != -1) nGeneratorID = nGenID;
-
+            if (!bFullInitialized)
+                return;
             meas_params.UpdateParameter(5, txtGeneratorID.Text);
         }
 
@@ -1504,6 +1512,34 @@ namespace ExperimentRunner
         {
             nLakeShoreModel = cboLakeShoreModel.SelectedIndex;
             meas_params.SetLakeShoreModel(nLakeShoreModel);
+        }
+
+        private void UpdateRTOption()
+        {
+            if (btnRT_MeasUntilEnd.Checked)
+                meas_params.UpdateParameter(0, "0");
+            else
+                meas_params.UpdateParameter(0, txtRT_TempLimit.Text);
+        }
+
+        private void BtnRT_MeasUntilTemperature_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateRTOption();
+        }
+
+        private void BtnRT_MeasUntilEnd_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateRTOption();
+        }
+
+        private void TxtRT_WaitTime_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, false, false);
+        }
+
+        private void TxtRT_WaitTime_TextChanged(object sender, EventArgs e)
+        {
+            meas_params.UpdateParameter(1, txtRT_WaitTime.Text);
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)

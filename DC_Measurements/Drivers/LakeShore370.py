@@ -120,16 +120,16 @@ class LakeShore370(LakeShoreBase):
 # for debugging purposes, doesn't actually change or measure a temperature
 class DebugLakeShore370:
 
-    def __init__(self, device_num=17, temp0=None, max_temp=MAX_TEMP, verbose=True, mode="active",
-                 tempStep=0.1):
+    def __init__(self, device_num=17, temp_0=None, max_temp=MAX_TEMP, verbose=True, mode="active",
+                 temp_step=0.1):
         self.__verbose = verbose
         self._set_channel(6)
         if mode == 'passive':
             self.__dummy_temp = self.__temp_channel
         else:
-            initialTemp = temp0 if temp0 is not None else 0.015
-            self.__tempValues = np.arange(initialTemp, max_temp, tempStep)
-            self.__dummy_temp = temp0
+            initialTemp = temp_0 if temp_0 is not None else 0.015
+            self.__tempValues = np.arange(initialTemp, max_temp, temp_step)
+            self.__dummy_temp = temp_0
 
         if self.__verbose:
             print('LakeShore bridge DEBUG MODE (no real temp. change)')
