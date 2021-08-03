@@ -12,7 +12,7 @@ class Keithley2400(visa_device.visa_device):
         modes_UI = {Keithley2400WorkMode.MODE_SOURCE: "Current source",
                     Keithley2400WorkMode.MODE_VOLTMETER: "Voltmeter",
                     Keithley2400WorkMode.MODE_BOTH: "Both mode"}
-        print('Connecting Keithley 6200 series, device id = ', device_num)
+        print('Connecting Keithley 2400 series, device id = ', device_num)
         print('Working mode: ', modes_UI[mode])
 
         if what not in ['VOLT', 'CURR']:
@@ -62,8 +62,7 @@ class Keithley2400(visa_device.visa_device):
             value /= self.R  # volts -> amperes
 
         func = self._func_for_cmd
-        self.SendString(f'SOURce:{func}:LEVel {value}')
-        self.SendString('*OPC?')
+        self.SendString(f'SOURce:CURRent:LEVel {value}')
 
     def GetOutput(self):
         func = self._func_for_cmd

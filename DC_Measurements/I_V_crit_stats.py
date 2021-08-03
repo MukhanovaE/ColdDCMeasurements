@@ -6,10 +6,50 @@ from matplotlib.backends.backend_pdf import PdfPages
 import time
 import threading
 from sys import exit
-import warnings
 
 from Lib.lm_utils import *
 from Lib.EquipmentBase import EquipmentBase
+import warnings
+
+warnings.filterwarnings("ignore")  # A critical current function may give warnings in case of bad data, delete them
+
+# User input
+# ------------------------------------------------------------------------------------------------------------
+k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+# ------------------------------------------------------------------------------------------------------------
+
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=read_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
+
+# all Yokogawa generated values (always in volts!!!)
+upper_line_1 = np.arange(0, rangeA, stepA)
+down_line_1 = np.arange(rangeA, -rangeA, -stepA)
+upper_line_2 = np.arange(-rangeA, 0, stepA)
+voltValues0 = np.hstack((upper_line_1,
+                         down_line_1,
+                         upper_line_2))
+N_points = len(voltValues0)
+
+# Statistics parameters
+try:
+    N_stats = int(user_params)
+except Exception:
+    N_stats = 50  # how many I-U curves will be measured
+print('Curves to collect: ', N_stats)
+
+# remaining / estimated time
+time_mgr = TimeEstimator(N_stats)
+
+# Data receivers
+I_values = []
+U_values = []
+numbers = []
+
+# plot window preparation
+pw = plotWindow("Critical currents distribution", color_buttons=False)
+tabIV = pw.addEmptyLine2D('I-V', fr'$I, {core_units[k_A]}A$', fr"$U, {core_units[k_V_meas]}V$")
+tabStats = pw.addEmptyPlot('Distribution')
 
 
 def ErrorCleanup():
@@ -42,12 +82,12 @@ def main_thread():
         for nv, volt in enumerate(voltValues0):
             # Measure
             iv_sweeper.SetOutput(volt)
-            time.sleep(shell.step_delay)
+            time.sleep(step_delay)
 
-            V_meas = iv_sweeper.MeasureNow(6) / shell.gain  # volts
+            V_meas = iv_sweeper.MeasureNow(6) / gain  # volts
 
-            V = V_meas / shell.k_V_meas
-            A = (volt / shell.R) / shell.k_A
+            V = V_meas / k_V_meas
+            A = (volt / R) / k_A
 
             # data for plotting only this curve
             voltValues.append(V)  # volts / coeff
@@ -82,7 +122,7 @@ def main_thread():
 
     # Saving data
     save_title = "Stats"
-    fname = shell.GetSaveFileName(save_title, 'pdf')
+    fname = GetSaveFileName(R, k_R, save_title, 'pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveFigureToPDF(tabIV, pp)
 
@@ -92,48 +132,13 @@ def main_thread():
     pp.close()
 
     caption = "Ic_stats"
-    dict_save = {'number': numbers, f'I, {shell.I_units}A': I_values, f'U, {shell.V_units}V': U_values}
-    shell.SaveData(dict_save, caption=caption)
-    shell.SaveMatrix(numbers, I_values, U_values, f'I, {shell.I_units}A', caption=caption)
+    dict_save = {'number': numbers, f'I, {I_units}A': I_values, f'U, {V_units}V': U_values}
+    SaveData(dict_save, R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+    SaveMatrix(numbers, I_values, U_values, f'I, {I_units}A', R, k_R, caption=caption)
 
-    UploadToClouds(shell.GetSaveFolder(save_title))
+    UploadToClouds(GetSaveFolder(R, k_R, save_title))
 
     exit(0)
-
-
-warnings.filterwarnings("ignore")  # A critical current function may give warnings in case of bad data, delete them
-
-shell = ScriptShell()
-iv_sweeper = EquipmentBase(shell)
-
-# all Yokogawa generated values (always in volts!!!)
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-N_points = len(voltValues0)
-
-# Statistics parameters
-try:
-    N_stats = int(shell.user_params)
-except Exception:
-    N_stats = 50  # how many I-U curves will be measured
-print('Curves to collect: ', N_stats)
-
-# remaining / estimated time
-time_mgr = TimeEstimator(N_stats)
-
-# Data receivers
-I_values = []
-U_values = []
-numbers = []
-
-# plot window preparation
-pw = plotWindow("Critical currents distribution", color_buttons=False)
-tabIV = pw.addEmptyLine2D('I-V', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
-tabStats = pw.addEmptyPlot('Distribution')
 
 
 # To show temperature on a plot

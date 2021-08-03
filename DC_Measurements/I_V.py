@@ -5,25 +5,58 @@ import threading
 from Lib.EquipmentBase import EquipmentBase
 from Lib.lm_utils import *
 
+# User input
+# ------------------------------------------------------------------------------------------------------------
+k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+Log = Logger(R, k_R, 'simple_I_V')
+Log.AddGenericEntry(
+    f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
+    f'Gain={gain}; IVPointDelay={step_delay} sec; LeonardoPoints={num_samples}')
+# ------------------------------------------------------------------------------------------------------------
+
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
+
+# all Yokogawa generated values (always in volts!!!)
+upper_line_1 = np.arange(0, rangeA, stepA)
+down_line_1 = np.arange(rangeA, -rangeA, -stepA)
+upper_line_2 = np.arange(-rangeA, 0, stepA)
+
+# always in volts!
+voltValues0 = np.hstack((upper_line_1,
+                         down_line_1,
+                         upper_line_2))
+voltValues = []
+currValues = []
+R_values = []
+
+pw = plotWindow("I-V")
+tabIV = pw.addLine2D('I-V', f'I, {I_units}A', f'U, {V_units}V')
+tabR = pw.addLine2D(r'dV/dI', f'I, {I_units}A', r'$\frac{dV}{dI}$, $\Omega$')
+f_exit = threading.Event()
+
 
 # Write results to a file
 def DataSave():
-    if not shell.f_save:
+    if not f_save:
         return
     caption = "simple_I_V"
-    shell.SaveData({f'I, {shell.I_units}A': currValues, f'U, {shell.V_units}V': voltValues, 'R, Ohm': R_values}, caption)
+    SaveData(data_dict={f'I, {I_units}A': currValues, f'U, {V_units}V': voltValues, 'R, Ohm': R_values},
+             R=R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
 
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = GetSaveFileName(R, k_R, caption, 'pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveFigureToPDF(tabIV, pp)
     pw.SaveFigureToPDF(tabR, pp)
     pp.close()
-    print('Plots were successfully saved to PDF:', fname)
 
     Log.Save()
 
+    print('Plots were successfully saved to PDF:', fname)
+
     print('Uploading to clouds')
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
 def Cleanup():
@@ -40,22 +73,22 @@ def MeasurementThreadProc():
 
     # Set zero current and calculate offset (if it is present)
     iv_sweeper.SetOutput(0)
-    zero_value = iv_sweeper.MeasureNow(6) / shell.gain
+    zero_value = iv_sweeper.MeasureNow(6) / gain
 
     for i, volt in enumerate(voltValues0):
         iv_sweeper.SetOutput(volt)
-        time.sleep(shell.step_delay)
+        time.sleep(step_delay)
 
-        V_meas = iv_sweeper.MeasureNow(6) / shell.gain - zero_value
-        voltValues.append(V_meas / shell.k_V_meas)
-        currValues.append((volt / shell.R) / shell.k_A)
+        V_meas = iv_sweeper.MeasureNow(6) / gain - zero_value
+        voltValues.append(V_meas / k_V_meas)
+        currValues.append((volt / R) / k_A)
 
         if fMeasDeriv:
-            R_values = np.abs(np.gradient(voltValues) * shell.k_V_meas * 1e+7)  # in Ohms
+            R_values = np.abs(np.gradient(voltValues) * k_V_meas * 1e+7)  # in Ohms
 
         # resistance measurement
         if volt < lower_R_bound or volt > upper_R_bound:
-            R_IValues.append(volt / shell.R)  # Amperes forever!
+            R_IValues.append(volt / R)  # Amperes forever!
             R_UValues.append(V_meas)  # volts
 
             UpdateResistance(pw.Axes[tabIV], np.array(R_IValues), np.array(R_UValues))
@@ -70,28 +103,6 @@ def MeasurementThreadProc():
     print('Measurement finished, turning off')
     Cleanup()
 
-
-shell = ScriptShell()
-Log = Logger(shell, 'simple_I_V')
-iv_sweeper = EquipmentBase(shell)
-
-# all Yokogawa generated values (always in volts!!!)
-upper_line_1 = np.arange(0,  shell.rangeA,  shell.stepA)
-down_line_1 = np.arange( shell.rangeA, - shell.rangeA, - shell.stepA)
-upper_line_2 = np.arange(- shell.rangeA, 0,  shell.stepA)
-
-# always in volts!
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-voltValues = []
-currValues = []
-R_values = []
-
-pw = plotWindow("I-V")
-tabIV = pw.addLine2D('I-V', f'I, {shell.I_units}A', f'U, {shell.V_units}V')
-tabR = pw.addLine2D(r'dV/dI', f'I, {shell.I_units}A', r'$\frac{dV}{dI}$, $\Omega$')
-f_exit = threading.Event()
 
 # Resistance measurement
 # ----------------------------------------------------------------------------------------------------

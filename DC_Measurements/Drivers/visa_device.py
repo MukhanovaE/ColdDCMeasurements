@@ -43,7 +43,6 @@ class visa_device:
     def GetFloat(self, cmd_str):
         device = self.device
         resp = ""
-
         try:
             resp = device.query(cmd_str)
             num = np.float64(resp)
@@ -53,4 +52,5 @@ class visa_device:
             self.__error_message()
             return 0
         except Exception:
+            raise ValueError('xx')
             print('Device returned an invalid responce:', resp)

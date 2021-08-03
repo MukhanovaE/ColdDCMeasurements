@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import time
 import threading
 import sys
@@ -8,7 +9,64 @@ from Drivers.KeysightAWG import *
 from Lib.lm_utils import *
 from Lib.EquipmentBase import EquipmentBase
 
+# User input
+# ------------------------------------------------------------------------------------------------------------
+k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
+    ls, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+Log = Logger(R, k_R, 'Gate_pulse')
+Log.AddGenericEntry(f'Gain={gain}; LeonardoPoints={num_samples}')
+# ------------------------------------------------------------------------------------------------------------
 
+# Initialize devices
+# ------------------------------------------------------------------------------------------------------------
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='passive')
+# parse user-defined parameters
+try:
+    length0, length_end, length_step, n_repeat, amplitude, current, device_id = [float(i) for i in user_params.split(';')]
+    n_repeat = int(n_repeat)
+    device_id = int(device_id)
+    current *= 1e-9  # nA to A
+except Exception:  # default values
+    length0 = 5
+    length_end = 0.1
+    length_step = 0.1
+    n_repeat = 10
+    amplitude = 0.6
+    current = 300e-9
+    device_id = 228  # TODO: set a default device number
+# show entered parameters
+print('Pulse length from:', length0, 'to:', length_end, 'with step:', length_step)
+print('Ome length will be repeated:', n_repeat, 'times, pulse amplitude:', amplitude, 'V')
+print('Bias current:', current*1e+9, 'nA')
+print('Keysight AWG device ID:', device_id)
+# generate required sequences and values
+swept_lengths = np.arange(length0, length_end, length_step)
+volt_yok = current * R  # voltage to set on Yokogawa (one point on I-V curve) U=IR
+# set up the AWG device
+AWG = KeysightAWG(device_num=device_id, voltageAmplitude=amplitude)
+
+pw = plotWindow("Gate pulses", color_buttons=False)
+tabMainVT = pw.addLine2D("V(t)", "Time, sec", "Voltage (V)")
+tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
+
+# measured data
+times = []
+voltages = []
+pulseStartTimes = []
+pulseEndTimes = []
+triggerState = False
+nStarts = 0
+
+# Update T on the last tab
+t = 0
+timesT = []
+tempsMomental = []
+
+# flag to perform exit from all threads after program ends
+f_exit = threading.Event()
+start_time = time.time()
 def measureTimeNow():
     return time.time() - start_time
 
@@ -47,7 +105,7 @@ def DataSave(length):
     caption = f"Gate_pulse_{freq}Hz"
 
     # save V(t) curve
-    shell.SaveData({'time': times, 'voltage': voltages}, caption)
+    SaveData({'time': times, 'voltage': voltages}, R, caption, k_A, k_V_meas, k_R)
 
     # save pulse start and end times
     # if number of end times is less than the number of start times, it means that the last point was not registered
@@ -62,12 +120,12 @@ def DataSave(length):
     x, y = fig.get_size_inches()
     x = 65535 / 100  # figure maximum size
     fig.set_size_inches(x, y)
-    pw.SaveFigureToOneFile(tabMainVT, shell.GetSaveFileName(caption, "pdf"))
+    pw.SaveFigureToOneFile(tabMainVT, GetSaveFileName(R, k_R, caption, "pdf"))
 
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
 
 
 # turns off all equipment if an error occurs
@@ -86,7 +144,7 @@ def GraphingThread():
 # Measure one voltage point
 def MeasureOneVoltage():
     t = measureTimeNow()
-    v = iv_sweeper.MeasureNow(6) / shell.gain
+    v = iv_sweeper.MeasureNow(6) / gain
 
     times.append(t)
     voltages.append(v)
@@ -103,7 +161,7 @@ def HandleTrigger():
     if trig_now and not triggerState:  # if trigger turned on - begin of a cycle
         pw.MarkPointOnLine(tabMainVT, times[-1], voltages[-1], 'yo', markersize=6)
         pulseStartTimes.append(times[-1])
-        nStarts += 1
+        nStarts+=1
         triggerState = True
 
     if not trig_now and triggerState:  # trigger turned off - end of a cycle
@@ -149,58 +207,6 @@ def MeasurementProc():
     print('Measurement end')
     f_exit.set()
 
-
-shell = ScriptShell()
-Log = Logger(shell, 'Gate_pulse')
-
-# Initialize devices
-iv_sweeper = EquipmentBase(shell, temp_mode='passive')
-
-# parse user-defined parameters
-try:
-    length0, length_end, length_step, n_repeat, amplitude, current, device_id = [float(i) for i in shell.user_params.split(';')]
-    n_repeat = int(n_repeat)
-    device_id = int(device_id)
-    current *= 1e-9  # nA to A
-except Exception:  # default values
-    length0 = 5
-    length_end = 0.1
-    length_step = 0.1
-    n_repeat = 10
-    amplitude = 0.6
-    current = 300e-9
-    device_id = 228  # TODO: set a default device number
-# show entered parameters
-print('Pulse length from:', length0, 'to:', length_end, 'with step:', length_step)
-print('Ome length will be repeated:', n_repeat, 'times, pulse amplitude:', amplitude, 'V')
-print('Bias current:', current*1e+9, 'nA')
-print('Keysight AWG device ID:', device_id)
-# generate required sequences and values
-swept_lengths = np.arange(length0, length_end, length_step)
-volt_yok = current * shell.R  # voltage to set on Yokogawa (one point on I-V curve) U=IR
-# set up the AWG device
-AWG = KeysightAWG(device_num=device_id, voltageAmplitude=amplitude)
-
-pw = plotWindow("Gate pulses", color_buttons=False)
-tabMainVT = pw.addLine2D("V(t)", "Time, sec", "Voltage (V)")
-tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
-
-# measured data
-times = []
-voltages = []
-pulseStartTimes = []
-pulseEndTimes = []
-triggerState = False
-nStarts = 0
-
-# Update T on the last tab
-t = 0
-timesT = []
-tempsMomental = []
-
-# flag to perform exit from all threads after program ends
-f_exit = threading.Event()
-start_time = time.time()
 
 # start measurement threads
 measurement_thread = threading.Thread(target=VoltageMeasurementProc)

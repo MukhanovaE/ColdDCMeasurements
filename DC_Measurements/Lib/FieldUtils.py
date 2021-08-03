@@ -87,12 +87,12 @@ class FieldSweeper:
 class YokogawaFieldSweeper(FieldSweeper):
     @staticmethod
     def B_to_I(B):  # B in G, returns I in A
-        k_magnet = 100  # Gauss/A
+        k_magnet = 224 #100  # Gauss/A
         return B / k_magnet
     
     @staticmethod
     def I_to_B(I):  # I in mA
-        k_magnet = 100  # Gauss/A
+        k_magnet = 224 #100  # Gauss/A
         return (I / 1000) * k_magnet  # milliamperes to amperes
 
     # slowly change a magnetic field in the specified range

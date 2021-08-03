@@ -8,21 +8,78 @@ from Drivers.Yokogawa import *
 from Lib.lm_utils import *
 from Lib.EquipmentBase import EquipmentBase
 
+# User input
+# ------------------------------------------------------------------------------------------------------------
+k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+Log = Logger(R, k_R, 'R_T_Gate')
+Log.AddGenericEntry(
+    f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]}A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]}A; '
+    f'Gain={gain}; IVPointDelay={step_delay} sec; LeonardoPoints={num_samples}')
+# ------------------------------------------------------------------------------------------------------------
+
+# Initialize devices
+# ------------------------------------------------------------------------------------------------------------
+
+# Yokogawa voltage values
+upper_line_1 = np.arange(0, rangeA, stepA)
+down_line_1 = np.arange(rangeA, -rangeA, -stepA)
+upper_line_2 = np.arange(-rangeA, 0, stepA)
+voltValues0 = np.hstack((upper_line_1,
+                         down_line_1,
+                         upper_line_2))
+N_points = len(voltValues0)
+percent_points = 0.05  # 5% points around zero to measure R
+
+# temperature limit from command-line parameters (in mK)
+try:
+    temp0, max_temp, temp_step, gate_amplitude, gate_points = [float(i) for i in user_params.split(';')]
+    if temp0 == 0:
+        temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
+except Exception:
+    temp0, max_temp, temp_step, gate_amplitude, gate_points = None, 1.1, 100 * 1E-3, 5, 0.5
+
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
+Yokogawa_gate = YokogawaGS200(device_num=yok_write, dev_range='1E+1', what='VOLT')
+
+voltValuesGate = np.linspace(0, gate_amplitude, int(gate_points))
+
+print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0} K to {max_temp} K, with step: {temp_step} K')
+print('Gate voltage sweep amplitude:', gate_amplitude, 'swept points:', int(gate_points))
+print('Temperatures will be:', iv_sweeper.lakeshore.TempRange)
+
+# Main program window
+pw = plotWindow("R(T)", color_buttons=False)
+
+# I-V 2D plot preparation
+tabIV = pw.addLine2D('I-U', fr'$I, {core_units[k_A]}A$', fr"$U, {core_units[k_V_meas]}V$")
+
+# T(t) plot
+tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
+
+# R(T) plot
+tabRT = pw.addScatter2D('R(T)', 'T, K', r'R, $\Omega$')
+
+warnings.filterwarnings('ignore')
+
 
 def EquipmentCleanup():
     pass
 
 
 def DataSave(vg):
-    if not shell.f_save:
+    if not f_save:
         return
 
     # save main data
     caption = f'R_T_Gate_{vg:.2f}_V'
-    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values}, caption=caption)
+    SaveData({'R, Ohm': R_values, 'T, K': T_values},
+             R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
 
     # save plot to PDF
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = GetSaveFileName(R, k_R, caption, 'pdf')
     pp = PdfPages(fname)
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
@@ -31,7 +88,13 @@ def DataSave(vg):
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
+
+f_exit = threading.Event()
+t = 0
+tempsMomental = []  # for temperatures plot
+times = []
 
 
 def UpdateRealtimeThermometer():
@@ -54,6 +117,11 @@ def UpdateRealtimeThermometer():
         ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
         ax.set_title(f'T={T_curr}')
         pw.canvases[tabTemp].draw()
+
+
+vg_now = None
+T_values = []
+R_values = []
 
 
 @MeasurementProc(EquipmentCleanup)
@@ -88,13 +156,13 @@ def MeasureProc():
                         exit(0)
                     # measure I-V point
                     iv_sweeper.SetOutput(volt)
-                    time.sleep(shell.step_delay)
-                    V_meas = iv_sweeper.MeasureNow(6) / shell.gain
-                    I_values.append((volt / shell.R) / shell.k_A)
-                    V_values.append(V_meas / shell.k_V_meas)
+                    time.sleep(step_delay)
+                    V_meas = iv_sweeper.MeasureNow(6) / gain
+                    I_values.append((volt / R) / k_A)
+                    V_values.append(V_meas / k_V_meas)
 
                     # measure R
-                    R_meas = UpdateResistance(pw.Axes[tabIV], np.array(I_values) * shell.k_A, np.array(V_values) * shell.k_V_meas)  # is being updated at each point
+                    R_meas = UpdateResistance(pw.Axes[tabIV], np.array(I_values) * k_A, np.array(V_values) * k_V_meas)  # is being updated at each point
 
                     # update plot
                     try:
@@ -128,62 +196,6 @@ def TemperatureThreadProc():
         UpdateRealtimeThermometer()
         time.sleep(1)
 
-
-# User input
-shell = ScriptShell()
-Log = Logger(shell, 'R_T_Gate')
-
-# Yokogawa voltage values
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-N_points = len(voltValues0)
-percent_points = 0.05  # 5% points around zero to measure R
-
-# temperature limit from command-line parameters (in mK)
-try:
-    temp0, max_temp, temp_step, gate_amplitude, gate_points = [float(i) for i in shell.user_params.split(';')]
-    if temp0 == 0:
-        temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
-except Exception:
-    temp0, max_temp, temp_step, gate_amplitude, gate_points = None, 1.1, 100 * 1E-3, 5, 0.5
-
-# Initialize devices
-iv_sweeper = EquipmentBase(shell, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
-Yokogawa_gate = YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='1E+1', what='VOLT')
-
-voltValuesGate = np.linspace(0, gate_amplitude, int(gate_points))
-
-print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0} K to {max_temp} K, with step: {temp_step} K')
-print('Gate voltage sweep amplitude:', gate_amplitude, 'swept points:', int(gate_points))
-print('Temperatures will be:', iv_sweeper.lakeshore.TempRange)
-
-# Main program window
-pw = plotWindow("R(T)", color_buttons=False)
-
-# I-V 2D plot preparation
-tabIV = pw.addLine2D('I-U', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
-
-# T(t) plot
-tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
-
-# R(T) plot
-tabRT = pw.addScatter2D('R(T)', 'T, K', r'R, $\Omega$')
-
-warnings.filterwarnings('ignore')
-
-
-f_exit = threading.Event()
-t = 0
-tempsMomental = []  # for temperatures plot
-times = []
-
-vg_now = None
-T_values = []
-R_values = []
 
 gui_thread = threading.Thread(target=MeasureProc)
 gui_thread.start()

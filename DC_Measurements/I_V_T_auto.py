@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
 from sys import exit
-import warnings
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_pdf import PdfPages
@@ -10,18 +9,93 @@ from matplotlib.colors import LinearSegmentedColormap
 from Lib.lm_utils import *
 from Lib.EquipmentBase import EquipmentBase
 
+# User input
+# ------------------------------------------------------------------------------------------------------------
+k_A, k_V_meas, k_R, R, rangeA, stepA, gain, step_delay, num_samples, I_units, V_units, f_save, yok_read, yok_write, \
+    ls, ls_model, read_device_type, exc_device_type, read_device_id, user_params = ParseCommandLine()
+Log = Logger(R, k_R, 'Temp')
+Log.AddGenericEntry(
+    f'CurrentRange={(rangeA / R) / k_A} {core_units[k_A]} A; CurrentStep={(stepA / R) / k_A} {core_units[k_A]} A; '
+    f'Gain={gain}; IVPointDelay={step_delay} sec; LeonardoPoints={num_samples}')
+# ------------------------------------------------------------------------------------------------------------
+
+# get LakeShore temperature sweep parameters from command line
+try:
+    temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in user_params.split(';')]
+    N_curves_each_time = int(N_curves_each_time)
+    if temp0 == 0:
+        temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
+except Exception:
+    temp0, max_temp, temp_step, N_curves_each_time = None, 1.1, 100 * 1E-3, 1
+print(f'Temperature sweep range: from {"<current>" if temp0 is None else temp0*1e+3} mK to {max_temp} K, with step: {temp_step*1e+3:.3f} mK, each temperature will be measured', N_curves_each_time, 'times')
+
+# Initialize devices
+# ------------------------------------------------------------------------------------------------------------
+iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+                           sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
+                           temp_id=ls, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
+print('Temperatures will be:\n', iv_sweeper.lakeshore.TempRange)
+# ------------------------------------------------------------------------------------------------------------
+# Yokogawa voltage values
+n_points = int(2 * rangeA // stepA)
+upper_line_1 = np.arange(0, rangeA, stepA)  # np.linspace(0, rangeA, n_points // 2)
+down_line_1 = np.arange(rangeA, -rangeA, -stepA)   # np.linspace(rangeA, -rangeA, n_points)
+upper_line_2 = np.arange(-rangeA, 0, stepA)  # np.linspace(-rangeA, 0, n_points // 2)
+voltValues0 = np.hstack((upper_line_1,
+                         down_line_1,
+                         upper_line_2))
+print(n_points)
+N_points = len(down_line_1)
+N_temps = len(iv_sweeper.lakeshore.TempRange)
+# ------------------------------------------------------------------------------------------------------------
+
+
+# Custom plot colormaps
+R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
+
+# Resistance measurement
+# ----------------------------------------------------------------------------------------------------
+percentage_R = 0.2  # how many percents left-right will be used to measure R
+fraction_R = int(len(voltValues0) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
+lower_R_bound = upper_line_2[int(len(upper_line_2) * percentage_R)]
+upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
+# ------------------------------------------------------------------------------------------------------------
+
+# data receivers
+data_buff = np.zeros((N_points, N_temps))
+data_buff_ir = np.zeros((N_points, N_temps))
+R_buff = np.zeros((N_points, N_temps))
+R_buff_ir = np.zeros((N_points, N_temps))
+currValues = []
+tempValues = []
+voltValues = []
+crit_curs = np.zeros((2, N_temps))
+currValues_axis = ((-down_line_1 / R) / k_A)
+tempValues_axis = iv_sweeper.lakeshore.TempRange
+tempsMomental = []  # for temperatures plot
+
+tempValuesR = []
+resistValuesR = []
+
+# behavior on program exit - save data
+f_exit = threading.Event()
+
+# remaining / estimatsd time
+time_mgr = TimeEstimator(LakeShore.NumTemps)
+
 
 def DataSave():
-    if not shell.f_save:
+    if not f_save:
         return
 
     # save main data
     caption = 'Temp'
-    shell.SaveData({'T, mK': tempValues, f'I, {shell.I_units}A': currValues,
-              f'U, {shell.V_units}V': voltValues, 'R': np.gradient(voltValues)}, caption=caption)
+    SaveData({'T, mK': tempValues, f'I, {I_units}A': currValues,
+              f'U, {V_units}V': voltValues, 'R': np.gradient(voltValues)},
+             R, caption=caption, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
 
     print('Saving PDF...')
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = GetSaveFileName(R, k_R, caption, 'pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     # I-U-T color mesh
     pw.SaveFigureToPDF(tabIVTCMesh, pp)
@@ -40,14 +114,67 @@ def DataSave():
 
     # save critical temperature values
     caption_cr = caption + '_crit'
-    shell.SaveData({'T, mK': tempValues_axis[:N_meas], f'Crit curr., negative, {shell.I_units}A': crit_curs[0, :N_meas],
-              f'Crit curr., positive, {shell.I_units}A': crit_curs[1, :N_meas]}, caption=caption_cr)
-    shell.SaveMatrix(tempValues, currValues, voltValues, f'I, {shell.I_units}A', caption=caption)
-    shell.SaveData({'T': tempValuesR, f'R': resistValuesR}, caption=caption + '_R')
-
+    fname = GetSaveFileName(R, k_R, caption_cr, 'dat')
+    SaveData({'T, mK': tempValues_axis[:N_meas], f'Crit curr., negative, {I_units}A': crit_curs[0, :N_meas],
+              f'Crit curr., positive, {I_units}A': crit_curs[1, :N_meas]},
+             R, caption=caption_cr, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+             
+    SaveMatrix(tempValues, currValues, voltValues, f'I, {I_units}A', R, k_R, caption=caption)
     Log.Save()
+
+    SaveData({'T': tempValuesR, f'R': resistValuesR},
+             R, caption=caption + '_R', k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption))
+
+
+pw = plotWindow("Leonardo I-U measurement with different T")
+
+# 0 Colormesh I-V-T (crit. current) plot preparation
+tabIVTCMesh = pw.addColormesh('I-U-T, crit. (Color mesh)', r'$T, mK$', fr'$I, {core_units[k_A]}A$', tempValues_axis,
+                              currValues_axis, data_buff, plt.get_cmap('brg'))
+
+# 1 Colormesh I-V-T (retrapping current) plot preparation
+
+tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'$T, mK$', fr'$I, {core_units[k_A]}A$',
+                              tempValues_axis,
+                              currValues_axis, data_buff_ir, plt.get_cmap('brg'))
+
+# 2 I-V 2D plot preparation
+tabIV = pw.addLine2D('I-U (simple 2D)', fr'$I, {core_units[k_A]}A$', fr"$U, {core_units[k_V_meas]}V$")
+
+# 3 I-V-T (critical current) 3D plot
+tabIVTC3D = pw.add3DPlot('I-U-T, crit. (3D)', 'T, mK', fr'$U, {core_units[k_V_meas]}V$', fr'I, {core_units[k_A]}A')
+
+# 4 I-V-T (critical current) 3D plot
+tabIVTR3D = pw.add3DPlot('I-U-T, retr. (3D)', 'T, mK', fr'$U, {core_units[k_V_meas]}V$', fr'I, {core_units[k_A]}A')
+
+# 5 T - I - R (critical current) 2D colormesh plot
+tabRCMesh = pw.addColormesh('I-R-T, crit. (Color mesh)', fr'$T, mK$', fr"$I, {core_units[k_A]}A$",
+                            tempValues_axis, currValues_axis, R_buff, R_3D_colormap)
+
+# 6 T - I - R (retrapping current) 2D colormesh plot
+tabRRMesh = pw.addColormesh('I-R-T, retr. (Color mesh)', fr'$T, mK$', fr"$I, {core_units[k_A]}A$",
+                            tempValues_axis, currValues_axis, R_buff_ir, R_3D_colormap)
+
+# 7 T - I - R (critical current) 3D plot
+tabRC3D = pw.add3DPlot('I-R-T, crit. (3D)', 'T, mK', fr'I, {core_units[k_A]}A', '$R, Ohm$')
+
+# 8 T - I - R (retrapping current) 3D plot
+tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'T, mK', fr'I, {core_units[k_A]}A', '$R, Ohm$')
+
+# 9 I_crit. vs. T
+tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'T, mK',
+                                        fr'$I_C^\pm, {core_units[k_A]}A$', linestyle='-', marker='o')
+
+tabResist = pw.addScatter2D('Resistance', 'Temperature', r'R, $\Omega$')
+                                        
+# 10 T(t) plot - to control temperature in real time
+tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
+
+# Update T on the last tab
+t = 0
+times = []
 
 
 def EquipmentCleanup():
@@ -55,8 +182,8 @@ def EquipmentCleanup():
 
 
 def UpdateRealtimeThermometer():
-    global times, tempsMomental, t
-    T_curr = iv_sweeper.lakeshore.GetTemperature()
+    global times, tempsMomental, LakeShore, t, pw
+    T_curr = LakeShore.GetTemperature()
     times.append(t)
     t += 1
     tempsMomental.append(T_curr)
@@ -82,16 +209,21 @@ def TemperatureThreadProc():
         time.sleep(1)
 
 
+# main thread - runs when QT application is started
+N_meas = 0
+resist = 0
+
+
 @MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, resist
 
     # Temperature change and measurement process!
-    for i, temp in enumerate(iv_sweeper.lakeshore):
+    for i, temp in enumerate(LakeShore):
+
         # write data to logs
-        Log.AddParametersEntry('T', temp, 'K', PID=iv_sweeper.lakeshore.pid,
-                               HeaterRange=iv_sweeper.lakeshore.htrrng,
-                               Excitation=iv_sweeper.lakeshore.excitation)
+        Log.AddParametersEntry('T', temp, 'K', PID=LakeShore.pid, HeaterRange=LakeShore.htrrng,
+                               Excitation=LakeShore.excitation)
         all_Ic = []
         all_Ir = []
         all_this_temp_A = []
@@ -125,13 +257,15 @@ def thread_proc():
                                 volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues):
                     global resist
                     yok.SetOutput(volt)
-                    time.sleep(shell.step_delay)
-                    curr_curr = (volt / shell.R) / shell.k_A
-                    V_meas = iv_sweeper.MeasureNow(6) / shell.gain
+                    time.sleep(step_delay)
+                    curr_curr = (volt / R) / k_A
+                    V_meas = iv_sweeper.MeasureNow(6) / gain
 
-                    result_data = V_meas / shell.k_V_meas
-
-                    this_temp_V.append(V_meas / shell.k_V_meas)
+                    result_data = V_meas / k_V_meas
+                    #currValues.append(curr_curr)
+                    #tempValues.append(temp * 1000)
+                    #voltValues.append(V_meas / k_V_meas)
+                    this_temp_V.append(V_meas / k_V_meas)
                     this_temp_A.append(curr_curr)
 
                     # keep temperatures to estimate measurements quality
@@ -148,9 +282,8 @@ def thread_proc():
                     # measure resistance on 2D plot
                     if volt > upper_R_bound:
                         this_RIValues.append(curr_curr)
-                        this_RUValues.append(V_meas / shell.k_V_meas)
-                        resist = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * shell.k_A,
-                                                  np.array(this_RUValues) * shell.k_V_meas)
+                        this_RUValues.append(V_meas / k_V_meas)
+                        resist = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * k_A, np.array(this_RUValues) * k_V_meas)
 
                     pw.canvases[pw.CurrentTab].draw()
 
@@ -181,6 +314,7 @@ def thread_proc():
                     this_temp_buff_ir[j] = res
 
                 N_meas += 1
+
 
                 # check measurements accuracy
                 mean_temp = np.mean(this_T)
@@ -221,155 +355,40 @@ def thread_proc():
         # Update plots
         # Update I-U-T 3D
         pw.update3DPlot(tabIVTC3D, tempValues_axis[:i + 1], currValues_axis, data_buff[:, :i + 1],
-                        iv_sweeper.lakeshore.TempRange, plt.cm.brg)
+                        LakeShore.TempRange, plt.cm.brg)
         pw.update3DPlot(tabIVTR3D, tempValues_axis[:i + 1], currValues_axis, data_buff_ir[:, :i + 1],
-                        iv_sweeper.lakeshore.TempRange, plt.cm.brg)
+                        LakeShore.TempRange, plt.cm.brg)
 
         # update T-I-V color mesh (ir and ic)
-        pw.updateColormesh(tabIVTCMesh, data_buff, iv_sweeper.lakeshore.TempRange, currValues_axis, 9)
-        pw.updateColormesh(tabIVTRMesh, data_buff_ir, iv_sweeper.lakeshore.TempRange, currValues_axis, 9)
+        pw.updateColormesh(tabIVTCMesh, data_buff, LakeShore.TempRange, currValues_axis, 9)
+        pw.updateColormesh(tabIVTRMesh, data_buff_ir, LakeShore.TempRange, currValues_axis, 9)
 
         # calculate R
-        R_values_ic = np.gradient(np.array(data_buff[:, i]) * (shell.k_V_meas / shell.k_A))  # to make R in ohms
+        R_values_ic = np.gradient(np.array(data_buff[:, i]) * (k_V_meas / k_A))  # to make R in ohms
         R_buff[:, i] = R_values_ic
         #
-        R_values_ir = np.gradient(np.array(data_buff_ir[:, i]) * (shell.k_V_meas / shell.k_A))  # to make R in ohms
+        R_values_ir = np.gradient(np.array(data_buff_ir[:, i]) * (k_V_meas / k_A))  # to make R in ohms
         R_buff_ir[:, i] = R_values_ir
 
         crit_curs[:, i] = FindCriticalCurrent(this_temp_A, this_temp_V, threshold=1.5)
 
         # plot them
-        xdata = iv_sweeper.lakeshore.TempRange[:i + 1]
+        xdata = LakeShore.TempRange[:i + 1]
         pw.updateLines2D(tabICT, [xdata, xdata], [crit_curs[0, :i + 1], crit_curs[1, :i + 1]])
 
         # update R color mesh (ir and ic)
-        pw.updateColormesh(tabRCMesh, R_buff, iv_sweeper.lakeshore.TempRange, currValues_axis, 9)
-        pw.updateColormesh(tabRRMesh, R_buff_ir, iv_sweeper.lakeshore.TempRange, currValues_axis, 9)
+        pw.updateColormesh(tabRCMesh, R_buff, LakeShore.TempRange, currValues_axis, 9)
+        pw.updateColormesh(tabRRMesh, R_buff_ir, LakeShore.TempRange, currValues_axis, 9)
 
         # update R 3D plot (ir and ic)
         pw.update3DPlot(tabRC3D, tempValues_axis[:i + 1], currValues_axis, R_buff[:, :i + 1],
-                        iv_sweeper.lakeshore.TempRange, R_3D_colormap)
+                        LakeShore.TempRange, R_3D_colormap)
         pw.update3DPlot(tabRR3D, tempValues_axis[:i + 1], currValues_axis, R_buff_ir[:, :i + 1],
-                        iv_sweeper.lakeshore.TempRange, R_3D_colormap)
+                        LakeShore.TempRange, R_3D_colormap)
 
     # end of measurements
     f_exit.set()  # terminate all another threads
 
-
-# User input
-shell = ScriptShell()
-Log = Logger(shell, 'Temp')
-warnings.filterwarnings('ignore')
-
-# get LakeShore temperature sweep parameters from command line
-try:
-    temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in shell.user_params.split(';')]
-    N_curves_each_time = int(N_curves_each_time)
-    if temp0 == 0:
-        temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
-except Exception:
-    temp0, max_temp, temp_step, N_curves_each_time = None, 1.1, 100 * 1E-3, 1
-print(
-    f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {max_temp} K, with step: {temp_step * 1e+3:.3f} mK, each temperature will be measured',
-    N_curves_each_time, 'times')
-
-# Initialize devices
-iv_sweeper = EquipmentBase(shell, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
-print('Temperatures will be:\n', iv_sweeper.lakeshore.TempRange)
-
-# Yokogawa voltage values
-n_points = int(2 * shell.rangeA // shell.stepA)
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)  # np.linspace(0, rangeA, n_points // 2)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)  # np.linspace(rangeA, -rangeA, n_points)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)  # np.linspace(-rangeA, 0, n_points // 2)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-print(n_points)
-N_points = len(down_line_1)
-N_temps = len(iv_sweeper.lakeshore.TempRange)
-
-# Custom plot colormaps
-R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
-
-# Resistance measurement
-percentage_R = 0.2  # how many percents left-right will be used to measure R
-fraction_R = int(len(voltValues0) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
-lower_R_bound = upper_line_2[int(len(upper_line_2) * percentage_R)]
-upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
-
-# data receivers
-data_buff = np.zeros((N_points, N_temps))
-data_buff_ir = np.zeros((N_points, N_temps))
-R_buff = np.zeros((N_points, N_temps))
-R_buff_ir = np.zeros((N_points, N_temps))
-currValues = []
-tempValues = []
-voltValues = []
-crit_curs = np.zeros((2, N_temps))
-currValues_axis = ((-down_line_1 / shell.R) / shell.k_A)
-tempValues_axis = iv_sweeper.lakeshore.TempRange
-tempsMomental = []  # for temperatures plot
-
-tempValuesR = []
-resistValuesR = []
-N_meas = 0
-resist = 0
-
-# behavior on program exit - save data
-f_exit = threading.Event()
-
-# remaining / estimatsd time
-time_mgr = TimeEstimator(iv_sweeper.lakeshore.NumTemps)
-pw = plotWindow("Leonardo I-U measurement with different T")
-
-# 0 Colormesh I-V-T (crit. current) plot preparation
-tabIVTCMesh = pw.addColormesh('I-U-T, crit. (Color mesh)', r'$T, mK$', fr'$I, {core_units[shell.k_A]}A$',
-                              tempValues_axis, currValues_axis, data_buff, plt.get_cmap('brg'))
-
-# 1 Colormesh I-V-T (retrapping current) plot preparation
-
-tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'$T, mK$', fr'$I, {core_units[shell.k_A]}A$',
-                              tempValues_axis,
-                              currValues_axis, data_buff_ir, plt.get_cmap('brg'))
-
-# 2 I-V 2D plot preparation
-tabIV = pw.addLine2D('I-U (simple 2D)', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
-
-# 3 I-V-T (critical current) 3D plot
-tabIVTC3D = pw.add3DPlot('I-U-T, crit. (3D)', 'T, mK', fr'$U, {core_units[shell.k_V_meas]}V$',
-                         fr'I, {core_units[shell.k_A]}A')
-
-# 4 I-V-T (critical current) 3D plot
-tabIVTR3D = pw.add3DPlot('I-U-T, retr. (3D)', 'T, mK', fr'$U, {core_units[shell.k_V_meas]}V$',
-                         fr'I, {core_units[shell.k_A]}A')
-
-# 5 T - I - R (critical current) 2D colormesh plot
-tabRCMesh = pw.addColormesh('I-R-T, crit. (Color mesh)', fr'$T, mK$', fr"$I, {core_units[shell.k_A]}A$",
-                            tempValues_axis, currValues_axis, R_buff, R_3D_colormap)
-
-# 6 T - I - R (retrapping current) 2D colormesh plot
-tabRRMesh = pw.addColormesh('I-R-T, retr. (Color mesh)', fr'$T, mK$', fr"$I, {core_units[shell.k_A]}A$",
-                            tempValues_axis, currValues_axis, R_buff_ir, R_3D_colormap)
-
-# 7 T - I - R (critical current) 3D plot
-tabRC3D = pw.add3DPlot('I-R-T, crit. (3D)', 'T, mK', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
-
-# 8 T - I - R (retrapping current) 3D plot
-tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'T, mK', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
-
-# 9 I_crit. vs. T
-tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'T, mK',
-                       fr'$I_C^\pm, {core_units[shell.k_A]}A$', linestyle='-', marker='o')
-
-tabResist = pw.addScatter2D('Resistance', 'Temperature', r'R, $\Omega$')
-
-# 10 T(t) plot - to control temperature in real time
-tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
-
-# Update T on the last tab
-t = 0
-times = []
 
 gui_thread = threading.Thread(target=thread_proc)
 gui_thread.start()

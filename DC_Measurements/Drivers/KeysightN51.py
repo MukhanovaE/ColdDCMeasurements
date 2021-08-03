@@ -9,7 +9,7 @@ class KeysightN51(visa_device.visa_device):
     # Sample usages:
     # k = KeysightN51(device_num=18, sweep='power', freq=1, power_range=np.linspace(-50, 10, 40))
     # k = KeysightN51(device_num=18, sweep='freq', power=-50, freq_range=np.linspace(-50, 10, 40))
-    def __init__(self, device_num=18, sweep='power', **kwargs):
+    def __init__(self, device_num, sweep='power', **kwargs):
         print('Initializing Keysight N51, device ID = ', device_num)
         super().__init__(device_num)
 
@@ -35,11 +35,14 @@ class KeysightN51(visa_device.visa_device):
     def __iter__(self):
         self.SendString(':OUTPut:STATe ON')
         if self.__mode == MODE_POWER:
+            
             for power in self.__powers:
+                print('Setting power:', power)
                 self.SetPower(power)
                 yield power
         else:
             for freq in self.__freqs:
+                print('Setting frequency:', freq)
                 self.SetFrequency(freq)
                 yield freq
         self.SendString(':OUTPut:STATe OFF')
