@@ -62,7 +62,7 @@ namespace ExperimentRunner
         private const float MAX_CURR = 200; //mA
         private const float MAX_GATE = 4; //V
         private const float MAX_FREQ = 6; //GHz
-        private const float MAX_POWER = -30; //dBm
+        private const float MAX_POWER = 0; //dBm
 
         // Field sweep modes (for V-B measurement)
         private const String SWEEP_MODE_INCR = "0";
@@ -153,12 +153,12 @@ namespace ExperimentRunner
 
         private bool CheckFrequency(float freq)
         {
-            return CheckOneValue(freq, MAX_FREQ, "frequency", "GHz");
+            return true; // CheckOneValue(freq, MAX_FREQ, "frequency", "GHz");
         }
 
         private bool CheckPower(float power)
         {
-            return CheckOneValue(power, MAX_POWER, "power", "dBm");
+            return true; //  CheckOneValue(power, MAX_POWER, "power", "dBm");
         }
 
         //Make a tab-specific validation (for additional experiment parameters)
