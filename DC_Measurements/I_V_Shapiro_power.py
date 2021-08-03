@@ -19,18 +19,20 @@ from Lib.EquipmentBase import EquipmentBase
 def DataSave():
     if not shell.f_save:
         return
-    caption_file = f'Shapiro_{"power" if kind == MODE_POWER else "freq"}'
+    caption_file = f'Shapiro{"Power" if kind == MODE_POWER else "Freq"}'
+    caption_file_appendix = f'{fixed_value:.2f}{"GHz" if kind == MODE_POWER else "dBm"}'
+    caption_file += caption_file_appendix
 
     caption = 'Power, dBm' if kind == MODE_POWER else 'Freq, GHz'
     shell.SaveData({caption: sweptValues, f'I, {shell.I_units}A': currValues,
-              f'U, {shell.I_units}V': voltValues, 'R': np.gradient(voltValues)}, caption=caption_file)
+              f'U, {shell.I_units}V': voltValues, 'R': np.gradient(voltValues)},
+             caption=caption_file)
 
     print('Saving PDF...')
     fname = shell.GetSaveFileName(caption_file, 'pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveAllToPDF(pp)
     pp.close()
-
     print('Plots were successfully saved to PDF:', fname)
 
     shell.SaveMatrix(sweptValues, currValues, voltValues, f'I, {shell.I_units}A', caption=caption_file)
