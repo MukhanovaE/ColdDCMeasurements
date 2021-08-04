@@ -71,7 +71,7 @@ class Leonardo:
         self.FreeBoard(self.hDevice)
 
 
-class DebugLeonardoMeasurer:
+class DebugLeonardo:
     def __init__(self, channels=8, n_samples=500, verbose=True):
         self.__channels = channels
         self.__n_samples = n_samples

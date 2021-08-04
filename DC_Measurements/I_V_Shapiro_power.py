@@ -98,6 +98,17 @@ f_exit = threading.Event()
 time_mgr = TimeEstimator(len(sweptValues_axis))
 
 
+def local_save():
+    caption_file = f'Shapiro{"Power" if kind == MODE_POWER else "Freq"}'
+    caption_file_appendix = f'{fixed_value:.2f}{"GHz" if kind == MODE_POWER else "dBm"}'
+    caption_file += caption_file_appendix
+    col_name = 'Power, dBm' if kind == MODE_POWER else 'Freq, GHz'
+
+    SaveData({col_name: sweptValues, f'I, {I_units}A': currValues,
+              f'U, {I_units}V': voltValues, 'R': np.gradient(voltValues)},
+             R, caption=caption_file, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R, preserve_unique=False)
+
+
 def DataSave():
     if not f_save:
         return
@@ -105,10 +116,8 @@ def DataSave():
     caption_file_appendix = f'{fixed_value:.2f}{"GHz" if kind == MODE_POWER else "dBm"}'
     caption_file += caption_file_appendix
 
-    caption = 'Power, dBm' if kind == MODE_POWER else 'Freq, GHz'
-    SaveData({caption: sweptValues, f'I, {I_units}A': currValues,
-              f'U, {I_units}V': voltValues, 'R': np.gradient(voltValues)},
-             R, caption=caption_file, k_A=k_A, k_V_meas=k_V_meas, k_R=k_R)
+    col_name = 'Power, dBm' if kind == MODE_POWER else 'Freq, GHz'
+    local_save()
 
     print('Saving PDF...')
     fname = GetSaveFileName(R, k_R, caption_file, 'pdf')
@@ -122,7 +131,7 @@ def DataSave():
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(GetSaveFolder(R, k_R, caption))
+    UploadToClouds(GetSaveFolder(R, k_R, caption_file))
 
 
 xcaption = 'Power, dBm' if kind == MODE_POWER else 'Frequency, GHz'
@@ -314,6 +323,8 @@ def thread_proc():
 
         # Mark measurement end
         #pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go')
+
+        local_save()
 
         time_mgr.OneSweepStepEnd(i + 1)
 
