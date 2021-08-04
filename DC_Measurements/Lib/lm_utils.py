@@ -292,6 +292,8 @@ def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R
     fname = GetSaveFileName(R, k_R, caption + '_matrix')
     fname_c = GetSaveFileName(R, k_R, caption + '_matrix_Ic')
     fname_r = GetSaveFileName(R, k_R, caption + '_matrix_Ir')
+    fname_c_deriv = GetSaveFileName(R, k_R, caption + '_matrix_Ic_derivative')
+    fname_r_deriv = GetSaveFileName(R, k_R, caption + '_matrix_Ir_derivative')
 
     swept_values = sorted(list(set(all_swept_values)))
     one_stweepstep_length = int(
@@ -308,6 +310,10 @@ def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R
     left_header_r = currents_retr
     columns_r = {}
 
+    columns_deriv = {}
+    columns_c_deriv = {}
+    columns_r_deriv = {}
+
     for i, val in enumerate(swept_values):
         voltages_now = all_voltages[i * one_stweepstep_length: (i + 1) * one_stweepstep_length]  # add header
         voltages_crit, voltages_retr = split_curve(voltages_now)
@@ -315,6 +321,10 @@ def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R
         columns[val] = voltages_now
         columns_c[val] = voltages_crit
         columns_r[val] = voltages_retr
+
+        columns_deriv[val] = np.gradient(voltages_now)
+        columns_c_deriv[val] = np.gradient(voltages_crit)
+        columns_r_deriv[val] = np.gradient(voltages_retr)
 
     df_save = pd.DataFrame(columns, index=left_header)
     df_save.to_csv(fname, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
@@ -326,6 +336,11 @@ def SaveMatrix(all_swept_values, all_currents, all_voltages, rows_header, R, k_R
     df_save_r = pd.DataFrame(columns_r, index=left_header_r)
     df_save_r.to_csv(fname_r, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
 
+    df_save_c_deriv = pd.DataFrame(columns_c_deriv, index=left_header_c)
+    df_save_c_deriv.to_csv(fname_c_deriv, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
+
+    df_save_r_deriv = pd.DataFrame(columns_r_deriv, index=left_header_r)
+    df_save_r_deriv.to_csv(fname_r_deriv, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
 
 # Function FindCriticalCurrents
 # Looks for critical current (Ic+ and Ic-) points
