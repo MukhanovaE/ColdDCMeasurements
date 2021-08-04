@@ -6,7 +6,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
     QGridLayout, QSizePolicy
-from scipy.signal import savgol_filter
 from Lib.GoogleDrive import GoogleDriveUploader
 from Lib.CloudRQC import NextCloudUploader
 
@@ -269,10 +268,13 @@ class ScriptShell:
         fname = self.GetSaveFileName(caption + '_matrix')
         fname_c = self.GetSaveFileName(caption + '_matrix_Ic')
         fname_r = self.GetSaveFileName(caption + '_matrix_Ir')
+        fname_c_deriv = self.GetSaveFileName(caption + '_matrix_Ic_derivative')
+        fname_r_deriv = self.GetSaveFileName(caption + '_matrix_Ir_derivative')
 
         swept_values = sorted(list(set(all_swept_values)))
         one_stweepstep_length = int(
-            len(all_swept_values) // len(swept_values))  # assume that every sweep step contains the same number of points
+            len(all_swept_values) // len(
+                swept_values))  # assume that every sweep step contains the same number of points
         currents = list(all_currents[:one_stweepstep_length])  # and current (I) points are always equal
         currents_crit, currents_retr = split_curve(currents)
 
@@ -285,6 +287,10 @@ class ScriptShell:
         left_header_r = currents_retr
         columns_r = {}
 
+        columns_deriv = {}
+        columns_c_deriv = {}
+        columns_r_deriv = {}
+
         for i, val in enumerate(swept_values):
             voltages_now = all_voltages[i * one_stweepstep_length: (i + 1) * one_stweepstep_length]  # add header
             voltages_crit, voltages_retr = split_curve(voltages_now)
@@ -292,6 +298,10 @@ class ScriptShell:
             columns[val] = voltages_now
             columns_c[val] = voltages_crit
             columns_r[val] = voltages_retr
+
+            columns_deriv[val] = np.gradient(voltages_now)
+            columns_c_deriv[val] = np.gradient(voltages_crit)
+            columns_r_deriv[val] = np.gradient(voltages_retr)
 
         df_save = pd.DataFrame(columns, index=left_header)
         df_save.to_csv(fname, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
@@ -303,6 +313,13 @@ class ScriptShell:
         df_save_r = pd.DataFrame(columns_r, index=left_header_r)
         df_save_r.to_csv(fname_r, sep=" ", header=True, index=True, float_format='%.8f', index_label=rows_header)
 
+        df_save_c_deriv = pd.DataFrame(columns_c_deriv, index=left_header_c)
+        df_save_c_deriv.to_csv(fname_c_deriv, sep=" ", header=True, index=True, float_format='%.8f',
+                               index_label=rows_header)
+
+        df_save_r_deriv = pd.DataFrame(columns_r_deriv, index=left_header_r)
+        df_save_r_deriv.to_csv(fname_r_deriv, sep=" ", header=True, index=True, float_format='%.8f',
+                               index_label=rows_header)
 
 # Function UploadToClouds
 # Uploads measured data to all possible cloud storages
