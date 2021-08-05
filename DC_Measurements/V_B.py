@@ -7,6 +7,7 @@ from sys import exit
 
 from Drivers.Yokogawa import *
 from Drivers.AMI430 import *
+from Drivers.
 
 from Lib import FieldUtils
 from Lib.lm_utils import *
@@ -71,14 +72,16 @@ fields_decr = np.arange(toA_B, fromA_B, -stepA_B)
 
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples)
-if isinstance(yok_write, int):
+'''if isinstance(yok_write, int):
     print('Using Yokogawa for magnetic field control')
     Field_controller = YokogawaGS200(device_num=yok_write, dev_range='2E-1', what='CURR')  # range in mA
 else:
     print('Using AMI430 for magnetic field control')
-    Field_controller = AMI430(yok_write, fields_incr)
+    Field_controller = AMI430(yok_write, fields_incr)'''
+print('Using keithley 2651, ID = ", yok_write)
+Field_controller = keithley2651(device_num=yok_write)
 # ------------------------------------------------------------------------------------------------------------
 
 
@@ -151,12 +154,12 @@ tabVBForwardNoOffset = pw.addScatter2D('V-B, forward (no offset)', "$B, Gs$", fr
 
 tabVBReverseNoOffset = pw.addScatter2D('V-B, reverse (no offset)', "$B, Gs$", fr'$U, {core_units[k_V_meas]}V$')
 
-if isinstance(yok_write, int):
-    sweeper_incr = FieldUtils.YokogawaFieldSweeper(fields_incr, Field_controller, pw)
-    sweeper_decr = FieldUtils.YokogawaFieldSweeper(fields_decr, Field_controller, pw)
-else:
+# if isinstance(yok_write, int):
+sweeper_incr = FieldUtils.YokogawaFieldSweeper(fields_incr, Field_controller, pw)
+sweeper_decr = FieldUtils.YokogawaFieldSweeper(fields_decr, Field_controller, pw)
+'''else:
     sweeper_incr = FieldUtils.AmericanMagneticsFieldSweeper(fields_incr, Field_controller, pw)
-    sweeper_decr = FieldUtils.AmericanMagneticsFieldSweeper(fields_decr, Field_controller, pw)
+    sweeper_decr = FieldUtils.AmericanMagneticsFieldSweeper(fields_decr, Field_controller, pw)'''
     
     
 def EquipmentCleanup():

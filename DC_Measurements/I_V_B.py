@@ -55,6 +55,8 @@ fields = np.linspace(0, rangeB, n_points_B)
 # Custom plot colormaps
 R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
 
+yok_write = 'COM4'
+
 # Initialize devices
 # ------------------------------------------------------------------------------------------------------------
 if isinstance(yok_write, int):
@@ -64,7 +66,7 @@ else:
     print('Using keithley 2651") ##AMI430 for magnetic field control')
     Field_controller = Keithley2651(device_num=yok_write) #AMI430(yok_write, fields)
 
-iv_sweeper = EquipmentBase(source_id=yok_write, source_model=exc_device_type, sense_id=yok_read,
+iv_sweeper = EquipmentBase(source_id=yok_read, source_model=exc_device_type, sense_id=read_device_id,
                            sense_model=read_device_type, R=R, max_voltage=rangeA, sense_samples=num_samples,
                            temp_id=ls, temp_mode='passive')
 # ------------------------------------------------------------------------------------------------------------
@@ -176,7 +178,7 @@ tabICT = pw.addLines2D("I crit. vs. B", ['$I_c^+$', '$I_c^-$'], 'B, G',
                        fr'$I_C^\pm, {core_units[k_A]}A$', linestyle='-', marker='o')
                        
 tabResistance = pw.addLine2D("Resistance", "Field, G", r"Resistance, $\Omega$", linestyle='-', marker='o')
-
+'''
 # 10) T(t) plot - to control temperature in real time
 tabTemp = pw.addLine2D('Temperature', 'Time', 'T, K')
 times = []
@@ -217,7 +219,7 @@ def TemperatureThreadProc():
     while not f_exit.is_set():
         UpdateRealtimeThermometer()
         time.sleep(1)
-
+'''
 
 def EquipmentCleanup():
     print('Returning magnetic field to zero...')
@@ -229,7 +231,7 @@ def EquipmentCleanup():
 curr_curr = 0
 R_now = 0
 
-@MeasurementProc(EquipmentCleanup)
+#@MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global Field_controller, pw, f_exit, currValues, voltValues, fieldValues, tempsMomental, \
         curr_curr, f_saved, R_now
@@ -245,8 +247,8 @@ def thread_proc():
             Log.AddParametersEntry('B', curr_B, 'G', temp=tempsMomental[-1])
 
         # Mark measurement begin
-        UpdateRealtimeThermometer()
-        pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
+        # UpdateRealtimeThermometer()
+        # pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
         this_field_V = []  # for I-V 2D plot
         this_field_A = []
 
@@ -354,7 +356,7 @@ def thread_proc():
         pw.updateLines2D(tabICT, [xdata, xdata], [crit_curs[0, :i + 1], crit_curs[1, :i + 1]])
 
         # Mark measurement end
-        pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
+        #pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
 
     print('\nMeasurement was successfully performed.')
     DataSave()
@@ -368,8 +370,8 @@ else:
 gui_thread = threading.Thread(target=thread_proc)
 gui_thread.start()
 
-thermometer_thread = threading.Thread(target=TemperatureThreadProc)
-thermometer_thread.start()
+#thermometer_thread = threading.Thread(target=TemperatureThreadProc)
+#hermometer_thread.start()
 
 pw.show()  # show main tabbed window
 # If window was closed before experiment ended

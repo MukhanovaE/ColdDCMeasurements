@@ -23,6 +23,8 @@ class KeysightN51(visa_device.visa_device):
             self.SetPower(self.__power)
             self.__freqs = kwargs['freq_range']
             self.__mode = MODE_FREQ
+        elif sweep == 'none':
+            pass
         else:
             raise ValueError('Invalid device mode, use "freq" or "power".')
 
@@ -32,8 +34,14 @@ class KeysightN51(visa_device.visa_device):
     def SetPower(self, power):
         self.SendString(f':SOURce:POWer:LEVel:IMMediate:AMPLitude {power}dBm')
 
-    def __iter__(self):
+    def OutputOn(self):
         self.SendString(':OUTPut:STATe ON')
+
+    def OutputOff(self):
+        self.SendString(':OUTPut:STATe OFF')
+
+    def __iter__(self):
+        self.OutputOn()
         if self.__mode == MODE_POWER:
             
             for power in self.__powers:
@@ -45,7 +53,7 @@ class KeysightN51(visa_device.visa_device):
                 print('Setting frequency:', freq)
                 self.SetFrequency(freq)
                 yield freq
-        self.SendString(':OUTPut:STATe OFF')
+        self.OutputOff()
 
     @property
     def FreqRange(self):
