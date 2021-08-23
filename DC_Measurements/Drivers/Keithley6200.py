@@ -36,10 +36,6 @@ class Keithley6200(visa_device.visa_device):
     def GetOutput(self):
         return self.GetFloat('CURRent?')
 
-    def __del__(self):
-        print('Switching Keithley 6200 series current off')
-        self.SetOutput(0)
-
 
 class DebugKeithley6200:
     def __init__(self, device_num):

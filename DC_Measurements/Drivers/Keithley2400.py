@@ -68,7 +68,3 @@ class Keithley2400(visa_device.visa_device):
     def GetOutput(self):
         func = self._func_for_cmd
         return self.GetFloat(f'SOURce:{func}:LEVel?')
-
-    def __del__(self):
-        self.SetOutput(0)
-        self.SendString('OUTPut OFF')

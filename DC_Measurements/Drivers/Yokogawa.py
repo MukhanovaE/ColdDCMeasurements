@@ -33,13 +33,6 @@ class YokogawaGS200(visa_device.visa_device):
     def GetOutput(self):
         return self.GetFloat('SOURce:LEVel?')
 
-    def __del__(self):
-        self.SetOutput(0)  # turn off output
-        self.SendString('OUTPut OFF')
-
-        if self.__verbose:
-            print('Yokogawa disconnecting, output was set to 0.')
-
 
 class DebugYokogawaGS200:
     def __init__(self, device_num=4, dev_range='1E+0', what='VOLT', verbose=True):
