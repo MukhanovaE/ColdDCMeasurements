@@ -18,11 +18,15 @@ class Keithley6200(visa_device.visa_device):
         self.SendString('CLEar')
         self.SendString('CURRent:FILTer ON')
         self.SendString('CURRent:RANGe:AUTO OFF')
+        self.SendString('CURRent:COMPliance 5')
         self.SendString('OUTPut:ISHield OLOW')
         self.SendString('OUTPut:LTEarth OFF')
 
-        self.SendString('CURRent:COMPliance 15')
+        
+        print('Setting range', max_current, 'A')
         self.SendString(f'CURRent:RANGe {max_current}')
+        self.SendString('CURRent:COMPliance 15')
+        
         self.SendString('OUTPut ON')
         print('Keithley 6200 series init success')
 
