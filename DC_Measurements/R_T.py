@@ -11,6 +11,12 @@ def EquipmentCleanup():
     pass
 
 
+def LocalSave():
+    for curr, (ri, ti) in total_result.items():
+        cpt = f'R_T_current_{curr*1e+6}_mkA'
+        shell.SaveData({'T': ti, 'R': ri}, caption = cpt)
+
+
 def DataSave():
     # if not f_save:
     #    return
@@ -18,12 +24,12 @@ def DataSave():
     # save main data
     caption = 'R_T'
     # print(len(tempValues), len(currValues), len(voltValues))
-    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values}, caption=caption)
+    LocalSave()
 
     # save plot to PDF
     fname = shell.GetSaveFileName(caption, 'pdf')
     pp = PdfPages(fname)
-    pw.SaveFigureToPDF(tabRT, pp)
+    pw.SaveFigureToPDF(tabRT_total, pp)
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
     Log.Save()
@@ -56,66 +62,75 @@ def UpdateRealtimeThermometer():
         pw.canvases[tabTemp].draw()
 
 
-@MeasurementProc(EquipmentCleanup)
+#@MeasurementProc(EquipmentCleanup)
 def MeasureProc():
+    
     len_line = N_points / 4
-
+    
+    
     def IsNeededNowMeasureR(num):
         return (2 * len_line - percent_points * len_line < num < 2 * len_line + percent_points * len_line) \
                or (num > 0 * len_line + percent_points * len_line) or (num < N_points - percent_points * len_line)
+    
+    def set_current(curr_amperes):
+        iv_sweeper.SetOutput(curr_amperes * shell.R)
+      
+    iv_sweeper.SetOutput(0)     
+    zero_volt = iv_sweeper.MeasureNow(6) / shell.gain
+    
+    
+    for bias_current in [100e-6]: # [100e-6, 10e-6, 5e-6]: # #[1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 0.5e-9]:
+        print('Heating...')
+        iv_sweeper.lakeshore.SendString('MOUT 1, 60')
+        iv_sweeper.lakeshore.SendString('RANGE 1, 2')
+        
+        curr_temp = iv_sweeper.lakeshore.GetTemperature()
+        while curr_temp <=11:
+            time.sleep(1)
+            curr_temp = iv_sweeper.lakeshore.GetTemperature()
+            
+        print('Successfully heated, now measuring...')
+        
+        T_values = []
+        R_values = []
+        
+        iv_sweeper.source.SendString(f'CURRent:RANGe {bias_current}')
+        iv_sweeper.source.SendString('CURRent:COMPliance 15')
+        set_current(bias_current)
+        iv_sweeper.source.SendString('OUTPut ON')
+        print('Actual current is:', iv_sweeper.source.GetFloat('CURRent?'))
+        iv_sweeper.lakeshore.SendString('MOUT 1, 0')
+        
+        while (not f_exit.is_set()) and (curr_temp >= 7.7):
+            curr_temp = iv_sweeper.lakeshore.GetTemperature()
+            while curr_temp == 0:
+                curr_temp = iv_sweeper.lakeshore.GetTemperature()
+                time.sleep(0.5)
+            V_meas = iv_sweeper.MeasureNow(6) / shell.gain - zero_volt
+            R_meas = V_meas / bias_current
 
-    curr_temp = iv_sweeper.lakeshore.GetTemperature()
-    while (not f_exit.is_set()) and (curr_temp >= temp_limit or temp_limit == -1):
-        # measure I_V
-        V_for_R = []
-        I_for_R = []
-        I_values = []
-        V_values = []
-        R_meas = 0
+            # Store data
+            T_values.append(curr_temp)
+            R_values.append(R_meas)  # Last value - there will be all points
+            print('I =', bias_current, 'U =', V_meas, 'R=', R_meas)
 
-        for i, volt in enumerate(voltValues0):
-            # measure I-V point
-            iv_sweeper.SetOutput(volt)
-            time.sleep(shell.step_delay)
-            V_meas = iv_sweeper.MeasureNow(6) / shell.gain
-            I_values.append((volt / shell.R) / shell.k_A)
-            V_values.append(V_meas / shell.k_V_meas)
-
-            # measure R
-            if IsNeededNowMeasureR(i):
-                I_for_R.append(volt / shell.R)
-                V_for_R.append(V_meas)
-                R_meas = UpdateResistance(pw.Axes[tabIV], I_for_R, V_for_R)  # is being updated at each point
-
-            # update plot
+            # Update R(T) plot
             try:
-                pw.updateLine2D(tabIV, I_values, V_values)
+                pw.updateLine2D(tabRT, T_values, R_values)
             except Exception:
                 pass
 
-        # Store data
-        T_values.append(curr_temp)
-        R_values.append(R_meas)  # Last value - there will be all points
-        print('Temperature:', curr_temp, 'resistance:', R_meas)
+            #time.sleep(0.5)
 
-        # Update R(T) plot
-        try:
-            pw.updateLine2D(tabRT, T_values, R_values)
-        except Exception:
-            pass
-
-        # Sleep between (R, T) points
-        s = 'Waiting time for a next curve...'
-        try:
-            pw.SetHeader(tabIV, s)
-        except Exception:
-            pass
-        print(s)
-        time.sleep(time_to_wait)
-
-        curr_temp = iv_sweeper.lakeshore.GetTemperature()  # for next measurement
-    # end while
+            
+        # end while
+        total_result[bias_current] = (R_values, T_values)
+        pw.plotOnScatter2D(tabRT_total, T_values, R_values, f'I={bias_current} A', 'o', markersize=4)
+        LocalSave()
+    # end for (bias current)
     f_exit.set()
+    iv_sweeper.lakeshore.SendString('MOUT 1, 0')
+    iv_sweeper.lakeshore.SendString('RANGE 1, 0')
     exit(0)
 
 
@@ -160,8 +175,6 @@ else:
 # Main program window
 pw = plotWindow("R(T)", color_buttons=False)
 
-# I-V 2D plot preparation
-tabIV = pw.addLine2D('I-U', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
 
 # T(t) plot
 tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
@@ -169,12 +182,15 @@ tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
 # R(T) plot
 tabRT = pw.addScatter2D('R(T)', 'T, K', r'R, $\Omega$')
 
+# all R(T) plots
+tabRT_total = pw.addScatter2D('R(T) (all curves)', 'T, K', r'R, $\Omega$')
+
 f_exit = threading.Event()
 t = 0
 tempsMomental = []  # for temperatures plot
 times = []
-T_values = []
-R_values = []
+
+total_result = {}
 
 gui_thread = threading.Thread(target=MeasureProc)
 gui_thread.start()

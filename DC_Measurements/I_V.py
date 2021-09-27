@@ -62,7 +62,7 @@ def MeasurementThreadProc():
 
         pw.updateLine2D(tabIV, currValues, voltValues)
         if fMeasDeriv:
-            pw.updateLine2D(tabR, currValues, R_values)
+            pw.updateLine2D(tabR, currValues[1:-1], R_values[1:-1])
 
         fMeasDeriv = True
         if f_exit.is_set():

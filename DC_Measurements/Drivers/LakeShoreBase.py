@@ -78,9 +78,9 @@ class LakeShoreBase(visa_device.visa_device):
         print('---------------')
         print('LakeShore status:')
         print('Temperature is:', T)
-        self._update_excitation(T)
+        '''self._update_excitation(T)
         self._update_pid(T)
-        self._update_heater_range(T)
+        self._update_heater_range(T)'''
         print('---------------')
 
     # Remember old LakeShore parameters (PID, excitation and heater range)
@@ -171,6 +171,10 @@ class LakeShoreBase(visa_device.visa_device):
         # must be overridden in a child class
         pass
 
+    def _init_modes(self):
+        # must be overridden in a child class
+        pass
+
     # A class constructor
     # temp0 - starter swept temperature (if None, use current temperature)
     # max_temp - maximum swept temperature, must be <=1.7 K
@@ -205,9 +209,7 @@ class LakeShoreBase(visa_device.visa_device):
         # Set LakeShore control and heating parameters
         if self._active:
             initialTemp = temp_0 if temp_0 is not None else self.GetTemperature()
-            self._set_setpoint(initialTemp)
-            self._set_control_mode(PIDLoopType.close_loop)  # control mode - closed-loop PID
-            self._update_params(initialTemp)
+            self._init_modes()
 
             # temperature swept values
             self._tempValues = np.arange(initialTemp, max_temp, temp_step)

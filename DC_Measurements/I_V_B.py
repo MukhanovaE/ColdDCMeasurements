@@ -14,6 +14,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from Drivers.Yokogawa import *
 from Drivers.AMI430 import *
+from Drivers.KeysightE3633A import *
 
 from Lib import FieldUtils
 from Lib.lm_utils import *
@@ -124,6 +125,9 @@ def thread_proc():
         this_RUValues = [0]
 
         pw.SetHeader(tabIV, 'R will be measured later...')
+        
+        # offset correction
+        zero_value = iv_sweeper.MeasureNow(6) / shell.gain
 
         def PerformStep(yok, currValues, fieldValues, voltValues,
                         volt, this_field_V, this_field_A, this_B, this_RIValues, this_RUValues):
@@ -132,7 +136,7 @@ def thread_proc():
             yok.SetOutput(volt)
             time.sleep(shell.step_delay)
             curr_curr = (volt / shell.R) / shell.k_A
-            V_meas = iv_sweeper.MeasureNow(6) / shell.gain
+            V_meas = iv_sweeper.MeasureNow(6) / shell.gain - zero_value
 
             result = V_meas / shell.k_V_meas
             currValues.append(curr_curr)
@@ -251,7 +255,7 @@ except Exception:  # default value if params are not specified in command-line
     print('Using default values: ')
 print('Field sweep range: +-', rangeB, 'G', 'step is', stepB, 'G')
 n_points_B = int(rangeB // stepB)
-fields = np.linspace(0, rangeB, n_points_B)
+fields = np.linspace(-rangeB, rangeB, n_points_B)
 
 # Custom plot colormaps
 R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
@@ -260,7 +264,7 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 # ------------------------------------------------------------------------------------------------------------
 if isinstance(shell.field_gate_device_id, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA
+    Field_controller = KeysightE3633A(device_num=shell.field_gate_device_id)#YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(shell.field_gate_device_id, fields)
@@ -278,7 +282,7 @@ upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
 
 # data receiver
 N_points = len(down_line_1)
-N_fields = n_points_B  # len(upper_line_1B)
+N_fields = len(fields)
 data_buff_C = np.zeros((N_points, N_fields))
 data_buff_R = np.zeros((N_points, N_fields))
 R_buff_C = np.zeros((N_points, N_fields))

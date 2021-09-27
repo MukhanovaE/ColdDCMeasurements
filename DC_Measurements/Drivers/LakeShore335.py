@@ -1,5 +1,5 @@
 from Drivers.LakeShoreBase import *
-
+import math
 
 class LakeShore335(LakeShoreBase):
     # Class constructor
@@ -14,6 +14,12 @@ class LakeShore335(LakeShoreBase):
         self._heater_channel = heater_channel
 
         super().__init__(device_num, control_channel, temp_0, max_temp, verbose, mode, temp_step)
+
+        self._temp_start = temp_0 if temp_0 is not None else self.GetTemperature()
+        self._temp_max = max_temp
+        self._power_range = np.arange(1, 100, 1)
+        self._tempValues = self._power_range
+        self.SendString(f"OUTMODE {self._heater_channel},3,1,1")
 
     # Remember parameters of one of two inputs: A or B
     def _get_intype(self):
@@ -46,6 +52,18 @@ class LakeShore335(LakeShoreBase):
     def _set_channel(self, chan):
         super()._set_channel(chan)
 
+    def _init_modes(self):
+        self.SendString(f"OUTMODE {self._heater_channel},3,1,1")
+        self.SendString(f"RANGE {self._heater_channel},2")
+
+    def _set_power(self, power_perc):
+        if power_perc > 100:
+            raise ValueError('Invalid percentage, please set from 0 to 100')
+
+        command = f"MOUT {self._heater_channel},{power_perc}"
+        print(command)
+        self.SendString(command)
+
     # Functions for updating LakeShore params depending on temperature
     # Updates thermometer excitation in dependence of temperature
     @staticmethod
@@ -56,7 +74,7 @@ class LakeShore335(LakeShoreBase):
 
     @staticmethod
     def _get_heater_range_from_temperature(temp):
-        return 0  # TODO measure in different temperature ranges and set another values there
+        return 1
 
     def _get_pid_from_temperature(self, temp):
         return "5,2,0"  # TODO measure in different temperature ranges and set another values there
@@ -91,3 +109,50 @@ class LakeShore335(LakeShoreBase):
 
         self.SendString(f'CMODE {class_to_device[mode]}')
 
+    # Temperature control without PID
+    def __iter__(self):
+        if not self._active:
+            raise LakeShoreException()
+
+        # tol_temp = 0.001
+        power_step = 1
+        for power in self._power_range:
+            self._set_power(power)
+
+            # Update temperature measurement parameters depending on T
+            # self._update_params(temp)
+
+            actual_temp = self.GetTemperature()
+            print(f'Heating, now temperature - {actual_temp} K, power - {power}%')
+
+            '''count_ok = 0
+            c = 0
+            prev_temp = 999999999
+            while count_ok < 3:
+                time.sleep(3)
+                actual_temp = self.GetTemperature()
+                print('Now:', actual_temp, 'K', 'establishing...')
+                if abs(actual_temp - prev_temp) <= tol_temp:
+                    count_ok += 1
+                    print('Stable', count_ok, 'times')
+                else:
+                    count_ok = 0
+                prev_temp = actual_temp
+                c += 1
+                if c > 50:
+                    print('Warning! Cannot set a correct temperature')
+                    break
+            '''
+           
+            print('Temperature was set, waiting 1 min...')
+            time.sleep(60)
+            actual_temp = self.GetTemperature()
+            print('Ready, measuring')
+            yield actual_temp  # resulting actual temperature
+
+            if actual_temp > self._temp_max:
+                print('Experiment end')
+                break
+
+        print('Turning heater off...')
+        self.SendString(f"RANGE {self._heater_channel},0")
