@@ -133,6 +133,7 @@ namespace ExperimentRunner
 
         private bool CheckField(float fRange, bool fYokogawa = true)
         {
+            return true;
             if (!fYokogawa) return true;
             return CheckOneValue(Math.Abs(fRange), MAX_FIELD, "field", "G");  //negative fields are possible
         }
