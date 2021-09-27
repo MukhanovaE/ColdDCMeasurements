@@ -11,6 +11,7 @@ class KeysightE3633A(visa_device.visa_device):
         self.SendString('OUTPut ON')
         
     def SetOutput(self, value: float):
+        print('Current is:', value)
         self.SendString(f":SOURce:CURRent:LEVel {value}")
 
     def GetOutput(self):
