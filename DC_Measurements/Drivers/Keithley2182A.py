@@ -10,7 +10,7 @@ class Keithley2182A(visa_device.visa_device):
         self.SendString('SENSe:CHANnel 1')
         self.SendString('SENSe:VOLTage:NPLCycles 5')
         self.SendString('SYSTem:FAZero ON') #OFF')
-        self.SendString('SYSTem:AZERo OFF') #OFF')
+        self.SendString('SYSTem:AZERo ON') #OFF')
         self.SendString('SYSTem:LSYNc ON')
         # self.SendString('SENSe:VOLTage:CHANnel1:RANGe:UPPer 0.01')
         self.SendString('SENSe:VOLTage:CHANnel1:RANGe:AUTO ON')
@@ -29,7 +29,10 @@ class Keithley2182A(visa_device.visa_device):
 
     # returns voltage in volts
     def MeasureNow(self, channel):
-        if channel != self._channel:
+        '''if channel != self._channel:
             self._set_channel(channel)
-        self.SendString('INITiate:CONTinuous OFF')    
-        return self.GetFloat(':READ?')
+        self.SendString('INITiate:CONTinuous OFF')    '''
+        x = self.GetFloat(':READ?')
+        # self.SendString('*OPC?')
+        return x
+        

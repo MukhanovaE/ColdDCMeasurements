@@ -4,13 +4,13 @@ import time
 
 # Current to magnetic field
 def I_to_B(I):  # I in mA
-    k_magnet = 100  # Gauss/A
+    k_magnet = 30  # Gauss/A
     return (I / 1000) * k_magnet  # milliamperes to amperes
 
 
 # Magnetic field to current
 def B_to_I(B):  # B in G, returns I in mA
-    k_magnet = 100  # Gauss/A
+    k_magnet = 30  # Gauss/A
     return (B / k_magnet) * 1000  # milliamperes to amperes
     
 # Set a magnetic field on current source
@@ -87,12 +87,12 @@ class FieldSweeper:
 class YokogawaFieldSweeper(FieldSweeper):
     @staticmethod
     def B_to_I(B):  # B in G, returns I in A
-        k_magnet = 100  # Gauss/A
+        k_magnet = 30 # Gauss/A
         return B / k_magnet
     
     @staticmethod
     def I_to_B(I):  # I in mA
-        k_magnet = 100  # Gauss/A
+        k_magnet = 30  # Gauss/A
         return (I / 1000) * k_magnet  # milliamperes to amperes
 
     # slowly change a magnetic field in the specified range
@@ -128,7 +128,9 @@ class YokogawaFieldSweeper(FieldSweeper):
         # slowly change a magnetic field from zero to required value
         first_value = self.field_range[0]
         now_value = self._MeasureCurrent()
-        self._SlowlyChange(np.linspace(now_value, first_value, 15), 'prepairing...')
+        print('Changing from', now_value, 'G, to:'. first_value, 'G')
+        step = 0.5 if first_value > now_value else -0.5
+        self._SlowlyChange(np.arange(now_value, first_value, step), 'prepairing...')
         print('Field was set')
 
     def _finalize(self):

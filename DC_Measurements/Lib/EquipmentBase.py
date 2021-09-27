@@ -12,6 +12,7 @@ from Lib.lm_utils import *
 class EquipmentBase:
     def __init__(self, shell: ScriptShell, temp_mode=None, temp_start=None, temp_end=None, temp_step=None):
         max_range_value = (shell.rangeA / shell.R)
+        print('m', max_range_value)
         error_message = 'This device type is not supported yet!'
 
         print('Excitation device is: ')
@@ -57,7 +58,7 @@ class EquipmentBase:
         if shell.lakeshore_model == LAKESHORE_MODEL_370:
             self._ls = DebugLakeShore370(device_num=shell.lakeshore, max_temp=temp_end, mode=temp_mode)
         elif shell.lakeshore_model == LAKESHORE_MODEL_335:
-            self._ls = LakeShore335(device_num=shell.lakeshore, mode=temp_mode, control_channel='A', heater_channel=1,
+            self._ls = LakeShore335(device_num=shell.lakeshore, mode=temp_mode, control_channel='B', heater_channel=1,
                                     temp_0=temp_start, max_temp=temp_end, temp_step=temp_step)
 
     def MeasureNow(self, channel):

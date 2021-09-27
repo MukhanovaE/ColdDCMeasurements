@@ -34,6 +34,11 @@ class LakeShore370(LakeShoreBase):
         self.SendString(f'SCAN {chan},0')
         super()._set_channel(chan)
 
+    def _init_modes(self):
+        self._set_setpoint(initialTemp)
+        self._set_control_mode(PIDLoopType.close_loop)  # control mode - closed-loop PID
+        self._update_params(initialTemp)
+
     # Functions for updating LakeShore params depending on temperature
     # Updates thermometer excitation in dependence of temperature
     @staticmethod
