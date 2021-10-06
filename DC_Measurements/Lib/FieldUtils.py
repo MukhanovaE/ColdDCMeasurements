@@ -121,15 +121,18 @@ class YokogawaFieldSweeper(FieldSweeper):
 
     def _set_one(self, field):
         curr = self.B_to_I(field)
+        print('Setting current:', curr * 1e+3, 'mA')
         self.yok.SetOutput(curr)
         self.__field = field
 
     def _prepair(self):
         # slowly change a magnetic field from zero to required value
         first_value = self.field_range[0]
-        now_value = self._MeasureCurrent()
-        print('Changing from', now_value, 'G, to:'. first_value, 'G')
-        step = 0.5 if first_value > now_value else -0.5
+        now_value = 0 #self._MeasureCurrent()
+        if first_value == now_value:
+            return
+        print('Changing from', now_value, 'G, to:', first_value, 'G')
+        step = -2 #abs(first_value) // 10 if first_value > now_value else -abs(first_value) // 10
         self._SlowlyChange(np.arange(now_value, first_value, step), 'prepairing...')
         print('Field was set')
 

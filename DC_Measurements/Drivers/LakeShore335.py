@@ -17,7 +17,7 @@ class LakeShore335(LakeShoreBase):
 
         self._temp_start = temp_0 if temp_0 is not None else self.GetTemperature()
         self._temp_max = max_temp
-        self._power_range = np.arange(1, 100, 1)
+        self._power_range = np.arange(10, 20, 0.5)
         self._tempValues = self._power_range
         self.SendString(f"OUTMODE {self._heater_channel},3,1,1")
 

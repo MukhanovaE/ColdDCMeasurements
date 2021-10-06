@@ -100,7 +100,7 @@ def EquipmentCleanup():
     iv_sweeper.SetOutput(0)
 
 
-@MeasurementProc(EquipmentCleanup)
+# @MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global Field_controller, pw, f_exit, currValues, voltValues, fieldValues, tempsMomental, \
         curr_curr, f_saved, R_now
@@ -264,7 +264,7 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 # ------------------------------------------------------------------------------------------------------------
 if isinstance(shell.field_gate_device_id, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = KeysightE3633A(device_num=shell.field_gate_device_id)#YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA
+    Field_controller = KeysightE3633A(device_num=shell.field_gate_device_id) # YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA 
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(shell.field_gate_device_id, fields)
