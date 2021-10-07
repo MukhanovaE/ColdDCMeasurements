@@ -16,27 +16,26 @@ from Lib.EquipmentBase import EquipmentBase
 def DataSave():
     if not shell.f_save:
         return
-    caption = 'Gate'
 
     print('Saving PDF...')
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveAllToPDF(pp)
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
 
     shell.SaveData({'V_gate, V': curr_voltages, f'I, {shell.I_units}A': currValues,
-              f'U, {shell.I_units}V': voltValues, 'R': np.gradient(voltValues)}, caption=caption)
+              f'U, {shell.I_units}V': voltValues, 'R': np.gradient(voltValues)})
     shell.SaveData({'V_gate, V': voltValuesGate[:len(resistancesMeas)], 'Ic-': crit_curs[0, :][:len(resistancesMeas)],
-              'Ic+': crit_curs[1, :][:len(resistancesMeas)]}, caption=caption + '_Ic')
+              'Ic+': crit_curs[1, :][:len(resistancesMeas)]}, caption=shell.title + '_Ic')
     shell.SaveData({'V_gate, V': voltValuesGate[:len(resistancesMeas)], 'R, Ohm': resistancesMeas},
-                   caption=caption + '_R')
-    shell.SaveMatrix(curr_voltages, currValues, voltValues, f'I, {shell.I_units}A', caption=caption)
+                   caption=shell.title + '_R')
+    shell.SaveMatrix(curr_voltages, currValues, voltValues, f'I, {shell.I_units}A')
 
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(shell.GetSaveFolder())
 
 
 def EquipmentCleanup():
@@ -182,8 +181,8 @@ def Graph_thread():
         time.sleep(5)
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'Gate')
+shell = ScriptShell('IV(Gate)')
+Log = Logger(shell)
 
 iv_sweeper = EquipmentBase(shell)
 Yokogawa_gate = YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='1E+1', what='VOLT')

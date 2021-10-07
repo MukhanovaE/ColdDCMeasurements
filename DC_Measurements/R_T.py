@@ -16,12 +16,11 @@ def DataSave():
     #    return
 
     # save main data
-    caption = 'R_T'
     # print(len(tempValues), len(currValues), len(voltValues))
-    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values}, caption=caption)
+    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values})
 
     # save plot to PDF
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname)
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
@@ -29,7 +28,7 @@ def DataSave():
     Log.Save()
 
     print('Uploading to clouds')
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(shell.GetSaveFolder())
 
     exit(0)
 
@@ -126,8 +125,8 @@ def TemperatureThreadProc():
 
 
 # User input
-shell = ScriptShell()
-Log = Logger(shell, 'R_T')
+shell = ScriptShell('R(T)')
+Log = Logger(shell)
 
 # Initialize devices
 iv_sweeper = EquipmentBase(shell, temp_mode='passive')

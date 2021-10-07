@@ -40,7 +40,7 @@ def InitBuffers():
 def DataSave(B):
     if not shell.f_save:
         return
-    caption = f'Gate_{B:.4f}_Gs'
+    caption = f'IV(Gate)_{B:.4f}_G'
 
     print('Saving PDF...')
     fname = shell.GetSaveFileName(caption, 'pdf')

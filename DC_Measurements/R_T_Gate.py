@@ -18,7 +18,7 @@ def DataSave(vg):
         return
 
     # save main data
-    caption = f'R_T_Gate_{vg:.2f}_V'
+    caption = f'R(T)Gate_{vg:.2f}_V'
     shell.SaveData({'R, Ohm': R_values, 'T, K': T_values}, caption=caption)
 
     # save plot to PDF
@@ -130,8 +130,8 @@ def TemperatureThreadProc():
 
 
 # User input
-shell = ScriptShell()
-Log = Logger(shell, 'R_T_Gate')
+shell = ScriptShell('R(T)Gate')
+Log = Logger(shell)
 
 # Yokogawa voltage values
 upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)

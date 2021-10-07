@@ -193,8 +193,8 @@ def thread_proc():
         time_mgr.OneSweepStepEnd(i + 1)
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'Shapiro')
+shell = ScriptShell('Shapiro')
+Log = Logger(shell)
 
 # define a program mode (sweep power or frequency) and sweep parameters
 try:

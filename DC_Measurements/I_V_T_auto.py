@@ -16,12 +16,11 @@ def DataSave():
         return
 
     # save main data
-    caption = 'Temp'
     shell.SaveData({'T, mK': tempValues, f'I, {shell.I_units}A': currValues,
-              f'U, {shell.V_units}V': voltValues, 'R': np.gradient(voltValues)}, caption=caption)
+              f'U, {shell.V_units}V': voltValues, 'R': np.gradient(voltValues)})
 
     print('Saving PDF...')
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     # I-U-T color mesh
     pw.SaveFigureToPDF(tabIVTCMesh, pp)
@@ -39,15 +38,15 @@ def DataSave():
     print('Plots were successfully saved to PDF:', fname)
 
     # save critical temperature values
-    caption_cr = caption + '_crit'
+    caption_cr = shell.title + '_crit'
     shell.SaveData({'T, mK': tempValues_axis[:N_meas], f'Crit curr., negative, {shell.I_units}A': crit_curs[0, :N_meas],
               f'Crit curr., positive, {shell.I_units}A': crit_curs[1, :N_meas]}, caption=caption_cr)
-    shell.SaveMatrix(tempValues, currValues, voltValues, f'I, {shell.I_units}A', caption=caption)
-    shell.SaveData({'T': tempValuesR, f'R': resistValuesR}, caption=caption + '_R')
+    shell.SaveMatrix(tempValues, currValues, voltValues, f'I, {shell.I_units}A')
+    shell.SaveData({'T': tempValuesR, f'R': resistValuesR}, caption=shell.title + '_R')
 
     Log.Save()
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    UploadToClouds(shell.GetSaveFolder())
 
 
 def EquipmentCleanup():
@@ -261,8 +260,8 @@ def thread_proc():
 
 
 # User input
-shell = ScriptShell()
-Log = Logger(shell, 'Temp')
+shell = ScriptShell('IV(T)')
+Log = Logger(shell)
 warnings.filterwarnings('ignore')
 
 # get LakeShore temperature sweep parameters from command line

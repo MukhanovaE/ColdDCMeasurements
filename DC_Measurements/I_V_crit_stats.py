@@ -81,8 +81,7 @@ def main_thread():
         MeasureWaveform(i)
 
     # Saving data
-    save_title = "Stats"
-    fname = shell.GetSaveFileName(save_title, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveFigureToPDF(tabIV, pp)
 
@@ -94,16 +93,16 @@ def main_thread():
     caption = "Ic_stats"
     dict_save = {'number': numbers, f'I, {shell.I_units}A': I_values, f'U, {shell.V_units}V': U_values}
     shell.SaveData(dict_save, caption=caption)
-    shell.SaveMatrix(numbers, I_values, U_values, f'I, {shell.I_units}A', caption=caption)
+    shell.SaveMatrix(numbers, I_values, U_values, f'I, {shell.I_units}A')
 
-    UploadToClouds(shell.GetSaveFolder(save_title))
+    UploadToClouds(shell.GetSaveFolder())
 
     exit(0)
 
 
 warnings.filterwarnings("ignore")  # A critical current function may give warnings in case of bad data, delete them
 
-shell = ScriptShell()
+shell = ScriptShell('Stats')
 iv_sweeper = EquipmentBase(shell)
 
 # all Yokogawa generated values (always in volts!!!)
