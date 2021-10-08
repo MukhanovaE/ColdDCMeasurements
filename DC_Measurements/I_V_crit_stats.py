@@ -95,7 +95,7 @@ def main_thread():
     shell.SaveData(dict_save, caption=caption)
     shell.SaveMatrix(numbers, I_values, U_values, f'I, {shell.I_units}A')
 
-    UploadToClouds(shell.GetSaveFolder())
+    shell.UploadToClouds()
 
     exit(0)
 

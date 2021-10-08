@@ -54,7 +54,7 @@ def DataSave():
     print('All data were successfully saved.')
 
     print('Uploading to clouds')
-    UploadToClouds(shell.GetSaveFolder())
+    shell.UploadToClouds()
 
 
 def UpdateRealtimeThermometer():

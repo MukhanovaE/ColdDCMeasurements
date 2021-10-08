@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QTabWidget, QVBo
     QGridLayout, QSizePolicy
 from Lib.GoogleDrive import GoogleDriveUploader
 from Lib.CloudRQC import NextCloudUploader
+from Lib.GoogleSpreadsheetJournal import GoogleSpreadsheetJournal
 
 import os
 from os import path
@@ -95,6 +96,7 @@ class ScriptShell:
         self.user_params = ""
 
     def __init__(self, title):
+        self._save_path = None
         self.sample_name = ""
         self.structure_name = ""
         self.experimentDate = datetime.now()
@@ -216,6 +218,8 @@ class ScriptShell:
     # Parameters:
     # caption - additional string to be added to the end of file
     def GetSaveFolder(self, caption=None):
+        if self._save_path is not None:
+            return self._save_path
         # get current date only one time
         # to prevent case when part of saved files will have date, for example, 12:00
         # and another part - 12:01
@@ -231,6 +235,7 @@ class ScriptShell:
         if not path.isdir(save_path):
             os.makedirs(save_path)
 
+        self._save_path = save_path
         return save_path
 
     # Function GetSaveFileName
@@ -266,8 +271,6 @@ class ScriptShell:
         if caption is None:
             caption = self.title
         fname = self.GetSaveFileName(caption=caption, preserve_unique=preserve_unique)
-        I_units = core_units[self.k_A]
-        V_units = core_units[self.k_V_meas]
 
         df = pd.DataFrame(data_dict)
         df.to_csv(fname, sep=" ", header=True, index=False, float_format='%.8f')
@@ -347,13 +350,21 @@ class ScriptShell:
         df_save_r_deriv.to_csv(fname_r_deriv, sep=" ", header=True, index=True, float_format='%.8f',
                                index_label=rows_header)
 
-# Function UploadToClouds
-# Uploads measured data to all possible cloud storages
-def UploadToClouds(save_dir):
-    up = GoogleDriveUploader()
-    up.UploadMeasFolder(save_dir)
-    nc = NextCloudUploader()
-    nc.UploadFolder(save_dir)
+    # Function UploadToClouds
+    # Uploads measured data to all possible cloud storages
+    def UploadToClouds(self):
+        # Disabled in this branch
+        # save_dir = self._save_path
+        # up = GoogleDriveUploader()
+        # up.UploadMeasFolder(save_dir)
+        # nc = NextCloudUploader()
+        # nc.UploadFolder(save_dir)
+        journal = GoogleSpreadsheetJournal()
+        journal.add_entry(self.sample_name, self.structure_name, self.contacts,
+                          self.experimentDate.strftime('%d-%m-%Y'),
+                          self.experimentDate.strftime('%H-%M'),
+                          self.title)
+
 
 
 # Function FindCriticalCurrents

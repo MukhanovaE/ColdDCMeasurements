@@ -35,7 +35,7 @@ def DataSave():
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder())
+    shell.UploadToClouds()
 
 
 def EquipmentCleanup():

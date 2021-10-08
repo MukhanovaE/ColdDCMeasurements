@@ -31,7 +31,7 @@ def DataSave(vg):
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 def UpdateRealtimeThermometer():

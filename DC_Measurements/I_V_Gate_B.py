@@ -59,7 +59,7 @@ def DataSave(B):
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 def TemperatureThreadProc():

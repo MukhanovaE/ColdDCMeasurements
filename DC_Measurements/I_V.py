@@ -22,7 +22,7 @@ def DataSave():
     Log.Save()
 
     print('Uploading to clouds')
-    UploadToClouds(shell.GetSaveFolder())
+    shell.UploadToClouds()
 
 
 def Cleanup():

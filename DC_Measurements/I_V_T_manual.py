@@ -29,7 +29,7 @@ def DataSave():
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 # Procedure after window closed - write results to a file

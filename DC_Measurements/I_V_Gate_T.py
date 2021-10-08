@@ -57,6 +57,7 @@ def DataSave(T):
     shell.SaveMatrix(curr_voltages, currValues, voltValues, f'I, {shell.I_units}A', caption=caption)
 
     Log.Save()
+    shell.UploadToClouds()
 
 
 def TemperatureThreadProc():
