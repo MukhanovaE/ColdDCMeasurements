@@ -204,8 +204,11 @@ class ScriptShell:
         self.structure_name = self._preprocess_string_for_filename(self.structure_name)
         # print('R=', self.R, 'R*', self.k_R, 'V*', self.k_V_meas, 'A*', self.k_A)  # for debugging
 
-    def _get_measurement_id(self, caption):
-        return f'{self.structure_name}_{self.contacts}_{caption.split("_")[0]}'
+    def _get_measurement_id(self, caption, for_folder):
+        if for_folder:
+            return f'{self.structure_name}_{self.contacts}_{caption.split("_")[0]}'
+        else:
+            return f'{self.structure_name}_{self.contacts}_{caption}'
 
     # GetSaveFolder
     # Get a directory to save experiment data
@@ -222,7 +225,7 @@ class ScriptShell:
             caption = self.title
 
         cd_first_with_date = experimentDate.strftime('%d-%m-%Y') + '_' + self.sample_name
-        cd_this_meas = experimentDate.strftime('%H-%M') + '_' + self._get_measurement_id(caption)
+        cd_this_meas = experimentDate.strftime('%H-%M') + '_' + self._get_measurement_id(caption, for_folder=True)
         save_path = path.join(os.getcwd(), 'Data', cd_first_with_date, cd_this_meas)
 
         if not path.isdir(save_path):
@@ -240,7 +243,7 @@ class ScriptShell:
         save_path = self.GetSaveFolder(caption)
 
         cd = self.experimentDate.strftime('%d-%m-%Y_%H-%M')
-        meas_id = self._get_measurement_id(caption)
+        meas_id = self._get_measurement_id(caption, for_folder=False)
 
         filename = path.join(save_path, f'{cd}_{meas_id}.{ext}')
 
