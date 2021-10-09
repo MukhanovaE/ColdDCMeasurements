@@ -24,12 +24,12 @@ class GoogleSpreadsheetJournal:
         self._document_id = self._load_document_id()
         scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 
-        google_auth_file = 'Google_auth.json'
+        google_auth_file = self._get_auth_file('Google_auth.json')
         client_secrets_file = self._get_auth_file('client_secrets.json')
 
         creds = None
         if os.path.exists(google_auth_file):
-            creds = Credentials.from_authorized_user_file('Google_auth.json', scopes)
+            creds = Credentials.from_authorized_user_file(google_auth_file, scopes)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             '''if creds and creds.expired and creds.refresh_token:
