@@ -106,7 +106,7 @@ namespace ExperimentRunner
         // functions for input validation
         private bool CheckTemperature(float fInitial, float fNew, float fStep)
         {
-            float eps = 0.001F;
+            // float eps = 0.001F;
 
             if (fNew < fInitial && fStep>0)
             {
@@ -114,12 +114,12 @@ namespace ExperimentRunner
                     strError, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return false;
             }
-            if (fNew - eps > MAX_TEMP)
+            /*if (fNew - eps > MAX_TEMP)
             {
                 DialogResult ret = MessageBox.Show("Warning. a temperature is > 1.7K.\nYou are performing this measurement on your own risk.\nAreYouSure?",
                     strError, MessageBoxButtons.YesNo, MessageBoxIcon.Stop);
                 return (ret == DialogResult.Yes);
-            }
+            }*/
             return true;
         }
 
