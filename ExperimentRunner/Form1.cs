@@ -17,7 +17,7 @@ namespace ExperimentRunner
         private RunParams meas_params = new RunParams();
 
         // Device IDs
-        private int nIDDeviceSweep, nIDDeviceFieldGate, nIDDeviceReadout, nIDLakeShore;
+        private int nIDDeviceSweep, nIDDeviceFieldGate, nIDDeviceReadout, nIDTempReadout, nIDTempExcitation, nIDTempHeater;
         private String strAMI;
         private int nGeneratorID;
         private int nLakeShoreModel;
@@ -29,7 +29,9 @@ namespace ExperimentRunner
 
         private const String strSweepDeviceID = "SourceSweep";
         private const String strFieldGateDeviceID = "SourceExcitation";
-        private const String strLakeShoreID = "LakeShore";
+        private const String strTempReadoutID = "TempReadout";
+        private const String strTempExcitationID = "TempExcitation";
+        private const String strTempHeaterID = "TempHeater";
         private const String strReadoutDeviceID = "SourceReadout";
         // private const String strFieldGateDeviceType = "FieldGateDevice";
         private const String strSweepDeviceType = "SweepDevice";
@@ -295,7 +297,10 @@ namespace ExperimentRunner
 
             sett.SaveSetting(strSweepDeviceID, nIDDeviceSweep);
             sett.SaveSetting(strFieldGateDeviceID, nIDDeviceFieldGate);
-            sett.SaveSetting(strLakeShoreID, nIDLakeShore);
+            sett.SaveSetting(strTempExcitationID, nIDTempExcitation);
+            sett.SaveSetting(strTempReadoutID, nIDTempReadout);
+            sett.SaveSetting(strTempHeaterID, nIDTempHeater);
+
             sett.SaveSetting(strReadoutDeviceID, nIDDeviceReadout);
 
             sett.SaveSetting(strAMIController, strAMI);
@@ -318,7 +323,7 @@ namespace ExperimentRunner
             int nCurrentTab = 0;
 
             // Default values
-            int settDevSweep = 3, settDevFieldGate = 6, settDevReadout = 9, settDevLakeShore = 17;
+            int settDevSweep = 3, settDevFieldGate = 6, settDevReadout = 9, settDevTempExcitation=0, settDevTempReadout=0, settDevTempHeater=0;
             int settSweepDeviceType = RunParams.EXCITATION_YOKOGAWA, settReadoutDeviceType = RunParams.READOUT_LEONARDO;
             int nLakeShoreModel = 0;
 
@@ -333,7 +338,9 @@ namespace ExperimentRunner
 
             sett.TryLoadSetting(strSweepDeviceID, ref settDevSweep);
             sett.TryLoadSetting(strFieldGateDeviceID, ref settDevFieldGate);
-            sett.TryLoadSetting(strLakeShoreID, ref settDevLakeShore);
+            sett.TryLoadSetting(strTempReadoutID, ref settDevTempReadout);
+            sett.TryLoadSetting(strTempExcitationID, ref settDevTempExcitation);
+            sett.TryLoadSetting(strTempHeaterID, ref settDevTempHeater);
             sett.TryLoadSetting(strReadoutDeviceID, ref settDevReadout);
 
             sett.TryLoadSetting(strAMIController, ref settAMI);
@@ -343,21 +350,26 @@ namespace ExperimentRunner
             sett.TryLoadSetting(strSweepDeviceType, ref settSweepDeviceType);
             sett.TryLoadSetting(strReadoutDeviceType, ref settReadoutDeviceType);
 
-            nIDDeviceSweep = settDevSweep; nIDDeviceFieldGate = settDevFieldGate; nIDLakeShore = settDevLakeShore; nIDDeviceReadout = settDevReadout;
+            nIDDeviceSweep = settDevSweep; nIDDeviceFieldGate = settDevFieldGate; nIDDeviceReadout = settDevReadout;
             strAMI = settAMI;
             nGeneratorID = settGenID;
-            meas_params.SetEquipmentIDs(nIDDeviceSweep, nIDDeviceFieldGate, nIDLakeShore);
+            meas_params.SetEquipmentIDs(nIDDeviceSweep, nIDDeviceFieldGate);
             meas_params.SetSweepDeviceType(settSweepDeviceType);
             meas_params.SetReadoutDeviceType(settReadoutDeviceType);
 
             txtFieldOrGateDevice.Text = nIDDeviceFieldGate.ToString();
             txtCurrentSweepDevice.Text = nIDDeviceSweep.ToString();
-            txtLakeShoreID.Text = nIDLakeShore.ToString();
+            txtTempExcitationID.Text = nIDTempExcitation.ToString();
+            txtTempReadoutId.Text = nIDTempReadout.ToString();
+            txtTempHeaterID.Text = nIDTempHeater.ToString();
             txtVoltageReadout.Text = nIDDeviceReadout.ToString();
+
+            txtTempExcitationID.Text = settDevTempExcitation.ToString();
+            txtTempReadoutId.Text = settDevTempReadout.ToString();
+            txtTempHeaterID.Text = settDevTempHeater.ToString();
 
             txtAMIAddress.Text = strAMI;
             txtGeneratorID.Text = nGeneratorID.ToString();
-            cboLakeShoreModel.SelectedIndex = nLakeShoreModel;
 
             cboCurrentSweepDeviceType.SelectedIndex = settSweepDeviceType;
             cboReadoutDevice.SelectedIndex = settReadoutDeviceType;
@@ -834,10 +846,20 @@ namespace ExperimentRunner
             meas_params.SetGateOrFieldDeviceID(nIDDeviceFieldGate);
         }
 
+
+
         private void txtLakeShoreID_TextChanged(object sender, EventArgs e)
         {
-            nIDLakeShore = Int32.Parse(txtLakeShoreID.Text);
-            meas_params.SetLakeShoreID(nIDLakeShore);
+            try
+            {
+                nIDTempExcitation = Int32.Parse(txtTempExcitationID.Text);
+                meas_params.SetTempExcitationID(nIDTempExcitation);
+                txtTempExcitationID.BackColor = SystemColors.Window;
+            }
+            catch (FormatException ex)
+            {
+                txtTempExcitationID.BackColor = RunParams.cError; 
+            }
         }
 
         private void txtReadoutDevice_KeyPress(object sender, KeyPressEventArgs e)
@@ -1428,7 +1450,7 @@ namespace ExperimentRunner
 
         private void btnStartTempObserver_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("python.exe", String.Format("Temperature.py -LT {0} -L {1}", nLakeShoreModel, txtLakeShoreID.Text));
+            System.Diagnostics.Process.Start("python.exe", String.Format("Temperature.py -TR {0} -TE {1}", nIDTempReadout, nIDTempExcitation));
         }
 
         private void txtIVTA_OneCurveTimes_KeyPress(object sender, KeyPressEventArgs e)
@@ -1532,12 +1554,6 @@ namespace ExperimentRunner
             meas_params.UpdateParameter(5, txtGeneratorID.Text);
         }
 
-        private void CboLakeShoreModel_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            nLakeShoreModel = cboLakeShoreModel.SelectedIndex;
-            meas_params.SetLakeShoreModel(nLakeShoreModel);
-        }
-
         private void UpdateRTOption()
         {
             if (btnRT_MeasUntilEnd.Checked)
@@ -1609,6 +1625,34 @@ namespace ExperimentRunner
         private void TxtContactsU1_TextChanged(object sender, EventArgs e)
         {
             UpdateContact(RunParams.CONTACT_V1, txtContactsU1);
+        }
+
+        private void TxtTempReadoutId_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                nIDTempReadout = Int32.Parse(txtTempReadoutId.Text);
+                meas_params.SetTempReadoutID(nIDTempReadout);
+                txtTempReadoutId.BackColor = SystemColors.Window;
+            }
+            catch (FormatException ex)
+            {
+                txtTempReadoutId.BackColor = RunParams.cError;
+            }
+        }
+
+        private void txtTempHeaterID_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                nIDTempHeater = Int32.Parse(txtTempHeaterID.Text);
+                meas_params.SetTempHeaterID(nIDTempHeater);
+                txtTempHeaterID.BackColor = SystemColors.Window;
+            }
+            catch (FormatException ex)
+            {
+                txtTempHeaterID.BackColor = RunParams.cError;
+            }
         }
 
         private void TxtContactsU2_KeyPress(object sender, KeyPressEventArgs e)

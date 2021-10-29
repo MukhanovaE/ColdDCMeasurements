@@ -42,7 +42,7 @@ namespace ExperimentRunner
         private const String strContactNumbers = "ContactNumbers";
 
         //Color to mark fields with error values
-        Color cError = Color.FromArgb(230, 0, 0);
+        public static Color cError = Color.FromArgb(230, 0, 0);
 
         //Flag are we ready to do measurements, are entered values correct?
         public bool fCurrentsReady = true, fVoltagesReady = true, fResistanceReady = true;
@@ -67,7 +67,7 @@ namespace ExperimentRunner
         //Measurement parameters to be set with methods, manually
         private string strSampleName, strStructureName;
         private int [] nContactIDs = { 1, 1, 1, 1 };
-        private int mIDDeviceSweep, mIDDeviceFieldOrGate, mIDLakeShore, mIDDeviceReadout;  //device IDs
+        private int mIDDeviceSweep, mIDDeviceFieldOrGate, mIDTempReadout, mIDTempExcitation, mIDTempHeater, mIDDeviceReadout;  //device IDs
         private int mSweepDeviceType, mReadDeviceType;  //device types
         private int mLakeShoreModel;
         private String mAMI;
@@ -538,8 +538,8 @@ namespace ExperimentRunner
                 Number of samples to measure and average at one point (only for Leonardo)
             */
 
-            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7} -RR {8} -LT {9}", strUnitR, strUnitU, strUnitI, 
-                mIDDeviceSweep, strYokWrite, mIDLakeShore, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout, mLakeShoreModel);
+            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -RT {5} -WT {6} -RR {7} -LS {8},{9},{10}", strUnitR, strUnitU, strUnitI, 
+                mIDDeviceSweep, strYokWrite, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout, mIDTempReadout, mIDTempExcitation, mIDTempHeater);
             if (!fSaveData) strKwargs += " -nosave";
 
             if (UserParams.Count != 0)
@@ -594,9 +594,19 @@ namespace ExperimentRunner
             mIDDeviceFieldOrGate = i;
         }
 
-        public void SetLakeShoreID(int i)
+        public void SetTempReadoutID(int i)
         {
-            mIDLakeShore = i;
+            mIDTempReadout = i;
+        }
+
+        public void SetTempExcitationID(int i)
+        {
+            mIDTempExcitation = i;
+        }
+
+        public void SetTempHeaterID(int i)
+        {
+            mIDTempHeater = i;
         }
 
         public void SetAMI(String s)
@@ -604,11 +614,10 @@ namespace ExperimentRunner
             mAMI = s;
         }
 
-        public void SetEquipmentIDs(int r, int w, int ls)
+        public void SetEquipmentIDs(int r, int w)
         {
             mIDDeviceSweep = r;
             mIDDeviceFieldOrGate = w;
-            mIDLakeShore = ls;
         }
 
         public void SetReadoutDeviceID(int nID)

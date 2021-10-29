@@ -6,9 +6,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QTabWidget, QVBoxLayout, QPushButton, \
     QGridLayout, QSizePolicy
-from Lib.GoogleDrive import GoogleDriveUploader
-from Lib.CloudRQC import NextCloudUploader
-from Lib.GoogleSpreadsheetJournal import GoogleSpreadsheetJournal
+
 
 import os
 from os import path
@@ -117,11 +115,10 @@ class ScriptShell:
                 p.add_argument('-RT', action='store', required=False, default=self.default_readout)
                 p.add_argument('-WT', action='store', required=False, default=self.default_excitation)
                 p.add_argument('-RR', action='store', required=False, default=self.default_readout_id)
-                p.add_argument('-LT', action='store', required=False, default=self.default_lakeshore_model)
 
                 p.add_argument('-R', action='store', required=False, default=self.default_yok_read)
                 p.add_argument('-W', action='store', required=False, default=self.default_yok_write)
-                p.add_argument('-L', action='store', required=False, default=self.default_lakeshore)
+                p.add_argument('-LS', action='store', required=False, default="")
                 p.add_argument('-P', action='store', required=False, default="")
 
                 p.add_argument('-C', action='store', required=False, default="1,2,3,4")
@@ -183,12 +180,12 @@ class ScriptShell:
 
                 self.excitation_device_id = int(args['R'])
                 field_gate_device_id = args['W']
-                self.lakeshore = int(args['L'])
 
                 self.excitation_device_type = int(args['WT'])
                 self.readout_device_type = int(args['WT'])
                 self.read_device_id = int(args['RR'])
-                self.lakeshore_model = int(args['LT'])
+                ls_ids = args['LS']
+                self.temp_read_id, self.temp_exc_id, self.temp_heat_id = [int(i) for i in ls_ids.split(',')]
 
                 self.field_gate_device_id = int(field_gate_device_id) if field_gate_device_id.isdigit() \
                     else field_gate_device_id
@@ -353,17 +350,7 @@ class ScriptShell:
     # Function UploadToClouds
     # Uploads measured data to all possible cloud storages
     def UploadToClouds(self):
-        # Disabled in this branch
-        # save_dir = self._save_path
-        # up = GoogleDriveUploader()
-        # up.UploadMeasFolder(save_dir)
-        # nc = NextCloudUploader()
-        # nc.UploadFolder(save_dir)
-        journal = GoogleSpreadsheetJournal()
-        journal.add_entry(self.sample_name, self.structure_name, self.contacts,
-                          self.experimentDate.strftime('%d-%m-%Y'),
-                          self.experimentDate.strftime('%H-%M'),
-                          self.title)
+        pass
 
 
 

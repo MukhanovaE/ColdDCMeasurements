@@ -6,6 +6,35 @@ from Lib.EquipmentBase import EquipmentBase
 from Lib.lm_utils import *
 
 
+def UpdateRealtimeThermometer():
+    global times, tempsMomental, t
+    T_curr = iv_sweeper.lakeshore.GetTemperature()
+    times.append(t)
+    t += 1
+    tempsMomental.append(T_curr)
+    if t > 100:
+        tempsMomental = tempsMomental[-100:]  # keep memory and make plot to move left
+        times = times[-100:]
+
+    if pw.CurrentTab == tabTemp:
+        line_temp = pw.CoreObjects[tabTemp]
+        ax_temp = pw.Axes[tabTemp]
+        line_temp.set_xdata(times)
+        line_temp.set_ydata(tempsMomental)
+        ax_temp.relim()
+        ax_temp.autoscale_view()
+        ax_temp.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
+
+        ax_temp.set_title(f'T={T_curr:.6f} K')
+        pw.canvases[tabTemp].draw()
+
+
+def TemperatureThreadProc():
+    while not f_exit.is_set():
+        UpdateRealtimeThermometer()
+        time.sleep(1)
+
+
 # Write results to a file
 def DataSave():
     if not shell.f_save:
@@ -72,7 +101,7 @@ def MeasurementThreadProc():
 
 shell = ScriptShell(title='IV')
 Log = Logger(shell)
-iv_sweeper = EquipmentBase(shell)
+iv_sweeper = EquipmentBase(shell, temp_mode='passive')
 
 # all Yokogawa generated values (always in volts!!!)
 upper_line_1 = np.arange(0,  shell.rangeA,  shell.stepA)
@@ -90,6 +119,7 @@ R_values = []
 pw = plotWindow("I-V")
 tabIV = pw.addLine2D('I-V', f'I, {shell.I_units}A', f'U, {shell.V_units}V')
 tabR = pw.addLine2D(r'dV/dI', f'I, {shell.I_units}A', r'$\frac{dV}{dI}$, $\Omega$')
+tabTemp = pw.addLine2D("Temperature", "Time (a.u.)", "Temperature, K")
 f_exit = threading.Event()
 
 # Resistance measurement
@@ -107,6 +137,13 @@ N_half = len(upper_line_1) + 1
 
 meas_thread = threading.Thread(target=MeasurementThreadProc)
 meas_thread.start()
+
+
+times = []
+tempsMomental = []
+t = 0
+thermometer_thread = threading.Thread(target=TemperatureThreadProc)
+thermometer_thread.start()
 
 pw.show()
 Cleanup()

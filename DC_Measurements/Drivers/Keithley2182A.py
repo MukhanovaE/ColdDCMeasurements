@@ -29,10 +29,6 @@ class Keithley2182A(visa_device.visa_device):
 
     # returns voltage in volts
     def MeasureNow(self, channel):
-        '''if channel != self._channel:
-            self._set_channel(channel)
-        self.SendString('INITiate:CONTinuous OFF')    '''
         x = self.GetFloat(':READ?')
-        # self.SendString('*OPC?')
         return x
         

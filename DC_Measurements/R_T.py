@@ -55,7 +55,7 @@ def UpdateRealtimeThermometer():
         pw.canvases[tabTemp].draw()
 
 
-@MeasurementProc(EquipmentCleanup)
+# @MeasurementProc(EquipmentCleanup)
 def MeasureProc():
     len_line = N_points / 4
 
@@ -76,7 +76,7 @@ def MeasureProc():
             # measure I-V point
             iv_sweeper.SetOutput(volt)
             time.sleep(shell.step_delay)
-            V_meas = iv_sweeper.MeasureNow(6) / shell.gain
+            V_meas = iv_sweeper.MeasureNow(1) / shell.gain
             I_values.append((volt / shell.R) / shell.k_A)
             V_values.append(V_meas / shell.k_V_meas)
 

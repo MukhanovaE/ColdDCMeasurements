@@ -1,73 +1,57 @@
 import numpy as np
 import time
 import threading
-import argparse
 from matplotlib import pyplot as plt
 
-from Drivers.LakeShore370 import *
-from Drivers.LakeShore335 import *
+from Drivers.Keithley2000 import *
+from Drivers.Keithley224 import *
+from Drivers.VirtualLakeShore import *
 from Lib.lm_utils import *
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-LT', action='store', required=False, default=LAKESHORE_MODEL_370)
-parser.add_argument('-L', action='store', required=True)
-args, unknown = parser.parse_known_args()
-device_id = int(args.L)
-lakeshore_model = int(args.LT)
-
-LakeShore = LakeShore370(device_num=device_id, mode='passive', control_channel=6) if lakeshore_model == LAKESHORE_MODEL_370 \
-    else LakeShore335(device_num=device_id, mode='passive', control_channel='A', heater_channel=1)
-
-f_exit = threading.Event()
-pw = plotWindow("Temperature control", color_buttons=False)
-
-channels = [6, 2, 3, 5] if lakeshore_model == LAKESHORE_MODEL_370 else ['A', 'B']
-tabs = []
-times_arrays = []
-temps_arrays = []
-ts = []
-
-
-def onChange():
-    tab_now = pw.CurrentTab
-    LakeShore.temp_channel = channels[tab_now]
-
-
-for ch in channels:
-    tabTemp = pw.addLine2D(f'Channel {ch}', 'Time', 'T, K')
-    tabs.append(tabTemp)
-    times_arrays.append([])
-    temps_arrays.append([])
-    ts.append(0)
-pw.addOnChange(onChange)
-LakeShore.temp_channel = channels[0]
 
 
 def UpdateRealtimeThermometer():
-    global times_arrays, temps_arrays, ts, LakeShore, pw
-    tab_now = pw.CurrentTab
-    
+    global time_array, temp_array, t, LakeShore, pw
+
     T_curr = LakeShore.GetTemperature()
-    times_arrays[tab_now].append(ts[tab_now])
-    ts[tab_now] += 1
-    temps_arrays[tab_now].append(T_curr)
+    time_array.append(t)
+    temp_array.append(T_curr)
     
-    if ts[tab_now] > 1000:
-        temps_arrays[tab_now] = temps_arrays[tab_now][-1000:]  # keep memory and make plot to move left
-        times_arrays[tab_now] = times_arrays[tab_now][-1000:]
+    if t > 1000:
+        temp_array = temp_array[-1000:]  # keep memory and make plot to move left
+        time_array = time_array[-1000:]
 
-    axT = pw.Axes[tab_now]
+    axT = pw.Axes[tabTemp]
     axT.clear()
-    axT.plot(times_arrays[tab_now], temps_arrays[tab_now])
+    axT.plot(time_array, temp_array)
     axT.set_title(f'T={T_curr}')
-    pw.canvases[tab_now].draw()
-
+    pw.canvases[0].draw()
+    t += 1
 
 def TemperatureThreadProc():
     while not f_exit.is_set():
         UpdateRealtimeThermometer()
-        time.sleep(1.5)
+        time.sleep(1)
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-TR', action='store', required=True)  # readout device ID
+parser.add_argument('-TE', action='store', required=True)  # excitation device ID
+args, unknown = parser.parse_known_args()
+readout_id = int(args.TR)
+excitation_id = int(args.TE)
+
+ls_sense = Keithley2000(device_num=readout_id)
+ls_source = Keithley224(device_num=excitation_id)
+
+LakeShore = VirtualLakeShore(sense_device=ls_sense, sweep_device=ls_source, heater_device=None, mode='passive')
+
+f_exit = threading.Event()
+pw = plotWindow("Temperature control", color_buttons=False)
+
+time_array = []
+temp_array = []
+t = 0
+tabTemp = pw.addLine2D(f'Temperature', 'Time', 'T, K')
 
 thermometer_thread = threading.Thread(target=TemperatureThreadProc)
 thermometer_thread.start()

@@ -628,10 +628,12 @@
             this.txtAMIAddress = new System.Windows.Forms.TextBox();
             this.label176 = new System.Windows.Forms.Label();
             this.groupBox46 = new System.Windows.Forms.GroupBox();
-            this.cboLakeShoreModel = new System.Windows.Forms.ComboBox();
+            this.txtTempHeaterID = new System.Windows.Forms.TextBox();
+            this.label192 = new System.Windows.Forms.Label();
+            this.txtTempReadoutId = new System.Windows.Forms.TextBox();
             this.label186 = new System.Windows.Forms.Label();
             this.btnStartTempObserver = new System.Windows.Forms.Button();
-            this.txtLakeShoreID = new System.Windows.Forms.TextBox();
+            this.txtTempExcitationID = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
             this.groupBox45 = new System.Windows.Forms.GroupBox();
             this.label183 = new System.Windows.Forms.Label();
@@ -7061,7 +7063,7 @@
             // 
             this.groupBox94.Controls.Add(this.txtGeneratorID);
             this.groupBox94.Controls.Add(this.label185);
-            this.groupBox94.Location = new System.Drawing.Point(271, 266);
+            this.groupBox94.Location = new System.Drawing.Point(271, 272);
             this.groupBox94.Name = "groupBox94";
             this.groupBox94.Size = new System.Drawing.Size(249, 62);
             this.groupBox94.TabIndex = 3;
@@ -7089,7 +7091,7 @@
             // 
             this.groupBox90.Controls.Add(this.txtAMIAddress);
             this.groupBox90.Controls.Add(this.label176);
-            this.groupBox90.Location = new System.Drawing.Point(10, 266);
+            this.groupBox90.Location = new System.Drawing.Point(10, 272);
             this.groupBox90.Name = "groupBox90";
             this.groupBox90.Size = new System.Drawing.Size(239, 62);
             this.groupBox90.TabIndex = 2;
@@ -7116,43 +7118,59 @@
             // 
             // groupBox46
             // 
-            this.groupBox46.Controls.Add(this.cboLakeShoreModel);
+            this.groupBox46.Controls.Add(this.txtTempHeaterID);
+            this.groupBox46.Controls.Add(this.label192);
+            this.groupBox46.Controls.Add(this.txtTempReadoutId);
             this.groupBox46.Controls.Add(this.label186);
             this.groupBox46.Controls.Add(this.btnStartTempObserver);
-            this.groupBox46.Controls.Add(this.txtLakeShoreID);
+            this.groupBox46.Controls.Add(this.txtTempExcitationID);
             this.groupBox46.Controls.Add(this.label44);
-            this.groupBox46.Location = new System.Drawing.Point(10, 135);
+            this.groupBox46.Location = new System.Drawing.Point(10, 124);
             this.groupBox46.Name = "groupBox46";
-            this.groupBox46.Size = new System.Drawing.Size(239, 120);
+            this.groupBox46.Size = new System.Drawing.Size(239, 142);
             this.groupBox46.TabIndex = 1;
             this.groupBox46.TabStop = false;
             this.groupBox46.Text = "Heat control";
             // 
-            // cboLakeShoreModel
+            // txtTempHeaterID
             // 
-            this.cboLakeShoreModel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboLakeShoreModel.FormattingEnabled = true;
-            this.cboLakeShoreModel.Items.AddRange(new object[] {
-            "Model 370",
-            "Model 335"});
-            this.cboLakeShoreModel.Location = new System.Drawing.Point(96, 57);
-            this.cboLakeShoreModel.Name = "cboLakeShoreModel";
-            this.cboLakeShoreModel.Size = new System.Drawing.Size(123, 21);
-            this.cboLakeShoreModel.TabIndex = 7;
-            this.cboLakeShoreModel.SelectedIndexChanged += new System.EventHandler(this.CboLakeShoreModel_SelectedIndexChanged);
+            this.txtTempHeaterID.Location = new System.Drawing.Point(153, 82);
+            this.txtTempHeaterID.MaxLength = 2;
+            this.txtTempHeaterID.Name = "txtTempHeaterID";
+            this.txtTempHeaterID.Size = new System.Drawing.Size(66, 20);
+            this.txtTempHeaterID.TabIndex = 8;
+            this.txtTempHeaterID.TextChanged += new System.EventHandler(this.txtTempHeaterID_TextChanged);
+            // 
+            // label192
+            // 
+            this.label192.AutoSize = true;
+            this.label192.Location = new System.Drawing.Point(15, 85);
+            this.label192.Name = "label192";
+            this.label192.Size = new System.Drawing.Size(91, 13);
+            this.label192.TabIndex = 9;
+            this.label192.Text = "Heater device ID:";
+            // 
+            // txtTempReadoutId
+            // 
+            this.txtTempReadoutId.Location = new System.Drawing.Point(153, 54);
+            this.txtTempReadoutId.MaxLength = 2;
+            this.txtTempReadoutId.Name = "txtTempReadoutId";
+            this.txtTempReadoutId.Size = new System.Drawing.Size(66, 20);
+            this.txtTempReadoutId.TabIndex = 6;
+            this.txtTempReadoutId.TextChanged += new System.EventHandler(this.TxtTempReadoutId_TextChanged);
             // 
             // label186
             // 
             this.label186.AutoSize = true;
-            this.label186.Location = new System.Drawing.Point(15, 60);
+            this.label186.Location = new System.Drawing.Point(15, 57);
             this.label186.Name = "label186";
-            this.label186.Size = new System.Drawing.Size(75, 13);
-            this.label186.TabIndex = 6;
-            this.label186.Text = "Device model:";
+            this.label186.Size = new System.Drawing.Size(100, 13);
+            this.label186.TabIndex = 7;
+            this.label186.Text = "Readout device ID:";
             // 
             // btnStartTempObserver
             // 
-            this.btnStartTempObserver.Location = new System.Drawing.Point(18, 87);
+            this.btnStartTempObserver.Location = new System.Drawing.Point(18, 112);
             this.btnStartTempObserver.Name = "btnStartTempObserver";
             this.btnStartTempObserver.Size = new System.Drawing.Size(201, 23);
             this.btnStartTempObserver.TabIndex = 5;
@@ -7160,25 +7178,25 @@
             this.btnStartTempObserver.UseVisualStyleBackColor = true;
             this.btnStartTempObserver.Click += new System.EventHandler(this.btnStartTempObserver_Click);
             // 
-            // txtLakeShoreID
+            // txtTempExcitationID
             // 
-            this.txtLakeShoreID.Location = new System.Drawing.Point(153, 25);
-            this.txtLakeShoreID.MaxLength = 2;
-            this.txtLakeShoreID.Name = "txtLakeShoreID";
-            this.txtLakeShoreID.Size = new System.Drawing.Size(66, 20);
-            this.txtLakeShoreID.TabIndex = 4;
-            this.txtLakeShoreID.Text = "17";
-            this.txtLakeShoreID.TextChanged += new System.EventHandler(this.txtLakeShoreID_TextChanged);
-            this.txtLakeShoreID.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtLakeShoreID_KeyPress);
+            this.txtTempExcitationID.Location = new System.Drawing.Point(153, 25);
+            this.txtTempExcitationID.MaxLength = 2;
+            this.txtTempExcitationID.Name = "txtTempExcitationID";
+            this.txtTempExcitationID.Size = new System.Drawing.Size(66, 20);
+            this.txtTempExcitationID.TabIndex = 4;
+            this.txtTempExcitationID.Text = "17";
+            this.txtTempExcitationID.TextChanged += new System.EventHandler(this.txtLakeShoreID_TextChanged);
+            this.txtTempExcitationID.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtLakeShoreID_KeyPress);
             // 
             // label44
             // 
             this.label44.AutoSize = true;
             this.label44.Location = new System.Drawing.Point(15, 28);
             this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(58, 13);
+            this.label44.Size = new System.Drawing.Size(105, 13);
             this.label44.TabIndex = 4;
-            this.label44.Text = "Device ID:";
+            this.label44.Text = "Excitation device ID:";
             // 
             // groupBox45
             // 
@@ -7194,7 +7212,7 @@
             this.groupBox45.Controls.Add(this.txtCurrentSweepDevice);
             this.groupBox45.Controls.Add(this.label43);
             this.groupBox45.Controls.Add(this.label42);
-            this.groupBox45.Location = new System.Drawing.Point(10, 11);
+            this.groupBox45.Location = new System.Drawing.Point(10, 6);
             this.groupBox45.Name = "groupBox45";
             this.groupBox45.Size = new System.Drawing.Size(510, 114);
             this.groupBox45.TabIndex = 0;
@@ -7509,7 +7527,7 @@
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Leonardo measurements";
+            this.Text = "Python DC measurements";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.tabControl1.ResumeLayout(false);
@@ -7984,7 +8002,7 @@
         private System.Windows.Forms.TextBox txtCurrentSweepDevice;
         private System.Windows.Forms.GroupBox groupBox46;
         private System.Windows.Forms.Label label44;
-        private System.Windows.Forms.TextBox txtLakeShoreID;
+        private System.Windows.Forms.TextBox txtTempExcitationID;
         private System.Windows.Forms.CheckBox chkSaveData;
         private System.Windows.Forms.TextBox txtStats_StepI;
         private System.Windows.Forms.Label label45;
@@ -8362,8 +8380,6 @@
         private System.Windows.Forms.GroupBox groupBox94;
         private System.Windows.Forms.TextBox txtGeneratorID;
         private System.Windows.Forms.Label label185;
-        private System.Windows.Forms.ComboBox cboLakeShoreModel;
-        private System.Windows.Forms.Label label186;
         private System.Windows.Forms.RadioButton btnRT_MeasUntilEnd;
         private System.Windows.Forms.RadioButton btnRT_MeasUntilTemperature;
         private System.Windows.Forms.TextBox txtRT_WaitTime;
@@ -8378,6 +8394,10 @@
         private System.Windows.Forms.TextBox txtContactsI2;
         private System.Windows.Forms.TextBox txtContactsI1;
         private System.Windows.Forms.Label label190;
+        private System.Windows.Forms.TextBox txtTempReadoutId;
+        private System.Windows.Forms.Label label186;
+        private System.Windows.Forms.TextBox txtTempHeaterID;
+        private System.Windows.Forms.Label label192;
     }
 }
 

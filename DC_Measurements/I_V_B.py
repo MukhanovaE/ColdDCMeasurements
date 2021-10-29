@@ -45,9 +45,10 @@ def DataSave():
     pw.SaveFigureToPDF(tabIRBR3D, pp)
     pp.close()
     print('Plots were successfully saved to PDF:', fname)
-
+    
+    print(fieldValues)
     shell.SaveMatrix(fieldValues, currValues, voltValues, f'I, {shell.I_units}A')
-    shell.SaveData({'B, G': fieldValues_axis[:len(resistanceValues)], 'R, Ohm': resistanceValues}, shell.title + '_R')
+    # shell.SaveData({'B, G': fieldValues, 'R, Ohm': resistanceValues}, shell.title + '_R')
     
     Log.Save()
 
@@ -76,13 +77,6 @@ def UpdateRealtimeThermometer():
         axT.autoscale_view()
         axT.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
 
-        # if changes are too small, set more zoomed-out scale
-        mn, mx = np.min(tempsMomental), np.max(tempsMomental)
-        if abs(mx - mn) < 0.05:
-            avg = (mx + mn) / 2
-            delta = abs(mx - mn) * 6
-            axT.set_ylim(np.clip(avg - delta / 2, a_min=0, a_max=99999999), avg + delta / 2)
-
         axT.set_title(f'T={T_curr:.6f} K')
         pw.canvases[tabTemp].draw()
 
@@ -99,6 +93,38 @@ def EquipmentCleanup():
     iv_sweeper.SetOutput(0)
 
 
+
+def wait_for_temperature(lakeshore, setpoint, tol):
+    return
+    print('Establishing a temperature')
+    
+    actual_temp = lakeshore.GetTemperature()
+    # Wait for temperature to be established
+    c = 0
+    while abs(actual_temp - setpoint) >= tol:
+        time.sleep(1)
+        actual_temp = lakeshore.GetTemperature()
+
+    # A temperature must be stable for 3 seconds
+    print('Temperature is set, waiting to be stable...')
+    count_ok = 0
+    while count_ok < 3:
+        time.sleep(3)
+        actual_temp = lakeshore.GetTemperature()
+        print('Now:', actual_temp, 'K, must be:', setpoint, 'K')
+        if abs(actual_temp - setpoint) <= tol:
+            count_ok += 1
+            print('Stable', count_ok, 'times')
+        else:
+            count_ok = 0
+        c += 1
+        if c > 50:
+            print('Warning! Cannot set a correct temperature')
+            break
+
+    print('Temperature was set')
+
+
 # @MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global Field_controller, pw, f_exit, currValues, voltValues, fieldValues, tempsMomental, \
@@ -108,26 +134,25 @@ def thread_proc():
     # FieldUtils.SlowlyChange(Yokogawa_B, pw, np.linspace(0, -rangeA_B, 15), 'prepairing...')
 
     print('Measurement begin')
-
+    
+    # heat to desired temperature
+    '''needed_temperature = 7.5
+    iv_sweeper.lakeshore.SendString("SETP 1,7.5")
+    iv_sweeper.lakeshore.SendString("PID 1,10,20,20")
+    iv_sweeper.lakeshore.SendString("OUTMODE 1,1,2,1")
+    iv_sweeper.lakeshore.SendString("RANGE 1,2")
+    
+    wait_for_temperature(iv_sweeper.lakeshore, needed_temperature, 0.01)'''
+    
     for i, curr_B in enumerate(sweeper):
-
+        # iv_sweeper.lakeshore._set_pid("40,30,10")
+          
+        #wait_for_temperature(iv_sweeper.lakeshore, needed_temperature, 0.01)
+        #time.sleep(10)
+        
         if len(tempsMomental) != 0:
             Log.AddParametersEntry('B', curr_B, 'G', temp=tempsMomental[-1])
-
-        # Mark measurement begin
-        UpdateRealtimeThermometer()
-        pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
-        this_field_V = []  # for I-V 2D plot
-        this_field_A = []
-
-        this_RIValues = [0]  # for resistance measurement
-        this_RUValues = [0]
-
-        pw.SetHeader(tabIV, 'R will be measured later...')
         
-        # offset correction
-        zero_value = iv_sweeper.MeasureNow(6) / shell.gain
-
         def PerformStep(yok, currValues, fieldValues, voltValues,
                         volt, this_field_V, this_field_A, this_B, this_RIValues, this_RUValues):
             global R_now
@@ -139,7 +164,7 @@ def thread_proc():
 
             result = V_meas / shell.k_V_meas
             currValues.append(curr_curr)
-            fieldValues.append(this_B)
+            fieldValues.append(f'{this_B}_{k}')
             voltValues.append(V_meas / shell.k_V_meas)
             this_field_V.append(V_meas / shell.k_V_meas)
             this_field_A.append(curr_curr)
@@ -164,29 +189,65 @@ def thread_proc():
                 exit(0)
 
             return result
+        
+        # Mark measurement begin
+        UpdateRealtimeThermometer()
+        pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'go', markersize=4)
+        this_field_V = []  # for I-V 2D plot
+        this_field_A = []
 
-        # 1/3: 0 - max curr, Ic+
-        for j, volt in enumerate(upper_line_1):
-            res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
-                              volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
-            data_buff_C[j + N_points // 2, i] = res
+        this_RIValues = [0]  # for resistance measurement
+        this_RUValues = [0]
 
-        # 2/3: max curr -> min curr, Ir+, Ic-
-        for j, volt in enumerate(down_line_1):
-            res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
-                              volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
-            if j <= (len(down_line_1) // 2):
-                data_buff_R[N_points - j - 1, i] = res
-            if j >= (len(down_line_1) // 2):
-                data_buff_C[N_points - j - 1, i] = res
+        pw.SetHeader(tabIV, 'R will be measured later...')
+        
+        # offset correction
+        zero_value = iv_sweeper.MeasureNow(6) / shell.gain
+        
+        this_loop_buff_c = np.zeros((N_points, 3))
+        this_loop_buff_r = np.zeros((N_points, 3))
+        
+        for k in range(n_repeats):
+            print('Measuring', k+1, 'of', n_repeats)
 
-        # 3/3: max curr -> min curr, Ir-
-        for j, volt in enumerate(upper_line_2):
-            res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
-                              volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
-            data_buff_R[j, i] = res
+            # 1/3: 0 - max curr, Ic+
+            for j, volt in enumerate(upper_line_1):
+                res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
+                                  volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
+                data_buff_C_all[j + N_points // 2, i * n_repeats + k] = res
+                this_loop_buff_c[j + N_points // 2, k] = res
 
-        resistanceValues.append(R_now)
+            # 2/3: max curr -> min curr, Ir+, Ic-
+            for j, volt in enumerate(down_line_1):
+                res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
+                                  volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
+                if j <= (len(down_line_1) // 2):
+                    data_buff_R_all[N_points - j - 1, i * n_repeats + k] = res
+                    this_loop_buff_r[N_points - j - 1, k] = res
+                if j >= (len(down_line_1) // 2):
+                    data_buff_C_all[N_points - j - 1,  i * n_repeats + k] = res
+                    this_loop_buff_c[N_points - j - 1,  k] = res
+                     
+            # 3/3: max curr -> min curr, Ir-
+            for j, volt in enumerate(upper_line_2):
+                res = PerformStep(iv_sweeper, currValues, fieldValues, voltValues,
+                                  volt, this_field_V, this_field_A, curr_B, this_RIValues, this_RUValues)
+                data_buff_R_all[j,  i * n_repeats + k] = res
+                this_loop_buff_r[j,  k] = res
+            
+            # calculate R values (as dV/dI)
+            this_R_values_C = np.gradient(np.array(this_loop_buff_c[:, k]) * shell.k_V_meas)  # V in volts, to make R in ohms
+            R_buff_C_all[:, i * n_repeats + k] = this_R_values_C
+            #
+            this_R_values_R = np.gradient(np.array(this_loop_buff_r[:, k]) * shell.k_V_meas)  # V in volts, to make R in ohms
+            R_buff_R_all[:, i * n_repeats + k] = this_R_values_R
+
+            resistanceValues.append(R_now)
+            
+        # end for (repeat I-V curve)  
+        # averaged I-V (for plotting)
+        data_buff_C[:, i] = np.mean(this_loop_buff_c, axis=1)
+        data_buff_C[:, i] = np.mean(this_loop_buff_c, axis=1)
 
         # Update 3D plot - every magnetic field value
         pw.update3DPlot(tabIVBC3D, fieldValues_axis[:i + 1], currValues_axis, data_buff_C[:, :i + 1],
@@ -219,7 +280,7 @@ def thread_proc():
         crit_curs[:, i] = FindCriticalCurrent(this_field_A, this_field_V, threshold=1.5)
 
         # update R(B) plot
-        pw.updateLine2D(tabResistance, fieldValues_axis[:len(resistanceValues)], resistanceValues)
+        # pw.updateLine2D(tabResistance, fieldValues_axis[:len(resistanceValues)], resistanceValues)
 
         # plot them
         xdata = fields[:i + 1]
@@ -254,7 +315,9 @@ except Exception:  # default value if params are not specified in command-line
     print('Using default values: ')
 print('Field sweep range: +-', rangeB, 'G', 'step is', stepB, 'G')
 n_points_B = int(rangeB // stepB)
-fields = np.linspace(-rangeB, rangeB, n_points_B)
+fields = np.linspace(1.8, rangeB, n_points_B)
+
+n_repeats = 3
 
 # Custom plot colormaps
 R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
@@ -263,7 +326,7 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 # ------------------------------------------------------------------------------------------------------------
 if isinstance(shell.field_gate_device_id, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = KeysightE3633A(device_num=shell.field_gate_device_id) # YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA 
+    Field_controller =  DebugYokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA KeysightE3633A(device_num=shell.field_gate_device_id)
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(shell.field_gate_device_id, fields)
@@ -287,6 +350,13 @@ data_buff_R = np.zeros((N_points, N_fields))
 R_buff_C = np.zeros((N_points, N_fields))
 R_buff_R = np.zeros((N_points, N_fields))
 crit_curs = np.zeros((2, N_fields))
+
+data_buff_C_all = np.zeros((N_points, N_fields * n_repeats))
+data_buff_R_all = np.zeros((N_points, N_fields * n_repeats))
+R_buff_C_all = np.zeros((N_points, N_fields * n_repeats))
+R_buff_R_all = np.zeros((N_points, N_fields * n_repeats))
+crit_curs_all = np.zeros((2, N_fields * n_repeats))
+
 currValues = []
 fieldValues = []
 voltValues = []
@@ -348,7 +418,6 @@ t = 0
 
 curr_curr = 0
 R_now = 0
-
 
 if isinstance(shell.field_gate_device_id, int):
     sweeper = FieldUtils.YokogawaFieldSweeper(fields, Field_controller, pw)

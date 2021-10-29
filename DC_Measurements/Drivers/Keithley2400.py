@@ -47,6 +47,7 @@ class Keithley2400(visa_device.visa_device):
             self.SendString('SOURce:{func}:RANGe:AUTO OFF')
             self.SendString(f'SOURce:{func}:RANGe {max_current}')
             self.SendString(f'SOURce:{func}:MODE FIXed')  # TODO check!
+            self.SetOutput(0)
             self.SendString('OUTPut ON')
 
         self._mode = mode
