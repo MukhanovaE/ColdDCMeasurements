@@ -101,7 +101,7 @@ def EquipmentCleanup():
 
 # @MeasurementProc(EquipmentCleanup)
 def thread_proc():
-    global Field_controller, pw, f_exit, currValues, voltValues, fieldValues, tempsMomental, \
+    global Field_controller, pw, f_exit, f_meas_ended, currValues, voltValues, fieldValues, tempsMomental, \
         curr_curr, f_saved, R_now
 
     # Slowly change: 0 -> min. field
@@ -160,7 +160,9 @@ def thread_proc():
 
                 R_now = UpdateResistance(pw.Axes[tabIV], np.array(this_RIValues) * shell.k_A,
                                          np.array(this_RUValues) * shell.k_V_meas)
+            
             if f_exit.is_set():
+                f_meas_ended.set()
                 exit(0)
 
             return result
@@ -231,6 +233,7 @@ def thread_proc():
     print('\nMeasurement was successfully performed.')
     DataSave()
     f_saved = True
+    f_meas_ended.set()
 
 
 shell = ScriptShell('IV(H)')
@@ -254,7 +257,7 @@ except Exception:  # default value if params are not specified in command-line
     print('Using default values: ')
 print('Field sweep range: +-', rangeB, 'G', 'step is', stepB, 'G')
 n_points_B = int(rangeB // stepB)
-fields = np.linspace(-rangeB, rangeB, n_points_B)
+fields = np.linspace(0, rangeB, n_points_B)
 
 # Custom plot colormaps
 R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0), (1, 0, 0)])
@@ -297,6 +300,7 @@ tempsMomental = []  # for temperatures plot
 
 # behavior on program exit - save data
 f_exit = threading.Event()
+f_meas_ended = threading.Event()
 f_saved = False
 
 warnings.filterwarnings('ignore')  # there can be math warnings in some points
@@ -361,6 +365,13 @@ thermometer_thread = threading.Thread(target=TemperatureThreadProc)
 thermometer_thread.start()
 
 pw.show()  # show main tabbed window
+f_exit.set()
+
+print('Waiting for last I-V curve to end...')
+while not f_meas_ended.is_set():
+    time.sleep(1)
+
+
 # If window was closed before experiment ended
 if not f_saved:
     DataSave()
@@ -368,4 +379,6 @@ if not f_saved:
 # if exited before current returned to zero
 # FieldUtils.CheckAtExit(Yokogawa_B, pw)
 
-f_exit.set()
+
+
+
