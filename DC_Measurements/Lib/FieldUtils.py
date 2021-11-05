@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 
-# Current to magnetic field
+''''# Current to magnetic field
 def I_to_B(I):  # I in mA
     k_magnet = 30  # Gauss/A
     return (I / 1000) * k_magnet  # milliamperes to amperes
@@ -16,11 +16,11 @@ def B_to_I(B):  # B in G, returns I in mA
 # Set a magnetic field on current source
 # current is in mA
 def SetField(yok, current):
-    yok.SetOutput(current * 1E-3)
+    yok.SetOutput(current * 1E-3)'''
     
     
 # Slowly changes a current in given range, but doesn't perform any measurements
-def SlowlyChange(yok, pw_output, line, message):
+'''def SlowlyChange(yok, pw_output, line, message):
     step_delay = 0.5
     for i, curr in enumerate(line):
         yok.SetOutput(curr / 1000)
@@ -50,7 +50,7 @@ def CheckAtExit(yok_B, pw_output):
         ReturnAtExit(yok_B, pw_output)
         print('Magnetic field was returned to zero.')
 
-
+'''
 class FieldSweeper:
     def __init__(self, field_range, plot_window=None):
         self.field_range = field_range
@@ -85,15 +85,11 @@ class FieldSweeper:
 
 
 class YokogawaFieldSweeper(FieldSweeper):
-    @staticmethod
-    def B_to_I(B):  # B in G, returns I in A
-        k_magnet = 30 # Gauss/A
-        return B / k_magnet
-    
-    @staticmethod
-    def I_to_B(I):  # I in mA
-        k_magnet = 30  # Gauss/A
-        return (I / 1000) * k_magnet  # milliamperes to amperes
+    def B_to_I(self, B):  # B in G, returns I in A
+        return B / self.k_magnet
+
+    def I_to_B(self, I):  # I in mA
+        return (I / 1000) * self.k_magnet  # milliamperes to amperes
 
     # slowly change a magnetic field in the specified range
     # line: required fields, in G
@@ -115,9 +111,11 @@ class YokogawaFieldSweeper(FieldSweeper):
     def _MeasureCurrent(self):
         return self.I_to_B(self.yok.GetOutput())
 
-    def __init__(self, field_range, device, plot_window=None):
+    def __init__(self, field_range, coil_constant, device, plot_window=None):
         super().__init__(field_range, plot_window)
         self.yok = device
+        self.k_magnet = coil_constant
+        print('Coil constant is:', coil_constant, 'Gauss/A')
 
     def _set_one(self, field):
         curr = self.B_to_I(field)
@@ -149,7 +147,7 @@ class YokogawaFieldSweeper(FieldSweeper):
         
         
 class AmericanMagneticsFieldSweeper(FieldSweeper):
-    def __init__(self, field_range, device, plot_window=None):
+    def __init__(self, field_range, coil_constant, device, plot_window=None):
         super().__init__(field_range, plot_window)
         self.ami = device
         device.update_fields(field_range)

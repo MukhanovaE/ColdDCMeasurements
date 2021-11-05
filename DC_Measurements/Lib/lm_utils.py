@@ -126,6 +126,7 @@ class ScriptShell:
 
                 p.add_argument('-C', action='store', required=False, default="1,2,3,4")
                 p.add_argument('-ST', action='store', required=False, default="Structure1")
+                p.add_argument('-CC', action='store', required=False, default="1")
 
                 p.add_argument('-nV', action='store_true')
                 p.add_argument('-mkV', action='store_true')
@@ -189,6 +190,7 @@ class ScriptShell:
                 self.readout_device_type = int(args['WT'])
                 self.read_device_id = int(args['RR'])
                 self.lakeshore_model = int(args['LT'])
+                self.coil_constant = float(args['CC'])
 
                 self.field_gate_device_id = int(field_gate_device_id) if field_gate_device_id.isdigit() \
                     else field_gate_device_id

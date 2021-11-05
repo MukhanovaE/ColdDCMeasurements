@@ -661,6 +661,10 @@
             this.txtContactsI2 = new System.Windows.Forms.TextBox();
             this.txtContactsI1 = new System.Windows.Forms.TextBox();
             this.label190 = new System.Windows.Forms.Label();
+            this.groupBox96 = new System.Windows.Forms.GroupBox();
+            this.label192 = new System.Windows.Forms.Label();
+            this.txtCoilConstant = new System.Windows.Forms.TextBox();
+            this.label193 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -791,6 +795,7 @@
             this.groupBox46.SuspendLayout();
             this.groupBox45.SuspendLayout();
             this.groupBox95.SuspendLayout();
+            this.groupBox96.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -7045,6 +7050,7 @@
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.groupBox96);
             this.tabPage9.Controls.Add(this.groupBox94);
             this.tabPage9.Controls.Add(this.groupBox90);
             this.tabPage9.Controls.Add(this.groupBox46);
@@ -7489,6 +7495,47 @@
             this.label190.TabIndex = 0;
             this.label190.Text = "I";
             // 
+            // groupBox96
+            // 
+            this.groupBox96.Controls.Add(this.label193);
+            this.groupBox96.Controls.Add(this.txtCoilConstant);
+            this.groupBox96.Controls.Add(this.label192);
+            this.groupBox96.Location = new System.Drawing.Point(268, 135);
+            this.groupBox96.Name = "groupBox96";
+            this.groupBox96.Size = new System.Drawing.Size(251, 119);
+            this.groupBox96.TabIndex = 4;
+            this.groupBox96.TabStop = false;
+            this.groupBox96.Text = "Magnetic field properties";
+            // 
+            // label192
+            // 
+            this.label192.AutoSize = true;
+            this.label192.Location = new System.Drawing.Point(7, 20);
+            this.label192.Name = "label192";
+            this.label192.Size = new System.Drawing.Size(71, 13);
+            this.label192.TabIndex = 0;
+            this.label192.Text = "Coil constant:";
+            // 
+            // txtCoilConstant
+            // 
+            this.txtCoilConstant.Location = new System.Drawing.Point(88, 17);
+            this.txtCoilConstant.MaxLength = 8;
+            this.txtCoilConstant.Name = "txtCoilConstant";
+            this.txtCoilConstant.Size = new System.Drawing.Size(71, 20);
+            this.txtCoilConstant.TabIndex = 1;
+            this.txtCoilConstant.Text = "1";
+            this.txtCoilConstant.TextChanged += new System.EventHandler(this.TxtCoilConstant_TextChanged);
+            this.txtCoilConstant.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtCoilConstant_KeyPress);
+            // 
+            // label193
+            // 
+            this.label193.AutoSize = true;
+            this.label193.Location = new System.Drawing.Point(174, 20);
+            this.label193.Name = "label193";
+            this.label193.Size = new System.Drawing.Size(49, 13);
+            this.label193.TabIndex = 2;
+            this.label193.Text = "Gauss/A";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -7739,6 +7786,8 @@
             this.groupBox45.PerformLayout();
             this.groupBox95.ResumeLayout(false);
             this.groupBox95.PerformLayout();
+            this.groupBox96.ResumeLayout(false);
+            this.groupBox96.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -8378,6 +8427,10 @@
         private System.Windows.Forms.TextBox txtContactsI2;
         private System.Windows.Forms.TextBox txtContactsI1;
         private System.Windows.Forms.Label label190;
+        private System.Windows.Forms.GroupBox groupBox96;
+        private System.Windows.Forms.Label label193;
+        private System.Windows.Forms.TextBox txtCoilConstant;
+        private System.Windows.Forms.Label label192;
     }
 }
 

@@ -42,7 +42,7 @@ namespace ExperimentRunner
         private const String strContactNumbers = "ContactNumbers";
 
         //Color to mark fields with error values
-        Color cError = Color.FromArgb(230, 0, 0);
+        public static Color cError = Color.FromArgb(230, 0, 0);
 
         //Flag are we ready to do measurements, are entered values correct?
         public bool fCurrentsReady = true, fVoltagesReady = true, fResistanceReady = true;
@@ -71,6 +71,7 @@ namespace ExperimentRunner
         private int mSweepDeviceType, mReadDeviceType;  //device types
         private int mLakeShoreModel;
         private String mAMI;
+        private double fCoilConstant;
         private bool fSaveData = true;
         private List<String> UserParams = new List<String>();
 
@@ -538,8 +539,8 @@ namespace ExperimentRunner
                 Number of samples to measure and average at one point (only for Leonardo)
             */
 
-            String strKwargs = String.Format("-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7} -RR {8} -LT {9}", strUnitR, strUnitU, strUnitI, 
-                mIDDeviceSweep, strYokWrite, mIDLakeShore, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout, mLakeShoreModel);
+            String strKwargs = String.Format(f, "-{0} -{1} -{2} -R {3} -W {4} -L {5} -RT {6} -WT {7} -RR {8} -LT {9} -CC {10}", strUnitR, strUnitU, strUnitI, 
+                mIDDeviceSweep, strYokWrite, mIDLakeShore, mReadDeviceType, mSweepDeviceType, mIDDeviceReadout, mLakeShoreModel, fCoilConstant);
             if (!fSaveData) strKwargs += " -nosave";
 
             if (UserParams.Count != 0)
@@ -629,6 +630,11 @@ namespace ExperimentRunner
         public void SetSweepDeviceType(int nType)
         {
             mSweepDeviceType = nType;
+        }
+
+        public void SetCoilConstant(double new_cc)
+        {
+            fCoilConstant = new_cc;
         }
 
         public void SetSaveData(bool bSave)

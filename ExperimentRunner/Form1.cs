@@ -21,6 +21,7 @@ namespace ExperimentRunner
         private String strAMI;
         private int nGeneratorID;
         private int nLakeShoreModel;
+        private double fCoilConstant;
 
         // Settings names in Windows registry
         private const String strSettingsTab = "ActiveTab";
@@ -37,6 +38,7 @@ namespace ExperimentRunner
         private const String strAMIController = "AMI_controller";
         private const String strGeneratorID = "Signal_generator";
         private const String strLakeShoreModel = "LakeShoreModel";
+        private const String strCoilConstant = "CoilConstant";
 
         private const String sShapiroStartPower = "Shapiro_power_start";
         private const String sShapiroEndPower = "Shapiro_power_end";
@@ -283,6 +285,11 @@ namespace ExperimentRunner
 
         private void SaveSettings()
         {
+            NumberFormatInfo f = new NumberFormatInfo
+            {
+                NumberDecimalSeparator = "."
+            };
+
             meas_params.FlushCurrentTabSettings(); //save currently active tab settings
 
             Settings sett = new Settings();
@@ -301,6 +308,7 @@ namespace ExperimentRunner
             sett.SaveSetting(strAMIController, strAMI);
             sett.SaveSetting(strGeneratorID, nGeneratorID);
             sett.SaveSetting(strLakeShoreModel, nLakeShoreModel);
+            sett.SaveSetting(strCoilConstant, fCoilConstant.ToString(f));
             
             // sett.SaveSetting(strFieldGateDevice, cboFieldGateDevice.SelectedIndex);
             sett.SaveSetting(strSweepDeviceType, cboCurrentSweepDeviceType.SelectedIndex);
@@ -314,6 +322,10 @@ namespace ExperimentRunner
 
         private void LoadSettings()
         {
+            NumberFormatInfo f = new NumberFormatInfo
+            {
+                NumberDecimalSeparator = "."
+            };
             Settings sett = new Settings();
             int nCurrentTab = 0;
 
@@ -327,6 +339,7 @@ namespace ExperimentRunner
 
             String strSampName="Sample 1";
             String strStructureNameSetting = "Structure 1";
+            String sCoilConstant = "1";
             sett.TryLoadSetting(strSettingsTab, ref nCurrentTab); //default value is 0, so the first tab will be opened if there is no settings
             sett.TryLoadSetting(strSampleName, ref strSampName);
             sett.TryLoadSetting(strStructureName, ref strStructureNameSetting);
@@ -342,13 +355,16 @@ namespace ExperimentRunner
 
             sett.TryLoadSetting(strSweepDeviceType, ref settSweepDeviceType);
             sett.TryLoadSetting(strReadoutDeviceType, ref settReadoutDeviceType);
+            sett.TryLoadSetting(strCoilConstant, ref sCoilConstant);
 
             nIDDeviceSweep = settDevSweep; nIDDeviceFieldGate = settDevFieldGate; nIDLakeShore = settDevLakeShore; nIDDeviceReadout = settDevReadout;
             strAMI = settAMI;
             nGeneratorID = settGenID;
+            fCoilConstant = double.Parse(sCoilConstant, f);
             meas_params.SetEquipmentIDs(nIDDeviceSweep, nIDDeviceFieldGate, nIDLakeShore);
             meas_params.SetSweepDeviceType(settSweepDeviceType);
             meas_params.SetReadoutDeviceType(settReadoutDeviceType);
+            meas_params.SetCoilConstant(fCoilConstant);
 
             txtFieldOrGateDevice.Text = nIDDeviceFieldGate.ToString();
             txtCurrentSweepDevice.Text = nIDDeviceSweep.ToString();
@@ -362,6 +378,7 @@ namespace ExperimentRunner
             cboCurrentSweepDeviceType.SelectedIndex = settSweepDeviceType;
             cboReadoutDevice.SelectedIndex = settReadoutDeviceType;
             cboFieldGateDevice.SelectedIndex = 0;
+            txtCoilConstant.Text = sCoilConstant;
 
             tabControl1.SelectedIndex = nCurrentTab;
             txtSampleName.Text = strSampName;
@@ -836,7 +853,9 @@ namespace ExperimentRunner
 
         private void txtLakeShoreID_TextChanged(object sender, EventArgs e)
         {
-            nIDLakeShore = Int32.Parse(txtLakeShoreID.Text);
+            int nInput = HandleTextFieldChange(txtLakeShoreID);
+            if (nInput == -1) return;
+            nIDLakeShore = nInput;
             meas_params.SetLakeShoreID(nIDLakeShore);
         }
 
@@ -1578,7 +1597,8 @@ namespace ExperimentRunner
 
         private void UpdateContact(int nc, TextBox field)
         {
-            meas_params.SetContact(nc, Int32.Parse(field.Text));
+            int number = HandleTextFieldChange(field);
+            if(number != -1) meas_params.SetContact(nc, number);
         }
 
         private void TxtContactsI1_KeyPress(object sender, KeyPressEventArgs e)
@@ -1619,6 +1639,31 @@ namespace ExperimentRunner
         private void TxtContactsU2_TextChanged(object sender, EventArgs e)
         {
             UpdateContact(RunParams.CONTACT_V2, txtContactsU2);
+        }
+
+        private void TxtCoilConstant_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, true, true);
+        }
+
+        private void TxtCoilConstant_TextChanged(object sender, EventArgs e)
+        {
+            NumberFormatInfo f = new NumberFormatInfo
+            {
+                NumberDecimalSeparator = "."
+            };
+            try
+            { 
+                fCoilConstant = double.Parse(txtCoilConstant.Text, f);
+                txtCoilConstant.BackColor = SystemColors.Window;
+                meas_params.SetCoilConstant(fCoilConstant);
+            }
+#pragma warning disable CS0168 // Переменная объявлена, но не используется
+            catch(FormatException ex)
+#pragma warning restore CS0168 // Переменная объявлена, но не используется
+            {
+                txtCoilConstant.BackColor = RunParams.cError;
+            }
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)

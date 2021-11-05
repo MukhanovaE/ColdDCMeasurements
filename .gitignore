@@ -141,3 +141,5 @@ Data/
 
 # Some auxillary scripts used for some local tasks
 __*.py
+*.json
+*.sqlite

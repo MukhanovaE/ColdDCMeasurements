@@ -279,11 +279,11 @@ tabVBForwardNoOffset = pw.addScatter2D('V-B, forward (no offset)', "$B, Gs$", fr
 tabVBReverseNoOffset = pw.addScatter2D('V-B, reverse (no offset)', "$B, Gs$", fr'$U, {core_units[shell.k_V_meas]}V$')
 
 if isinstance(shell.field_gate_device_id, int):
-    sweeper_incr = FieldUtils.YokogawaFieldSweeper(fields_incr, Field_controller, pw)
-    sweeper_decr = FieldUtils.YokogawaFieldSweeper(fields_decr, Field_controller, pw)
+    sweeper_incr = FieldUtils.YokogawaFieldSweeper(fields_incr, shell.coil_constant, Field_controller, pw)
+    sweeper_decr = FieldUtils.YokogawaFieldSweeper(fields_decr, shell.coil_constant, Field_controller, pw)
 else:
-    sweeper_incr = FieldUtils.AmericanMagneticsFieldSweeper(fields_incr, Field_controller, pw)
-    sweeper_decr = FieldUtils.AmericanMagneticsFieldSweeper(fields_decr, Field_controller, pw)
+    sweeper_incr = FieldUtils.AmericanMagneticsFieldSweeper(fields_incr, shell.coil_constant, Field_controller, pw)
+    sweeper_decr = FieldUtils.AmericanMagneticsFieldSweeper(fields_decr, shell.coil_constant, Field_controller, pw)
 
 curr_curr = 0
 gui_thread = threading.Thread(target=MainThreadProc)

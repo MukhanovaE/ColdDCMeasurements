@@ -351,9 +351,9 @@ R_now = 0
 
 
 if isinstance(shell.field_gate_device_id, int):
-    sweeper = FieldUtils.YokogawaFieldSweeper(fields, Field_controller, pw)
+    sweeper = FieldUtils.YokogawaFieldSweeper(fields, shell.coil_constant, Field_controller, pw)
 else:
-    sweeper = FieldUtils.AmericanMagneticsFieldSweeper(fields, Field_controller, pw)
+    sweeper = FieldUtils.AmericanMagneticsFieldSweeper(fields, shell.coil_constant, Field_controller, pw)
 gui_thread = threading.Thread(target=thread_proc)
 gui_thread.start()
 

@@ -150,8 +150,8 @@ def MeasurementProc():
     f_exit.set()
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'Gate_pulse')
+shell = ScriptShell('Gate_pulse')
+Log = Logger(shell)
 
 # Initialize devices
 iv_sweeper = EquipmentBase(shell, temp_mode='passive')
