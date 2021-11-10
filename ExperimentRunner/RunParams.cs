@@ -48,8 +48,7 @@ namespace ExperimentRunner
         public bool fCurrentsReady = true, fVoltagesReady = true, fResistanceReady = true;
 
         //Python script names (without .py extension)
-        private String[] strScripts = new String[] { "I_V", "I_V_T_manual", "I_V_T_auto", "I_V_B", "V_B", "I_V_crit_stats", "R_T", "R_T_Gate", "I_V_Gate", 
-            "I_V_Gate_T", "I_V_Gate_B", "I_V_Shapiro_power", "Gate_pulse" }; //fuck c# arrays initialization
+        private String[] strScripts = new String[] { "I_V", "I_V_T_auto", "I_V_B", "V_B", "I_V_crit_stats", "R_T", "R_T_Heat"}; //fuck c# arrays initialization
 
         //public fields - references to controls
         public RadioButton btnmkV, btnmV, btnnA, btnmkA, btnmA;

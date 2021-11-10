@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.IO;
 using Microsoft.Win32;
 using System.Globalization;
+using Microsoft.VisualBasic;
 
 namespace ExperimentRunner
 {
@@ -77,19 +78,13 @@ namespace ExperimentRunner
 
         //tabs numbers
         public const int tabIV = 0;
-        public const int tabIVTManual = 1;
-        public const int tabIVTAuto = 2;
-        public const int tabIVB = 3;
-        public const int tabVB = 4;
-        public const int tabCritStats = 5;
-        public const int tabRT = 6;
-        public const int tabRTGate = 7;
-        public const int tabGate = 8;
-        public const int tabGateT = 9;
-        public const int tabGateB = 10;
-        public const int tabShapiro = 11;
-        public const int tabGatePulse = 12;
-        public const int tabEquipmentSetup = 13;
+        public const int tabIVTAuto = 1;
+        public const int tabIVB = 2;
+        public const int tabVB = 3;
+        public const int tabCritStats = 4;
+        public const int tabRTCooldown = 5;
+        public const int tabEquipmentSetup = 7;
+        public const int tabRTHeat = 6;
 
         // a flag that shows are the settings loaded into form controls
         // If no, don't handle text field change events
@@ -187,42 +182,6 @@ namespace ExperimentRunner
                     fCurr2 = RunParams.GetValueFromField(txtVB_BiasEnd);
                     fCurr3 = RunParams.GetValueFromField(txtVB_BiasStep);
                     return CheckCurrents(new float[] { fCurr1, fCurr2, fCurr3 }) && CheckField(fStart, btnVB_Yokogawa.Checked) && CheckField(fEnd, btnVB_Yokogawa.Checked);
-                case tabRTGate: //R-T-Gate
-                    fStart = chkRTGate_FromStart.Checked ? 0 : RunParams.GetValueFromField(txtRTGate_SweepFrom);
-                    fEnd = RunParams.GetValueFromField(txtRTGate_SweepTo);
-                    fStep = RunParams.GetValueFromField(txtRTGate_SweepStep);
-                    fRange = RunParams.GetValueFromField(txtRTGate_SweepStep);
-                    return CheckTemperature(fStart, fEnd, fStep) && CheckField(fRange);
-                case tabGate: //I-U-Gate:
-                    fRange = RunParams.GetValueFromField(txtGate_VoltRange);
-                    return CheckGateVoltage(fRange);
-                case tabGateT: //I-U-Gate with different T
-                    fStart = chkGateT_FromCurrent.Checked ? 0 : RunParams.GetValueFromField(txtGateT_TempStart);
-                    fEnd = RunParams.GetValueFromField(txtGateT_TempEnd);
-                    fStep = RunParams.GetValueFromField(txtGateT_TempStep);
-                    fRange = RunParams.GetValueFromField(txtGateT_VoltFrom);
-                    return CheckGateVoltage(fRange) && CheckTemperature(fStart, fEnd, fStep);
-                case tabGateB: //I-U-Gate with different B
-                    fRange = RunParams.GetValueFromField(txtgateB_FieldSweep);
-                    float fRange2 = RunParams.GetValueFromField(txtgateB_GateSweep);
-                    return CheckGateVoltage(fRange2) && CheckField(fRange);
-                case tabShapiro: //Shapiro steps
-                    if(cboShapiroType.SelectedIndex == SHAPIRO_POWER)
-                    {
-                        float fPowerStart = RunParams.GetValueFromField(txtShapiroStart);
-                        float fPowerEnd = RunParams.GetValueFromField(txtShapiroEnd);
-                        float fFreq = RunParams.GetValueFromField(txtShapiro_Fixed);
-                        return CheckPower(fPowerStart) && CheckPower(fPowerEnd) && CheckFrequency(fFreq);
-                    }
-                    else
-                    {
-                        float fFreqStart = RunParams.GetValueFromField(txtShapiroStart);
-                        float fFreqEnd = RunParams.GetValueFromField(txtShapiroEnd);
-                        float fPower = RunParams.GetValueFromField(txtShapiro_Fixed);
-                        return CheckFrequency(fFreqStart) && CheckFrequency(fFreqEnd) && CheckPower(fPower);
-                    }
-                case tabGatePulse:
-                    return true; //TODO: add voltage bounds
                 default:
                     return true;
             }
@@ -267,21 +226,6 @@ namespace ExperimentRunner
             ss.SaveSetting(sRequiredSetting, btnRequired.Checked ? 1:0);
         }
 
-        private void SaveShapiroSettings(int nSelected)
-        { 
-            Settings ss = new Settings();
-            String sSettingStart = nSelected == SHAPIRO_POWER ? sShapiroStartPower : sShapiroStartFreq;
-            String sSettingEnd = nSelected == SHAPIRO_POWER ? sShapiroEndPower : sShapiroEndFreq;
-            String sSettingStep = nSelected == SHAPIRO_POWER ? sShapiroStepPower : sShapiroStepFreq;
-            String sSettingFixed = nSelected == SHAPIRO_POWER ? sShapiroFixedPower : sShapiroFixedFreq;
-
-            ss.SaveSetting(sSettingStart, txtShapiroStart.Text);
-            ss.SaveSetting(sSettingEnd, txtShapiroEnd.Text);
-            ss.SaveSetting(sSettingStep, txtShapiroStep.Text);
-            ss.SaveSetting(sSettingFixed, txtShapiro_Fixed.Text);
-
-            ss.SaveSetting(sShapiroSelected, nSelected);
-        }
 
         private void SaveSettings()
         {
@@ -315,7 +259,6 @@ namespace ExperimentRunner
             sett.SaveSetting(strReadoutDeviceType, cboReadoutDevice.SelectedIndex);
 
             // advanced settings for some tabs
-            SaveShapiroSettings(cboShapiroType.SelectedIndex);
             SaveAMISettings(nCurrentTab);
             
         }
@@ -411,24 +354,29 @@ namespace ExperimentRunner
             switch (nTab)
             {
                 case tabIVTAuto: //I-V-T auto
+                    strRead = "1";
                     if (sett.TryLoadSetting("I_V_T_auto_param0", ref strRead))
                     {
                         chkIVTA_FromCurrent.Checked = (strRead == "0");
                         txtIVTA_SweepFrom.Enabled = (strRead != "0");
                         txtIVTA_SweepFrom.Text = strRead;
                     }
+                    strRead = "5";
                     if (sett.TryLoadSetting("I_V_T_auto_param1", ref strRead))
                     {
                         txtIVTA_SweepTo.Text = strRead;
                     }
+                    strRead = "0.5";
                     if (sett.TryLoadSetting("I_V_T_auto_param2", ref strRead))
                     {
                         txtIVTA_SweepStep.Text = strRead;
                     }
+                    strRead = "1";
                     if (sett.TryLoadSetting("I_V_T_auto_param3", ref strRead))
                     {
-                        try { 
-                            txtIVTA_OneCurveTimes.Value = Int32.Parse(strRead);      
+                        try
+                        {
+                            txtIVTA_OneCurveTimes.Value = Int32.Parse(strRead);
                         }
                         catch
                         {
@@ -438,10 +386,12 @@ namespace ExperimentRunner
                     meas_params.SetParameters(txtIVTA_SweepFrom.Text, txtIVTA_SweepTo.Text, txtIVTA_SweepStep.Text, strRead);
                     break;
                 case tabIVB: //I-V-B 
+                    strRead = "40";
                     if (sett.TryLoadSetting("I_V_B_param0", ref strRead))
                     {
                         txtIVB_FieldRange.Text = strRead;
                     }
+                    strRead = "1";
                     if (sett.TryLoadSetting("I_V_B_param1", ref strRead))
                     {
                         txtIVB_FieldStep.Text = strRead;
@@ -458,7 +408,7 @@ namespace ExperimentRunner
                     LoadAMISettings(tabIVB);
                     meas_params.SetAMI(btnIVB_AMI.Checked ? txtAMIAddress.Text : "");
                     meas_params.SetParameters(txtIVB_FieldRange.Text, txtIVB_FieldStep.Text);
-                    
+
                     break;
                 case tabVB: //V-B 
                     if (sett.TryLoadSetting("V_B_param0", ref strRead))
@@ -510,7 +460,7 @@ namespace ExperimentRunner
                         }
                     }
 
-                    meas_params.SetParameters(txtVB_FieldFrom.Text, txtVB_FieldTo.Text, txtVB_FieldStep.Text, 
+                    meas_params.SetParameters(txtVB_FieldFrom.Text, txtVB_FieldTo.Text, txtVB_FieldStep.Text,
                         txtVB_BiasStart.Text, txtVB_BiasEnd.Text, txtVB_BiasStep.Text, sSweepType);
                     LoadAMISettings(tabVB);
                     meas_params.SetAMI(btnVB_AMI.Checked ? txtAMIAddress.Text : "");
@@ -523,140 +473,37 @@ namespace ExperimentRunner
                     }
                     meas_params.SetParameters(txtStats_nCurves.Text);
                     break;
-                case tabRT: //R-T
+                case tabRTCooldown: //R-T
                     if (sett.TryLoadSetting("R_T_param0", ref strRead))
                     {
                         txtRT_TempLimit.Text = strRead;
                         btnRT_MeasUntilTemperature.Checked = (strRead != "0");
                     }
                     meas_params.UpdateParameter(0, txtRT_TempLimit.Text);
-                    if(sett.TryLoadSetting("R_T_param1", ref strRead))
+                    if (sett.TryLoadSetting("R_T_param1", ref strRead))
                     {
                         txtRT_WaitTime.Text = strRead;
                     }
                     break;
-                case tabRTGate:
-                    if (sett.TryLoadSetting("R_T_Gate_param0", ref strRead))
+                case tabRTHeat:
+                    strRead = "5.2";
+                    if (sett.TryLoadSetting("R_T_Heat_param0", ref strRead))
                     {
-                        txtRTGate_SweepFrom.Text = strRead;
-                        chkRTGate_FromStart.Checked = (strRead == "0");
-                        txtRTGate_SweepFrom.Enabled = (strRead != "0");
+                        txtRTHeat_TempFrom.Text = strRead;
                     }
-                    if (sett.TryLoadSetting("R_T_Gate_param1", ref strRead))
+                    strRead = "9";
+                    if (sett.TryLoadSetting("R_T_Heat_param1", ref strRead))
                     {
-                        txtRTGate_SweepTo.Text = strRead;
+                        txtRTHeat_TempTo.Text = strRead;
                     }
-                    if (sett.TryLoadSetting("R_T_Gate_param2", ref strRead))
+                    strRead = "1";
+                    if (sett.TryLoadSetting("R_T_Heat_param2", ref strRead))
                     {
-                        txtRTGate_SweepStep.Text = strRead;
+                        SetRtHeatCurrentsList(strRead);
                     }
-                    if (sett.TryLoadSetting("R_T_Gate_param3", ref strRead))
-                    {
-                        txtRTGate_GateRange.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("R_T_Gate_param4", ref strRead))
-                    {
-                        txtRTGate_GatePoints.Text = strRead;
-                    }
-
-                    meas_params.SetParameters(txtRTGate_SweepFrom.Text, txtRTGate_SweepTo.Text, txtRTGate_SweepStep.Text, txtRTGate_GateRange.Text, txtRTGate_GatePoints.Text);
+                    meas_params.SetParameters(txtRTHeat_TempFrom.Text, txtRTHeat_TempTo.Text, strRead);
                     break;
-                case tabGate: //I-V with gate
-                    if (sett.TryLoadSetting("I_V_Gate_param0", ref strRead))
-                    {
-                        txtGate_VoltRange.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_param1", ref strRead))
-                    {
-                        txtGate_VoltStep.Text = strRead;
-                    }
-                    meas_params.SetParameters(txtGate_VoltRange.Text, txtGate_VoltStep.Text);
-                    break;
-                case tabGateT: //I-V with gate and T sweep
-                    if (sett.TryLoadSetting("I_V_Gate_T_param0", ref strRead))
-                    {
-                        txtGateT_VoltFrom.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param1", ref strRead))
-                    {
-                        txtGateT_VoltTo.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param2", ref strRead))
-                    {
-                        txtGateT_VoltStep.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param3", ref strRead))
-                    {
-                        txtGateT_TempStart.Text = strRead;
-                        chkGateT_FromCurrent.Checked = (strRead == "0");
-                        txtGateT_TempStart.Enabled = (strRead != "0");
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param4", ref strRead))
-                    {
-                        txtGateT_TempEnd.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_T_param5", ref strRead))
-                    {
-                        txtGateT_TempStep.Text = strRead;
-                    }
-                    meas_params.SetParameters(txtGateT_VoltFrom.Text, txtGateT_VoltTo.Text, txtGateT_VoltStep.Text, txtGateT_TempStart.Text, txtGateT_TempEnd.Text, txtGateT_TempStep.Text);
-                    break;
-                case tabGateB: //I-V with gate and B sweep
-                    if (sett.TryLoadSetting("I_V_Gate_B_param0", ref strRead))
-                    {
-                        txtgateB_GateSweep.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_B_param1", ref strRead))
-                    {
-                        txtgateB_GatePoints.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_B_param2", ref strRead))
-                    {
-                        txtgateB_FieldSweep.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("I_V_Gate_B_param3", ref strRead))
-                    {
-                        txtgateB_FieldPoints.Text = strRead;
-                    }
-                    meas_params.SetParameters(txtgateB_GateSweep.Text, txtgateB_GatePoints.Text, txtgateB_FieldSweep.Text, txtgateB_FieldPoints.Text);
-                    break;
-                case tabShapiro: //Shapiro steps
-                    bFullInitialized = false;
-                    LoadShapiroSettings();
-                    bFullInitialized = true;
-                    break;
-                case tabGatePulse:
-                    if (sett.TryLoadSetting("Gate_pulse_param0", ref strRead))
-                    {
-                        txtGatePulses_SweepFrom.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("Gate_pulse_param1", ref strRead))
-                    {
-                        txtGatePulses_SweepTo.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("Gate_pulse_param2", ref strRead))
-                    {
-                        txtGatePulses_SweepStep.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("Gate_pulse_param3", ref strRead))
-                    {
-                        txtGatePulses_Repeat.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("Gate_pulse_param4", ref strRead))
-                    {
-                        txtGatePulses_Amplitude.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("Gate_pulse_param5", ref strRead))
-                    {
-                        txtGatePulses_BiasCurrent.Text = strRead;
-                    }
-                    if (sett.TryLoadSetting("Gate_pulse_param6", ref strRead))
-                    {
-                        txtGatePulses_DeviceID.Text = strRead;
-                    }
-                    meas_params.SetParameters(txtGatePulses_SweepFrom.Text, txtGatePulses_SweepTo.Text, txtGatePulses_SweepStep.Text, txtGatePulses_Repeat.Text,
-                        txtGatePulses_Amplitude.Text, txtGatePulses_BiasCurrent.Text, txtGatePulses_DeviceID.Text);
-                    break;
+                   
             }
         }
 
@@ -723,14 +570,27 @@ namespace ExperimentRunner
             UpdateVBSweepMode();
         }
 
+        private String GetRtHeatCurrentsFromList()
+        {
+            return String.Join("!", lstRTHeatCurrents.Items.OfType<string>().ToArray());
+        }
+
+        private void SetRtHeatCurrentsList(String input_list)
+        {
+            lstRTHeatCurrents.Items.Clear();
+            if (input_list.Length == 0)
+                return;
+            foreach (String i in input_list.Split('!'))
+                lstRTHeatCurrents.Items.Add(i);
+        }
+
         // Called when users switches a tab
         private void UpdateCurrentTab()
         {
             int i = tabControl1.SelectedIndex;
+            //tabControl1.SelectedTab.
             int i_old = meas_params.CurrentTab;
 
-            if (i_old == tabShapiro)
-                SaveShapiroSettings(cboShapiroType.SelectedIndex);
             if (i_old == tabIVB || i_old==tabVB)
                 SaveAMISettings(i_old);
 
@@ -739,10 +599,6 @@ namespace ExperimentRunner
                 case tabIV: //I-V
                     meas_params.UpdateControls(i, btnIV_MkV, btnIV_mV, btnIV_nA, btnIV_mkA, btnIV_mA, txtIV_Resistance, btnIV_kOhm, btnIV_mOhm,
                         txtIV_Range, txtIV_Step, txtIV_RangeI, txtIV_StepI, txtIV_Gain, txtIV_Delay, txtIV_Samples);
-                    break;
-                case tabIVTManual: //I-V-T manual
-                    meas_params.UpdateControls(i, btnIVTM_mkV, btnIVTM_mV, btnIVTM_nA, btnIVTM_mkA, btnIVTM_mA, txtIVTM_Resistance, btnIVTM_KOhm, btnIVTM_MOhm,
-                        txtIVTM_Range, txtIVTM_Step, txtIVTM_RangeI, txtIVTM_StepI, txtIVTM_Gain, txtIVTM_Delay, txtIVTM_Samples);
                     break;
                 case tabIVTAuto: //I-V-T auto
                     meas_params.UpdateControls(i, btnIVTA_mkV, btnIVTA_mV, btnIVTA_nA, btnIVTA_mkA, btnIVTA_mA, txtIVTA_Resistance, btnIVTA_KOhm, btnIVTA_MOhm,
@@ -765,42 +621,15 @@ namespace ExperimentRunner
                         txtStats_Range, txtStats_Step, txtStats_RangeI, txtStats_StepI, txtStats_Gain, txtStats_Delay, txtStats_Samples);
                     meas_params.SetParameters(txtStats_nCurves.Text);
                     break;
-                case tabRT: //R-T
+                case tabRTCooldown: //R-T
                     meas_params.UpdateControls(i, btnRT_mkV, btnRT_mV, btnRT_nA, btnRT_mkA, btnRT_mA, txtRT_Resistance, btnRT_KOhm, btnRT_MOhm,
                         txtRT_Range, txtRT_Step, txtRT_RangeI, txtRT_StepI, txtRT_Gain, txtRT_Delay, txtRT_Samples);
                     meas_params.SetParameters(txtRT_TempLimit.Text, txtRT_WaitTime.Text);
                     break;
-                case tabRTGate:
-                    meas_params.UpdateControls(i, btnRTGate_mkV, btnRTGate_mV, btnRT_nA, btnRTGate_mkA, btnRTGate_mA, txtRTGate_Resistance, btnRTGate_KOhm, btnRTGate_MOhm,
-                        txtRTGate_Range, txtRTGate_Step, txtRTGate_RangeI, txtRTGate_StepI, txtRTGate_Gain, txtRTGate_Delay, txtRTGate_Samples);
-                    meas_params.SetParameters(txtRTGate_SweepFrom.Text, txtRTGate_SweepTo.Text, txtRTGate_SweepStep.Text, txtRTGate_GateRange.Text, txtRTGate_GatePoints.Text);
-                    break;
-                case tabGate: //I-V with gate
-                    meas_params.UpdateControls(i, btnGate_mkV, btnGate_mV, btnGate_nA, btnGate_mkA, btnGate_mA, txtGate_Resistance, btnGate_KOhm, btnGate_MOhm,
-                        txtGate_Range, txtGate_Step, txtGate_RangeI, txtGate_StepI, txtGate_Gain, txtGate_Delay, txtGate_Samples);
-                    meas_params.SetParameters(txtGate_VoltRange.Text, txtGate_VoltStep.Text);
-                    break;
-                case tabGateT: //I-V with gate and T sweep
-                    meas_params.UpdateControls(i, btngateT_mkV, btngateT_mV, btngateT_nA, btngateT_mkA, btngateT_mA, txtgateT_Resistance, btngateT_KOhm, btngateT_MOhm,
-                        txtgateT_Range, txtgateT_Step, txtgateT_RangeI, txtgateT_StepI, txtgateT_Gain, txtgateT_Delay, txtgateT_Samples);
-                    meas_params.SetParameters(txtGateT_VoltFrom.Text, txtGateT_VoltTo.Text, txtGateT_VoltStep.Text, txtGateT_TempStart.Text, txtGateT_TempEnd.Text, txtGateT_TempStep.Text);
-                    break;
-                case tabGateB: //I-V with gate and B sweep
-                    meas_params.UpdateControls(i, btngateB_mkV, btngateB_mV, btngateB_nA, btngateB_mkA, btngateB_mA, txtgateB_Resistance, btngateB_KOhm, btngateB_MOhm,
-                        txtgateB_Range, txtgateB_Step, txtgateB_RangeI, txtgateB_StepI, txtgateB_Gain, txtgateB_Delay, txtgateB_Samples);
-                    meas_params.SetParameters(txtgateB_GateSweep.Text, txtgateB_GatePoints.Text, txtgateB_FieldSweep.Text, txtgateB_FieldPoints.Text);
-                    break;
-                case tabShapiro:  //Shapiro steps
-                    meas_params.UpdateControls(i, btnShapiro_mkV, btnShapiro_mV, btnShapiro_nA, btnShapiro_mkA, btnShapiro_mA, txtShapiro_Resistance, btnShapiro_KOhm, btnShapiro_MOhm,
-                        txtShapiro_Range, txtShapiro_Step, txtShapiro_RangeI, txtShapiro_StepI, txtShapiro_Gain, txtShapiro_Delay, txtShapiro_Samples);
-                    //meas_params will be set in another procedures called from combo box change event handler or on tab initialization
-                    break;
-                case tabGatePulse: //Gate pulses
-                    meas_params.UpdateControls(i, btnGatePulses_mkV, btnGatePulses_mV, btnGatePulses_nA, btnGatePulses_mkA, btnGatePulses_mA, txtGatePulses_Resistance,
-                        btnGatePulses_KOhm, btnGatePulses_MOhm, txtGatePulses_Range, txtGatePulses_Step, txtGatePulses_RangeI, txtGatePulses_StepI,
-                            txtGatePulses_Gain, txtGatePulses_Delay, txtGatePulses_Samples);
-                    meas_params.SetParameters(txtGatePulses_SweepFrom.Text, txtGatePulses_SweepTo.Text, txtGatePulses_SweepStep.Text, txtGatePulses_Repeat.Text,
-                        txtGatePulses_Amplitude.Text, txtGatePulses_BiasCurrent.Text, txtGatePulses_DeviceID.Text);
+                case tabRTHeat:
+                    meas_params.UpdateControls(i, btnRTHeat_mkV, btnRTHeat_mV, btnRTHeat_nA, btnRTHeat_mkA, btnRTHeat_mA, txtRTHeat_Resistance, btnRTHeat_KOhm, btnRTHeat_MOhm,
+                        txtRTHeat_Range, txtRTHeat_Step, txtRTHeat_RangeI, txtRTHeat_StepI, txtRTHeat_Gain, txtRTHeat_Delay, txtRTHeat_Samples);
+                    meas_params.SetParameters(txtRTHeat_TempFrom.Text, txtRTHeat_TempTo.Text, GetRtHeatCurrentsFromList());
                     break;
                 case tabEquipmentSetup:
                     meas_params.UpdateControls(i);
@@ -819,25 +648,27 @@ namespace ExperimentRunner
             meas_params.SetSampleName(txtSampleName.Text);
         }
 
-        private int HandleTextFieldChange(TextBox field)
+        private T HandleTextFieldChange<T>(TextBox field) where T: IComparable, IComparable<T>, IConvertible, IEquatable<T>, IFormattable
         {
-            int nValue;
+            T nValue;
+            
             try
             {
-                nValue = Int32.Parse(field.Text);
+                nValue = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(field.Text);  // convert to numeric type
                 field.BackColor = SystemColors.Window;
                 return nValue;
             }
             catch
             {
                 field.BackColor = Color.Red;
-                return -1;
+                
+                return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertTo(-1, typeof(T)); //(object)(-1);
             }
         }
 
         private void txtCurrentSweepDevice_TextChanged(object sender, EventArgs e)
         {
-            int nDevSweep = HandleTextFieldChange(txtCurrentSweepDevice);
+            int nDevSweep = HandleTextFieldChange<int>(txtCurrentSweepDevice);
             if (nDevSweep != -1)
             {
                 nIDDeviceSweep = nDevSweep;
@@ -853,7 +684,7 @@ namespace ExperimentRunner
 
         private void txtLakeShoreID_TextChanged(object sender, EventArgs e)
         {
-            int nInput = HandleTextFieldChange(txtLakeShoreID);
+            int nInput = HandleTextFieldChange<int>(txtLakeShoreID);
             if (nInput == -1) return;
             nIDLakeShore = nInput;
             meas_params.SetLakeShoreID(nIDLakeShore);
@@ -1069,76 +900,9 @@ namespace ExperimentRunner
             InputValidator.HandleKeyEvent(e, true, false);
         }
 
-        private void txtGate_VoltStep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (!bFullInitialized) return;
-            InputValidator.HandleKeyEvent(e, false, false);
-        }
 
-        private void txtGate_VoltRange_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(0, txtGate_VoltRange.Text);
-        }
 
-        private void txtGate_VoltStep_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(1, txtGate_VoltStep.Text);
-        }
-        //
-        private void txtGateT_VoltRange_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (!bFullInitialized) return;
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
 
-        private void txtGateT_VoltStep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (!bFullInitialized) return;
-            InputValidator.HandleKeyEvent(e, false, false);
-        }
-
-        private void txtGateT_VoltRange_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(0, txtGateT_VoltFrom.Text);
-        }
-
-        private void txtGateT_VoltStep_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(2, txtGateT_VoltStep.Text);
-        }
-
-        private void txtGateT_TempStart_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(3, txtGateT_TempStart.Text);
-        }
-
-        private void txtGateT_TempEnd_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(4, txtGateT_TempEnd.Text);
-        }
-
-        private void txtGateT_TempStep_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(5, txtGateT_TempStep.Text);
-        }
-
-        private void chkGateT_FromCurrent_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            txtGateT_TempStart.Enabled = !chkGateT_FromCurrent.Checked;
-            if (chkGateT_FromCurrent.Checked)
-                meas_params.UpdateParameter(3, "0");
-            else
-                meas_params.UpdateParameter(3, txtGateT_TempStart.Text);
-        }
-        //
 
         private void LoadAMISettings(int nTab)
         {
@@ -1154,155 +918,7 @@ namespace ExperimentRunner
         }
 
 
-        private void LoadShapiroSettings()
-        {
-            Settings ss = new Settings();
-
-            int nListSelected = 0;
-            ss.TryLoadSetting(sShapiroSelected, ref nListSelected);
-
-            if (nListSelected != 0 && nListSelected != 1)
-                nListSelected = 0;
-
-            UpdateShapiroSettings(nListSelected);
-            cboShapiroType.SelectedIndex = nListSelected; // select an item from a list and update labels (an event handler will be called)
-        }
-
-        private void SetShapiroParameters()
-        {
-
-
-        }
-
-        private void UpdateShapiroSettings(int nSelected)
-        {
-            Settings ss = new Settings();
-
-            // settings registry keys
-            String sSettingStart = nSelected == SHAPIRO_POWER ? sShapiroStartPower : sShapiroStartFreq;
-            String sSettingEnd = nSelected == SHAPIRO_POWER ? sShapiroEndPower : sShapiroEndFreq;
-            String sSettingStep = nSelected == SHAPIRO_POWER ? sShapiroStepPower : sShapiroStepFreq;
-            String sSettingFixed = nSelected == SHAPIRO_POWER ? sShapiroFixedPower : sShapiroFixedFreq;
-
-            // settings default values
-            String sDefaultStart = nSelected == SHAPIRO_POWER ? "-50" : "1";
-            String sDefaultEnd = nSelected == SHAPIRO_POWER ? "-30" : "4";
-            String sDefaultStep = nSelected == SHAPIRO_POWER ? "1" : "0.25";
-            String sDefaultFixed = nSelected == SHAPIRO_POWER ? "1" : "-50";
-
-
-            String sRead = sDefaultStart;
-            ss.TryLoadSetting(sSettingStart, ref sRead);
-            txtShapiroStart.Text = sRead;
-            sRead = sDefaultEnd;
-            ss.TryLoadSetting(sSettingEnd, ref sRead);
-            txtShapiroEnd.Text = sRead;
-            sRead = sDefaultStep;
-            ss.TryLoadSetting(sSettingStep, ref sRead);
-            txtShapiroStep.Text = sRead;
-            sRead = sDefaultFixed;
-            ss.TryLoadSetting(sSettingFixed, ref sRead);
-            txtShapiro_Fixed.Text = sRead;
-
-            meas_params.SetParameters(nSelected.ToString(), txtShapiroStart.Text, txtShapiroEnd.Text, txtShapiroStep.Text, txtShapiro_Fixed.Text, nGeneratorID.ToString());
-        }
-
-        private void UpdateShapiroUI(int i)
-        {
-            String[] strLabels = new String[] { "Power", "Freq." };
-            String[] strUnits = new String[] { "dBm", "GHz" };
-            String nowLabel = strLabels[i];
-            String nowUnit = strUnits[i];
-
-            lblShapiro_From.Text = nowLabel + " from:";
-            lblShapiro_To.Text = nowLabel + " to:";
-            lblShapiro_Step.Text = nowLabel + " step:";
-            lblShapiro_Fixed.Text = strLabels[strLabels.Count() - i - 1] + ":";
-
-            lblShapiro_UnitsFrom.Text = lblShapiro_UnitsTo.Text = lblShapiro_UnitsStep.Text = nowUnit;
-            lblShapiro_UnitsFixed.Text = strUnits[strUnits.Count() - i - 1];
-        }
-
-        private void cboShapiroType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            int i = cboShapiroType.SelectedIndex;
-            UpdateShapiroUI(i);
-
-            // if it is not a first (programmatic) list item set, save current values and load new ones
-            if (bFullInitialized)
-            {
-                SaveShapiroSettings(2 - i - 1); //save settings of previous values, not current
-                UpdateShapiroSettings(i); //load new values
-            }
-
-            //meas_params.SetParameters(i.ToString(), txtShapiroStart.Text, txtShapiroEnd.Text, txtShapiroStep.Text, txtShapiro_Fixed.Text); 
-        }
-
-        private void txtShapiroStart_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(1, txtShapiroStart.Text);
-        }
-
-        private void txtShapiroEnd_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(2, txtShapiroEnd.Text);
-        }
-
-        private void txtShapiroStep_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(3, txtShapiroStep.Text);
-        }
-
-        private void txtShapiro_Fixed_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(4, txtShapiro_Fixed.Text);
-        }
-
-        private void txtShapiroStart_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtShapiroEnd_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtShapiroStep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtShapiro_Fixed_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-        //
-        private void txtgateB_GateSweep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtgateB_GatePoints_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtgateB_FieldSweep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtgateB_FieldPoints_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-        //
-        private void txtRT_TempLimit_KeyPress(object sender, KeyPressEventArgs e)
+         private void txtRT_TempLimit_KeyPress(object sender, KeyPressEventArgs e)
         {
             InputValidator.HandleKeyEvent(e, true, false);
         }
@@ -1312,137 +928,10 @@ namespace ExperimentRunner
             meas_params.UpdateParameter(0, txtRT_TempLimit.Text);
         }
         //
-        private void txtRTGate_SweepFrom_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(0, txtRTGate_SweepFrom.Text);
-        }
+        
 
-        private void txtRTGate_SweepTo_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(1, txtRTGate_SweepTo.Text);
-        }
-
-        private void txtRTGate_SweepStep_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(2, txtRTGate_SweepStep.Text);
-        }
-
-        private void txtRTGate_GateRange_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(3, txtRTGate_GateRange.Text);
-        }
-
-        private void txtRTGate_GatePoints_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(4, txtRTGate_GatePoints.Text);
-        }
-
-        private void txtRTGate_GateRange_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtRTGate_GatePoints_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtRTGate_SweepFrom_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtRTGate_SweepTo_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtRTGate_SweepStep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void chkRTGate_FromStart_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            txtRTGate_SweepFrom.Enabled = !chkRTGate_FromStart.Checked;
-            if (chkRTGate_FromStart.Checked)
-                meas_params.UpdateParameter(0, "0");  // If "from current temp." is checked, the swept range start must be zero
-            else
-                meas_params.UpdateParameter(0, txtRTGate_SweepFrom.Text);
-        }
-
-        //
-
-        private void txtGatePulses_SweepFrom_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(0, txtGatePulses_SweepFrom.Text);
-        }
-
-        private void txtGatePulses_SweepTo_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(1, txtGatePulses_SweepTo.Text);
-        }
-
-        private void txtGatePulses_SweepStep_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(2, txtGatePulses_SweepStep.Text);
-        }
-
-        private void txtGatePulses_Repeat_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(3, txtGatePulses_Repeat.Text);
-        }
-
-        private void txtGatePulses_Amplitude_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(4, txtGatePulses_Amplitude.Text);
-        }
-
-        private void txtGatePulses_BiasCurrent_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(5, txtGatePulses_BiasCurrent.Text);
-        }
-
-        private void txtGatePulses_DeviceID_TextChanged(object sender, EventArgs e)
-        {
-            meas_params.UpdateParameter(6, txtGatePulses_DeviceID.Text);
-        }
-
-        private void txtGatePulses_SweepFrom_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, true);
-        }
-
-        private void txtGatePulses_SweepTo_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, true);
-        }
-
-        private void txtGatePulses_SweepStep_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, true);
-        }
-
-        private void txtGatePulses_Repeat_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, false, false);
-        }
-
-        private void txtGatePulses_Amplitude_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
-        private void txtGatePulses_BiasCurrent_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, true, true);
-        }
-
-        private void txtGatePulses_DeviceID_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            InputValidator.HandleKeyEvent(e, false, false);
-        }
+        
+       
 
 
         private void btnStartTempObserver_Click(object sender, EventArgs e)
@@ -1517,7 +1006,7 @@ namespace ExperimentRunner
 
         private void TxtVoltageReadout_TextChanged(object sender, EventArgs e)
         {
-            int nReadoutDevID = HandleTextFieldChange(txtVoltageReadout);
+            int nReadoutDevID = HandleTextFieldChange<int>(txtVoltageReadout);
             if (nReadoutDevID != -1)
             {
                 meas_params.SetReadoutDeviceID(nReadoutDevID);
@@ -1530,21 +1019,9 @@ namespace ExperimentRunner
 
         }
 
-        private void TextBox1_TextChanged(object sender, EventArgs e)
-        {
-            if (!bFullInitialized) return;
-            meas_params.UpdateParameter(1, txtGateT_VoltTo.Text);
-        }
-
-        private void TxtGateT_VoltTo_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (!bFullInitialized) return;
-            InputValidator.HandleKeyEvent(e, true, false);
-        }
-
         private void TxtGeneratorID_TextChanged(object sender, EventArgs e)
         {
-            int nGenID = HandleTextFieldChange(txtGeneratorID);
+            int nGenID = HandleTextFieldChange<int>(txtGeneratorID);
             if (nGenID != -1) nGeneratorID = nGenID;
             if (!bFullInitialized)
                 return;
@@ -1585,10 +1062,6 @@ namespace ExperimentRunner
             meas_params.UpdateParameter(1, txtRT_WaitTime.Text);
         }
 
-        private void TextBox1_TextChanged_1(object sender, EventArgs e)
-        {
-
-        }
 
         private void TxtStructureName_TextChanged(object sender, EventArgs e)
         {
@@ -1597,7 +1070,7 @@ namespace ExperimentRunner
 
         private void UpdateContact(int nc, TextBox field)
         {
-            int number = HandleTextFieldChange(field);
+            int number = HandleTextFieldChange<int>(field);
             if(number != -1) meas_params.SetContact(nc, number);
         }
 
@@ -1658,17 +1131,92 @@ namespace ExperimentRunner
                 txtCoilConstant.BackColor = SystemColors.Window;
                 meas_params.SetCoilConstant(fCoilConstant);
             }
-#pragma warning disable CS0168 // Переменная объявлена, но не используется
+            #pragma warning disable CS0168 // Переменная объявлена, но не используется
             catch(FormatException ex)
-#pragma warning restore CS0168 // Переменная объявлена, но не используется
+            #pragma warning restore CS0168 // Переменная объявлена, но не используется
             {
                 txtCoilConstant.BackColor = RunParams.cError;
             }
         }
 
+        private void TextBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void HandleRTHeatListChanged()
+        {
+            meas_params.UpdateParameter(2, GetRtHeatCurrentsFromList());
+        }
+
+        private void CmdRTHeatAddCurrent_Click(object sender, EventArgs e)
+        {
+            // ask user and add item
+            double curr;
+            String strInput = Interaction.InputBox("Enter current (in mkA)", "Add current");
+            if (strInput.Length == 0)
+                return;
+            if (double.TryParse(strInput, out curr))
+                lstRTHeatCurrents.Items.Add(strInput);
+            else
+                MessageBox.Show("Invalid value for current", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            // update experiment parameter
+            HandleRTHeatListChanged();
+        }
+
+        private void CmdRTHeatRemove_Click(object sender, EventArgs e)
+        {
+            lstRTHeatCurrents.Items.RemoveAt(lstRTHeatCurrents.SelectedIndex);
+            meas_params.UpdateParameter(2, GetRtHeatCurrentsFromList());
+            HandleRTHeatListChanged();
+        }
+
+        private void TxtRTHeat_TempFrom_TextChanged(object sender, EventArgs e)
+        {
+            double dValue = HandleTextFieldChange<double>(txtRTHeat_TempFrom);  // check correctness
+            meas_params.UpdateParameter(0, txtRTHeat_TempFrom.Text);
+        }
+
+        private void TextBox1_TextChanged(object sender, EventArgs e)
+        {
+            double dValue = HandleTextFieldChange<double>(txtRTHeat_TempTo);  // check correctness
+            meas_params.UpdateParameter(1, txtRTHeat_TempTo.Text);
+        }
+
+        private void CmdRTHeat_Up_Click(object sender, EventArgs e)
+        {
+            int iSelected = lstRTHeatCurrents.SelectedIndex;
+            String sSelected = lstRTHeatCurrents.SelectedItem.ToString();
+            lstRTHeatCurrents.Items.Insert(iSelected - 1, sSelected);
+            lstRTHeatCurrents.Items.RemoveAt(iSelected + 1);
+            lstRTHeatCurrents.Focus();
+            lstRTHeatCurrents.SelectedIndex = iSelected - 1;
+            HandleRTHeatListChanged();
+        }
+
+        private void CmdRTHeat_Down_Click(object sender, EventArgs e)
+        {
+            int iSelected = lstRTHeatCurrents.SelectedIndex;
+            String sSelected = lstRTHeatCurrents.SelectedItem.ToString();
+            lstRTHeatCurrents.Items.Insert(iSelected + 2, sSelected);
+            lstRTHeatCurrents.Items.RemoveAt(iSelected);
+            lstRTHeatCurrents.Focus();
+            lstRTHeatCurrents.SelectedIndex = iSelected + 1;
+            HandleRTHeatListChanged();
+        }
+
+        private void LstRTHeatCurrents_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int idx = lstRTHeatCurrents.SelectedIndex;
+            int nItems = lstRTHeatCurrents.Items.Count;
+            cmdRTHeat_Up.Enabled = (idx != 0) || (idx == -1);
+            cmdRTHeat_Down.Enabled = (idx != nItems - 1) || (idx == -1);
+        }
+
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)
         {
-            int nFieldGateDevID = HandleTextFieldChange(txtFieldOrGateDevice);
+            int nFieldGateDevID = HandleTextFieldChange<int>(txtFieldOrGateDevice);
             if (nFieldGateDevID != -1)
             {
                 meas_params.SetGateOrFieldDeviceID(nFieldGateDevID);

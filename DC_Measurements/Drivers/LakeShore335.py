@@ -17,9 +17,14 @@ class LakeShore335(LakeShoreBase):
 
         self._temp_start = temp_0 if temp_0 is not None else self.GetTemperature()
         self._temp_max = max_temp
-        self._power_range = np.arange(10, 20, 0.5)
-        self._tempValues = self._power_range
-        self.SendString(f"OUTMODE {self._heater_channel},3,1,1")
+        # self._power_range = np.arange(10, 20, 0.5)
+        # self._tempValues = self._power_range
+        if self._mode == 'active':
+            self.SendString(f"OUTMODE {self._heater_channel},1,{self._temp_channel},1")  # with pid
+            self.SendString(f"RANGE {control_channel},2")
+
+        else:
+            self.SendString(f"OUTMODE {self._heater_channel},3,{self._temp_channel},1")
 
     # Remember parameters of one of two inputs: A or B
     def _get_intype(self):
@@ -52,10 +57,6 @@ class LakeShore335(LakeShoreBase):
     def _set_channel(self, chan):
         super()._set_channel(chan)
 
-    def _init_modes(self):
-        self.SendString(f"OUTMODE {self._heater_channel},3,1,1")
-        self.SendString(f"RANGE {self._heater_channel},2")
-
     def _set_power(self, power_perc):
         if power_perc > 100:
             raise ValueError('Invalid percentage, please set from 0 to 100')
@@ -77,7 +78,7 @@ class LakeShore335(LakeShoreBase):
         return 1
 
     def _get_pid_from_temperature(self, temp):
-        return "5,2,0"  # TODO measure in different temperature ranges and set another values there
+        return "4,3,1"  # TODO measure in different temperature ranges and set another values there
 
     def _remember_old_params(self):
         self._get_intype()
@@ -99,7 +100,7 @@ class LakeShore335(LakeShoreBase):
     # Changes a setpoint
     def _set_setpoint(self, setp):
         chan = self._heater_channel
-        self.SendString(f'SETP {setp}')
+        self.SendString(f'SETP {chan},{setp}')
 
     def _set_control_mode(self, mode: PIDLoopType):
         # in a device: 1 - closed loop, 3 - open loop, 4 = off
@@ -110,7 +111,7 @@ class LakeShore335(LakeShoreBase):
         self.SendString(f'CMODE {class_to_device[mode]}')
 
     # Temperature control without PID
-    def __iter__(self):
+    '''def __iter__(self):
         if not self._active:
             raise LakeShoreException()
 
@@ -125,7 +126,7 @@ class LakeShore335(LakeShoreBase):
             actual_temp = self.GetTemperature()
             print(f'Heating, now temperature - {actual_temp} K, power - {power}%')
 
-            '''count_ok = 0
+            count_ok = 0
             c = 0
             prev_temp = 999999999
             while count_ok < 3:
@@ -142,9 +143,7 @@ class LakeShore335(LakeShoreBase):
                 if c > 50:
                     print('Warning! Cannot set a correct temperature')
                     break
-            '''
-           
-            print('Temperature was set, waiting 1 min...')
+            
             time.sleep(60)
             actual_temp = self.GetTemperature()
             print('Ready, measuring')
@@ -155,4 +154,4 @@ class LakeShore335(LakeShoreBase):
                 break
 
         print('Turning heater off...')
-        self.SendString(f"RANGE {self._heater_channel},0")
+        self.SendString(f"RANGE {self._heater_channel},0")'''

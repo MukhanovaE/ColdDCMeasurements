@@ -29,7 +29,7 @@ def DataSave():
     pw.ShowTitle('')
 
     print('Saving data...')
-    shell.SaveData({'B, G': fieldValues, f'I, {shell.I_units}A': currValues,
+    shell.SaveData({'Field, G': fieldValues, f'I, {shell.I_units}A': currValues,
               f'U, {shell.I_units}V': voltValues, 'R': np.gradient(voltValues)})
 
     print('Saving PDF...')
@@ -47,7 +47,7 @@ def DataSave():
     print('Plots were successfully saved to PDF:', fname)
 
     shell.SaveMatrix(fieldValues, currValues, voltValues, f'I, {shell.I_units}A')
-    shell.SaveData({'B, G': fieldValues_axis[:len(resistanceValues)], 'R, Ohm': resistanceValues}, shell.title + '_R')
+    shell.SaveData({'Field, G': fieldValues_axis[:len(resistanceValues)], 'R, Ohm': resistanceValues}, shell.title + '_R')
     
     Log.Save()
 
@@ -266,7 +266,7 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 # ------------------------------------------------------------------------------------------------------------
 if isinstance(shell.field_gate_device_id, int):
     print('Using Yokogawa for magnetic field control')
-    Field_controller = KeysightE3633A(device_num=shell.field_gate_device_id) # YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA 
+    Field_controller = KeysightE3633A(device_num=shell.field_gate_device_id)  # YokogawaGS200(device_num=shell.field_gate_device_id, dev_range='2E-1', what='CURR')  # range in mA 
 else:
     print('Using AMI430 for magnetic field control')
     Field_controller = AMI430(shell.field_gate_device_id, fields)
@@ -307,40 +307,40 @@ warnings.filterwarnings('ignore')  # there can be math warnings in some points
 pw = plotWindow("Leonardo I-U measurement with different B")
 
 # 0) Colormesh I-V-T plot preparation, crit. curr
-tabIVBCMesh = pw.addColormesh('I-U-B (Color mesh) (crit.)', '$B, G$', fr"$I, {core_units[shell.k_A]}A$",
+tabIVBCMesh = pw.addColormesh('I-U-B (Color mesh) (crit.)', 'Field, G', fr"$I, {core_units[shell.k_A]}A$",
                               fieldValues_axis, currValues_axis, data_buff_C, plt.get_cmap('brg'))
 
 # 1) Colormesh I-V-T plot preparation, ret. curr
-tabIVBRMesh = pw.addColormesh('I-U-B (Color mesh) (retr.)', '$B, G$', fr"$I, {core_units[shell.k_A]}A$",
+tabIVBRMesh = pw.addColormesh('I-U-B (Color mesh) (retr.)', 'Field, G', fr"$I, {core_units[shell.k_A]}A$",
                               fieldValues_axis, currValues_axis, data_buff_R, plt.get_cmap('brg'))
 
 # 2) I-V 2D plot preparation, crit. curr
 tabIV = pw.addLine2D('I-U (simple 2D)', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
 
 # 3) I-V-B 3D plot, crit. curr
-tabIVBC3D = pw.add3DPlot('I-U-B (3D) (crit.)', 'B, G', fr'I, {core_units[shell.k_A]}A',
+tabIVBC3D = pw.add3DPlot('I-U-B (3D) (crit.)', 'Field, G', fr'I, {core_units[shell.k_A]}A',
                          fr'$U, {core_units[shell.k_V_meas]}V$')
 
 # 4) I-V-T 3D plot, retr. curr
-tabIVBR3D = pw.add3DPlot('I-U-B (3D) (retr.)', 'B, G', fr'I, {core_units[shell.k_A]}A',
+tabIVBR3D = pw.add3DPlot('I-U-B (3D) (retr.)', 'Field, G', fr'I, {core_units[shell.k_A]}A',
                          fr'$U, {core_units[shell.k_V_meas]}V$')
 
 # 5) T - I - R 2D colormesh plot, crit. curr
-tabIRBCMesh = pw.addColormesh('I-R-B (Color mesh) (crit.)', '$B, G$', fr"$I, {core_units[shell.k_A]}A$",
+tabIRBCMesh = pw.addColormesh('I-R-B (Color mesh) (crit.)', 'Field, G', fr"$I, {core_units[shell.k_A]}A$",
                               fieldValues_axis, currValues_axis, R_buff_C, R_3D_colormap)
 
 # 6) T - I - R 2D colormesh plot, ret. curr
-tabIRBRMesh = pw.addColormesh('I-R-B (Color mesh) (retr.)', '$B, G$', fr"$I, {core_units[shell.k_A]}A$",
+tabIRBRMesh = pw.addColormesh('I-R-B (Color mesh) (retr.)', 'Field, G', fr"$I, {core_units[shell.k_A]}A$",
                               fieldValues_axis, currValues_axis, R_buff_R, R_3D_colormap)
 
 # 7) T - I - R 3D plot, crit. curr
-tabIRBC3D = pw.add3DPlot('I-R-B (3D) (crit.)', 'B, G', fr'I, {core_units[shell.k_A]}A', fr'$R, Ohm$')
+tabIRBC3D = pw.add3DPlot('I-R-B (3D) (crit.)', 'Field, G', fr'I, {core_units[shell.k_A]}A', fr'$R, Ohm$')
 
 # 8) T - I - R 3D plot, retr. curr
-tabIRBR3D = pw.add3DPlot('I-R-B (3D) (retr.)', 'B, G', fr'I, {core_units[shell.k_A]}A', fr'$R, Ohm$')
+tabIRBR3D = pw.add3DPlot('I-R-B (3D) (retr.)', 'Field, G', fr'I, {core_units[shell.k_A]}A', fr'$R, Ohm$')
 
 # 9 I_crit. vs. B
-tabICT = pw.addLines2D("I crit. vs. B", ['$I_c^+$', '$I_c^-$'], 'B, G',
+tabICT = pw.addLines2D("I crit. vs. B", ['$I_c^+$', '$I_c^-$'], 'Field, G',
                        fr'$I_C^\pm, {core_units[shell.k_A]}A$', linestyle='-', marker='o')
                        
 tabResistance = pw.addLine2D("Resistance", "Field, G", r"Resistance, $\Omega$", linestyle='-', marker='o')

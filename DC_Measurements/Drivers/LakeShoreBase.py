@@ -98,29 +98,17 @@ class LakeShoreBase(visa_device.visa_device):
         return 0
 
     def GetTemperature(self):
-        self.__SensorFree.wait()  # wait for another thread (if one present) to complete operation
-        self.__SensorFree.clear()  # lock for another threads
-
-        # check if previous request was too close in time
-        curr_meas = time.time()
-        if curr_meas - self.__prev_measured < 1:
-            time.sleep(1)
-        res = 0
         count = 0
-        while res == 0 and count <5:
+        res = self._meas_temperature()
+        while res == 0 and count < 5:
             time.sleep(0.5)
             try:
-                resp = self._meas_temperature()
-                temp = np.float64(resp)
+                temp = np.float64(res)
                 res = temp
             except Exception:
                 res = 0
                 print('Error while measuring temperature')
             count += 1
-
-        self.__prev_measured = time.time()
-        self.__SensorFree.set()  # unlock
-
         return res
 
     # Number of swept temperature values
@@ -140,6 +128,10 @@ class LakeShoreBase(visa_device.visa_device):
     @property
     def pid(self):
         return self._pid
+
+    @pid.setter
+    def pid(self, new_pid):
+        self._set_pid(new_pid)
 
     @property
     def htrrng(self):
@@ -174,6 +166,39 @@ class LakeShoreBase(visa_device.visa_device):
     def _init_modes(self):
         # must be overridden in a child class
         pass
+
+    def set_one_temperature(self, temp, tol_temp=0.001):
+        self._set_setpoint(temp)
+
+        # Update temperature measurement parameters depending on T
+        self._update_params(temp)
+
+        actual_temp = self.GetTemperature()
+        print(f'Heating... (target temperature - {temp})')
+
+        # Wait for temperature to be established
+        c = 0
+        while abs(actual_temp - temp) >= tol_temp:
+            time.sleep(1)
+            actual_temp = self.GetTemperature()
+
+        # A temperature must be stable for 3 seconds
+        print('Temperature is set, waiting to be stable...')
+        count_ok = 0
+        while count_ok < 3:
+            time.sleep(3)
+            actual_temp = self.GetTemperature()
+            print('Now:', actual_temp, 'K, must be:', temp, 'K')
+            if abs(actual_temp - temp) <= tol_temp:
+                count_ok += 1
+                print('Stable', count_ok, 'times')
+            else:
+                count_ok = 0
+            c += 1
+            if c > 50:
+                print('Warning! Cannot set a correct temperature')
+                break
+        return actual_temp
 
     # A class constructor
     # temp0 - starter swept temperature (if None, use current temperature)
@@ -224,37 +249,7 @@ class LakeShoreBase(visa_device.visa_device):
 
         tol_temp = 0.001
         for temp in self._tempValues:
-            # assert temp <= 1.7, 'ERROR! Attempt to set too high temperature was made.'
-            self._set_setpoint(temp)
-
-            # Update temperature measurement parameters depending on T
-            self._update_params(temp)
-
-            actual_temp = self.GetTemperature()
-            print(f'Heating... (target temperature - {temp})')
-
-            # Wait for temperature to be established
-            c = 0
-            while abs(actual_temp - temp) >= tol_temp:
-                time.sleep(1)
-                actual_temp = self.GetTemperature()
-
-            # A temperature must be stable for 3 seconds
-            print('Temperature is set, waiting to be stable...')
-            count_ok = 0
-            while count_ok < 3:
-                time.sleep(3)
-                actual_temp = self.GetTemperature()
-                print('Now:', actual_temp, 'K, must be:', temp, 'K')
-                if abs(actual_temp - temp) <= tol_temp:
-                    count_ok += 1
-                    print('Stable', count_ok, 'times')
-                else:
-                    count_ok = 0
-                c += 1
-                if c > 50:
-                    print('Warning! Cannot set a correct temperature')
-                    break
+            actual_temp = self.set_one_temperature(temp, tol_temp)
 
             print('Temperature was set')
 

@@ -35,4 +35,16 @@ class Keithley2182A(visa_device.visa_device):
         x = self.GetFloat(':READ?')
         # self.SendString('*OPC?')
         return x
-        
+
+
+class DebugKeithley2182A:
+    def __init__(self, device_num):
+        print('Connecting Keithley 2182A series, DEBUG MODE')
+
+
+    def _set_channel(self, channel):
+        pass
+
+    # returns voltage in volts
+    def MeasureNow(self, channel):
+        return 1

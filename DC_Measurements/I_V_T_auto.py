@@ -265,16 +265,14 @@ Log = Logger(shell)
 warnings.filterwarnings('ignore')
 
 # get LakeShore temperature sweep parameters from command line
-try:
-    temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in shell.user_params.split(';')]
-    N_curves_each_time = int(N_curves_each_time)
-    if temp0 == 0:
-        temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
-except Exception:
-    temp0, max_temp, temp_step, N_curves_each_time = None, 1.1, 100 * 1E-3, 1
-#print(
-#    f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {max_temp} K, with step: {temp_step * 1e+3:.3f} mK, each temperature will be measured',
-#    N_curves_each_time, 'times')
+temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in shell.user_params.split(';')]
+N_curves_each_time = int(N_curves_each_time)
+if temp0 == 0:
+    temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
+
+print(
+    f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {max_temp} K, with step: {temp_step * 1e+3:.3f} mK, each temperature will be measured',
+    N_curves_each_time, 'times')
 
 # Initialize devices
 iv_sweeper = EquipmentBase(shell, temp_mode='active', temp_start=temp0, temp_end=max_temp, temp_step=temp_step)
@@ -327,12 +325,12 @@ time_mgr = TimeEstimator(iv_sweeper.lakeshore.NumTemps)
 pw = plotWindow("Leonardo I-U measurement with different T")
 
 # 0 Colormesh I-V-T (crit. current) plot preparation
-tabIVTCMesh = pw.addColormesh('I-U-T, crit. (Color mesh)', r'Power, %', fr'$I, {core_units[shell.k_A]}A$',
+tabIVTCMesh = pw.addColormesh('I-U-T, crit. (Color mesh)', r'Temperature, K', fr'$I, {core_units[shell.k_A]}A$',
                               tempValues_axis, currValues_axis, data_buff, plt.get_cmap('brg'))
 
 # 1 Colormesh I-V-T (retrapping current) plot preparation
 
-tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'Power, %', fr'$I, {core_units[shell.k_A]}A$',
+tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'Temperature, K', fr'$I, {core_units[shell.k_A]}A$',
                               tempValues_axis,
                               currValues_axis, data_buff_ir, plt.get_cmap('brg'))
 
@@ -340,35 +338,35 @@ tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'Power, %', fr'$I, {
 tabIV = pw.addLine2D('I-U (simple 2D)', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
 
 # 3 I-V-T (critical current) 3D plot
-tabIVTC3D = pw.add3DPlot('I-U-T, crit. (3D)', 'Power, %', fr'$U, {core_units[shell.k_V_meas]}V$',
+tabIVTC3D = pw.add3DPlot('I-U-T, crit. (3D)', 'Temperature, K', fr'$U, {core_units[shell.k_V_meas]}V$',
                          fr'I, {core_units[shell.k_A]}A')
 
 # 4 I-V-T (critical current) 3D plot
-tabIVTR3D = pw.add3DPlot('I-U-T, retr. (3D)', 'Power, %', fr'$U, {core_units[shell.k_V_meas]}V$',
+tabIVTR3D = pw.add3DPlot('I-U-T, retr. (3D)', 'Temperature, K', fr'$U, {core_units[shell.k_V_meas]}V$',
                          fr'I, {core_units[shell.k_A]}A')
 
 # 5 T - I - R (critical current) 2D colormesh plot
-tabRCMesh = pw.addColormesh('I-R-T, crit. (Color mesh)', 'Power, %', fr"$I, {core_units[shell.k_A]}A$",
+tabRCMesh = pw.addColormesh('I-R-T, crit. (Color mesh)', 'Temperature, K', fr"$I, {core_units[shell.k_A]}A$",
                             tempValues_axis, currValues_axis, R_buff, R_3D_colormap)
 
 # 6 T - I - R (retrapping current) 2D colormesh plot
-tabRRMesh = pw.addColormesh('I-R-T, retr. (Color mesh)', 'Power, %', fr"$I, {core_units[shell.k_A]}A$",
+tabRRMesh = pw.addColormesh('I-R-T, retr. (Color mesh)', 'Temperature, K', fr"$I, {core_units[shell.k_A]}A$",
                             tempValues_axis, currValues_axis, R_buff_ir, R_3D_colormap)
 
 # 7 T - I - R (critical current) 3D plot
-tabRC3D = pw.add3DPlot('I-R-T, crit. (3D)', 'Power, %', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
+tabRC3D = pw.add3DPlot('I-R-T, crit. (3D)', 'Temperature, K', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
 
 # 8 T - I - R (retrapping current) 3D plot
-tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'Power, %', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
+tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'Temperature, K', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
 
 # 9 I_crit. vs. T
-tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'Power, %',
+tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'Temperature, K',
                        fr'$I_C^\pm, {core_units[shell.k_A]}A$', linestyle='-', marker='o')
 
 tabResist = pw.addScatter2D('Resistance', 'Temperature', r'R, $\Omega$')
 
 # 10 T(t) plot - to control temperature in real time
-tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
+tabTemp = pw.addLine2D('Temperature', 'Time', 'T, K')
 
 # Update T on the last tab
 t = 0
