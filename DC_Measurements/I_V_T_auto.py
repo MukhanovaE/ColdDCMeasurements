@@ -56,12 +56,13 @@ def EquipmentCleanup():
 def UpdateRealtimeThermometer():
     global times, tempsMomental, t
     T_curr = iv_sweeper.lakeshore.GetTemperature()
-    times.append(t)
-    t += 1
-    tempsMomental.append(T_curr)
-    if t > 1000:
-        tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
-        times = times[-1000:]
+    if T_curr != 0:
+        times.append(t)
+        t += 1
+        tempsMomental.append(T_curr)
+        if t > 1000:
+            tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
+            times = times[-1000:]
 
     if pw.CurrentTab == tabTemp:
         line_T = pw.CoreObjects[tabTemp]
@@ -185,6 +186,7 @@ def thread_proc():
 
                 # check measurements accuracy
                 fMeasSuccess = True
+                pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
                 '''
                 mean_temp = np.mean(this_T)
                 if abs(mean_temp - temp) > 0.005:  # toleracy is 5 mK

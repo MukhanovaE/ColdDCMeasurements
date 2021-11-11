@@ -8,21 +8,25 @@ class LakeShore335(LakeShoreBase):
     def __init__(self, device_num, control_channel, heater_channel, temp_0=None, max_temp=1.7, verbose=True, mode="active",
                  temp_step=0.1):
         input_letters = {'A', 'B'}
+        control_channels = {'A': 1, 'B': 2}
         if control_channel not in input_letters:
             raise ValueError('Please set a valid input channel: A or B')
-        self._temp_channel = control_channel
+        self._mode = mode
         self._heater_channel = heater_channel
-
+        self._temp_channel = control_channels[control_channel]
         super().__init__(device_num, control_channel, temp_0, max_temp, verbose, mode, temp_step)
 
         self._temp_start = temp_0 if temp_0 is not None else self.GetTemperature()
         self._temp_max = max_temp
+        self._temp_channel = control_channels[control_channel]
         # self._power_range = np.arange(10, 20, 0.5)
         # self._tempValues = self._power_range
         if self._mode == 'active':
-            self.SendString(f"OUTMODE {self._heater_channel},1,{self._temp_channel},1")  # with pid
-            self.SendString(f"RANGE {control_channel},2")
-
+            print(f"OUTMODE {self._heater_channel},1,{self._temp_channel},1")
+            self.SendString(f"OUTMODE {self._heater_channel},1,1,1")  # with pid
+            self._set_setpoint(temp_0)
+            self.SendString(f"RANGE {self._heater_channel}, 3")
+            self.SendString(f"PID 1, 100,20,5")
         else:
             self.SendString(f"OUTMODE {self._heater_channel},3,{self._temp_channel},1")
 
@@ -78,7 +82,7 @@ class LakeShore335(LakeShoreBase):
         return 1
 
     def _get_pid_from_temperature(self, temp):
-        return "4,3,1"  # TODO measure in different temperature ranges and set another values there
+        return "50,20,5"  # TODO measure in different temperature ranges and set another values there
 
     def _remember_old_params(self):
         self._get_intype()

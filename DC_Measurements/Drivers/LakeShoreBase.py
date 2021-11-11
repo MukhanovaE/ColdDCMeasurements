@@ -57,7 +57,7 @@ class LakeShoreBase(visa_device.visa_device):
     @staticmethod
     def _get_heater_range_from_temperature(temp):
         # must be overridden in a child class
-        return 0
+        return 3
 
     # Updates heater range in dependence of temperature
     def _update_heater_range(self, T):
@@ -167,28 +167,30 @@ class LakeShoreBase(visa_device.visa_device):
         # must be overridden in a child class
         pass
 
-    def set_one_temperature(self, temp, tol_temp=0.001):
+    def set_one_temperature(self, temp, tol_temp=0.001, stabilize=True):
         self._set_setpoint(temp)
 
         # Update temperature measurement parameters depending on T
         self._update_params(temp)
 
         actual_temp = self.GetTemperature()
-        print(f'Heating... (target temperature - {temp})')
+        print(f'Establishing target temperature {temp:.2f} K...)')
 
         # Wait for temperature to be established
         c = 0
         while abs(actual_temp - temp) >= tol_temp:
             time.sleep(1)
             actual_temp = self.GetTemperature()
-
+        
+        if not stabilize:
+            return actual_temp
         # A temperature must be stable for 3 seconds
         print('Temperature is set, waiting to be stable...')
         count_ok = 0
         while count_ok < 3:
             time.sleep(3)
             actual_temp = self.GetTemperature()
-            print('Now:', actual_temp, 'K, must be:', temp, 'K')
+            print(f'Now: {actual_temp:.2f} K, must be: {temp:.2f} K')
             if abs(actual_temp - temp) <= tol_temp:
                 count_ok += 1
                 print('Stable', count_ok, 'times')
@@ -247,7 +249,7 @@ class LakeShoreBase(visa_device.visa_device):
         if not self._active:
             raise LakeShoreException()
 
-        tol_temp = 0.001
+        tol_temp = 0.005
         for temp in self._tempValues:
             actual_temp = self.set_one_temperature(temp, tol_temp)
 
@@ -255,7 +257,7 @@ class LakeShoreBase(visa_device.visa_device):
 
             yield actual_temp  # last actual temperature
 
-    # class destructor - turn off a heater and free VISA resources
+    '''# class destructor - turn off a heater and free VISA resources
     def __del__(self):
         # Turn off heater and PID control
         if self._active:
@@ -267,4 +269,4 @@ class LakeShoreBase(visa_device.visa_device):
             print('LakeShore bridge disconnected.')
             if self._active:
                 print('Heater is off.')
-                print('Old heater range parameters restored.')
+                print('Old heater range parameters restored.')'''

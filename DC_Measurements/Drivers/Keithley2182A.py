@@ -8,7 +8,7 @@ class Keithley2182A(visa_device.visa_device):
         super().__init__(device_num)
         self.SendString('SENSe:VOLTage')
         self.SendString('SENSe:CHANnel 1')
-        self.SendString('SENSe:VOLTage:NPLCycles 5')
+        self.SendString('SENSe:VOLTage:NPLCycles 1')
         self.SendString('SYSTem:FAZero ON') #OFF')
         self.SendString('SYSTem:AZERo ON') #OFF')
         self.SendString('SYSTem:LSYNc ON')

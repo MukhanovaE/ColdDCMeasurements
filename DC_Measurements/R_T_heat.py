@@ -47,23 +47,24 @@ def DataSave():
 def UpdateRealtimeThermometer():
     global t, tempsMomental, times
     T_curr = iv_sweeper.lakeshore.GetTemperature()
-    times.append(t)
-    t += 1
-    tempsMomental.append(T_curr)
-    if t > 1000:
-        tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
-        times = times[-1000:]
- 
-    if pw.CurrentTab == tabTemp:
-        line_T = pw.CoreObjects[tabTemp]
-        ax = pw.Axes[tabTemp]
-        line_T.set_xdata(times)
-        line_T.set_ydata(tempsMomental)
-        ax.relim()
-        ax.autoscale_view()
-        ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
-        ax.set_title(f'T={T_curr}')
-        pw.canvases[tabTemp].draw()
+    if T_curr != 0:
+        times.append(t)
+        t += 1
+        tempsMomental.append(T_curr)
+        if t > 1000:
+            tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
+            times = times[-1000:]
+     
+        if pw.CurrentTab == tabTemp:
+            line_T = pw.CoreObjects[tabTemp]
+            ax = pw.Axes[tabTemp]
+            line_T.set_xdata(times)
+            line_T.set_ydata(tempsMomental)
+            ax.relim()
+            ax.autoscale_view()
+            ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
+            ax.set_title(f'T={T_curr}')
+            pw.canvases[tabTemp].draw()
 
 
 #@MeasurementProc(EquipmentCleanup)
@@ -81,11 +82,11 @@ def MeasureProc():
       
     iv_sweeper.SetOutput(0)
 
-    for bias_current in bias_currents:
+    for i, bias_current in enumerate(bias_currents):
         zero_volt = iv_sweeper.MeasureNow(6) / shell.gain
 
         print('Heating...')
-        iv_sweeper.lakeshore.set_one_temperature(temp_to, tol_temp=0.01)
+        iv_sweeper.lakeshore.set_one_temperature(temp_to + 0.2, tol_temp=0.2, stabilize=False)
 
         curr_temp = iv_sweeper.lakeshore.GetTemperature()
         prev_temp = 0
@@ -104,7 +105,7 @@ def MeasureProc():
         set_current(bias_current)
         iv_sweeper.source.SendString('OUTPut ON')
         print('Actual current is:', iv_sweeper.source.GetFloat('CURRent?'))
-        iv_sweeper.lakeshore.set_one_temperature(temp_from, tol_temp=100000)  # do not wait to be established
+        iv_sweeper.lakeshore.set_one_temperature(temp_from, tol_temp=100000, stabilize=False)  # do not wait to be established
 
         while (not f_exit.is_set()) and (curr_temp >= temp_from):
             curr_temp = iv_sweeper.lakeshore.GetFloat('KRDG? B')  # GetTemperature()
@@ -145,7 +146,7 @@ def MeasureProc():
 def TemperatureThreadProc():
     while not f_exit.is_set():
         UpdateRealtimeThermometer()
-        time.sleep(1)
+        time.sleep(1.5)
 
 
 # User input
@@ -153,7 +154,7 @@ shell = ScriptShell('R(T)')
 Log = Logger(shell)
 
 # Initialize devices
-iv_sweeper = EquipmentBase(shell, temp_mode='passive')
+iv_sweeper = EquipmentBase(shell, temp_mode='active')
 
 # Yokogawa voltage values
 upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
@@ -167,7 +168,8 @@ percent_points = 0.05  # 5% points around zero to measure R
 
 # temperature limit from command-line parameters (in mK)
 
-temp_from, temp_to, bias_currs = [float(i) for i in shell.user_params.split(';')]
+temp_from, temp_to, bias_currs = shell.user_params.split(';')
+temp_from, temp_to = float(temp_from), float(temp_to)
 
 bias_currents = np.array([float(i) for i in bias_currs.split('!')]) * 1e-6  # mkA
 

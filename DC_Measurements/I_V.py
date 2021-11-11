@@ -43,7 +43,7 @@ def MeasurementThreadProc():
 
     for i, volt in enumerate(voltValues0):
         iv_sweeper.SetOutput(volt)
-        time.sleep(shell.step_delay)
+        # time.sleep(shell.step_delay)
 
         V_meas = iv_sweeper.MeasureNow(6) / shell.gain - zero_value
         voltValues.append(V_meas / shell.k_V_meas)

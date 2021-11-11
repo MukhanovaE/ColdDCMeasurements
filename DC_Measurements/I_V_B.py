@@ -60,12 +60,13 @@ def DataSave():
 def UpdateRealtimeThermometer():
     global times, tempsMomental, t
     T_curr = iv_sweeper.lakeshore.GetTemperature()
-    times.append(t)
-    t += 1
-    tempsMomental.append(T_curr)
-    if t > 100:
-        tempsMomental = tempsMomental[-100:]  # keep memory and make plot to move left
-        times = times[-100:]
+    if T_curr != 0:
+        times.append(t)
+        t += 1
+        tempsMomental.append(T_curr)
+        if t > 100:
+            tempsMomental = tempsMomental[-100:]  # keep memory and make plot to move left
+            times = times[-100:]
 
     if pw.CurrentTab == tabTemp:
         line_T = pw.CoreObjects[tabTemp]
