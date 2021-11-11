@@ -73,6 +73,16 @@ namespace ExperimentRunner.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap I_V_B {
+            get {
+                object obj = ResourceManager.GetObject("I-V_B", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap I_V_Gate {
             get {
                 object obj = ResourceManager.GetObject("I-V-Gate", resourceCulture);

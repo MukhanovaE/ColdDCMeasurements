@@ -1492,7 +1492,7 @@
             // 
             // pictureBox4
             // 
-            this.pictureBox4.Image = global::ExperimentRunner.Properties.Resources.I_V_T;
+            this.pictureBox4.Image = global::ExperimentRunner.Properties.Resources.I_V_B;
             this.pictureBox4.Location = new System.Drawing.Point(16, 16);
             this.pictureBox4.Name = "pictureBox4";
             this.pictureBox4.Size = new System.Drawing.Size(284, 284);
@@ -3370,6 +3370,7 @@
             this.txtRTHeat_TempTo.Size = new System.Drawing.Size(39, 20);
             this.txtRTHeat_TempTo.TabIndex = 4;
             this.txtRTHeat_TempTo.TextChanged += new System.EventHandler(this.TextBox1_TextChanged);
+            this.txtRTHeat_TempTo.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtRTHeat_TempTo_KeyPress);
             // 
             // label40
             // 
@@ -3388,6 +3389,7 @@
             this.txtRTHeat_TempFrom.Size = new System.Drawing.Size(39, 20);
             this.txtRTHeat_TempFrom.TabIndex = 2;
             this.txtRTHeat_TempFrom.TextChanged += new System.EventHandler(this.TxtRTHeat_TempFrom_TextChanged);
+            this.txtRTHeat_TempFrom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtRTHeat_TempFrom_KeyPress);
             // 
             // label39
             // 

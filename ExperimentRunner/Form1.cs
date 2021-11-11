@@ -651,10 +651,10 @@ namespace ExperimentRunner
         private T HandleTextFieldChange<T>(TextBox field) where T: IComparable, IComparable<T>, IConvertible, IEquatable<T>, IFormattable
         {
             T nValue;
-            
+            CultureInfo myCIintl = new CultureInfo("en-US", false);
             try
             {
-                nValue = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(field.Text);  // convert to numeric type
+                nValue = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(null, myCIintl, field.Text);  // convert to numeric type
                 field.BackColor = SystemColors.Window;
                 return nValue;
             }
@@ -1212,6 +1212,16 @@ namespace ExperimentRunner
             int nItems = lstRTHeatCurrents.Items.Count;
             cmdRTHeat_Up.Enabled = (idx != 0) || (idx == -1);
             cmdRTHeat_Down.Enabled = (idx != nItems - 1) || (idx == -1);
+        }
+
+        private void TxtRTHeat_TempFrom_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, true, false);
+        }
+
+        private void TxtRTHeat_TempTo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, true, false);
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)

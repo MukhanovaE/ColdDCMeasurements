@@ -113,6 +113,7 @@
     <None Include="Images\Stats.png" />
     <None Include="Images\I-V-R-T.png" />
     <None Include="Images\I-V-Gate.png" />
+    <None Include="Images\I-V_B.png" />
     <Content Include="performance.ico" />
   </ItemGroup>
   <ItemGroup>
