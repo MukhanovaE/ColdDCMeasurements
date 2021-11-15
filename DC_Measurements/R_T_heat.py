@@ -88,7 +88,7 @@ def MeasureProc():
         print('Heating...')
         iv_sweeper.lakeshore.set_one_temperature(temp_to + 0.2, tol_temp=0.2, stabilize=False)
 
-        curr_temp = iv_sweeper.lakeshore.GetTemperature()
+        curr_temp = iv_sweeper.lakeshore.GetFloat('KRDG? A')  # GetTemperature()
         prev_temp = 0
         while curr_temp < 9:
             time.sleep(1)
@@ -146,7 +146,7 @@ def MeasureProc():
 def TemperatureThreadProc():
     while not f_exit.is_set():
         UpdateRealtimeThermometer()
-        time.sleep(1.5)
+        time.sleep(2)
 
 
 # User input
