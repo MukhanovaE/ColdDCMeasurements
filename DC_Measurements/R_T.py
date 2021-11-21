@@ -17,7 +17,7 @@ def DataSave():
 
     # save main data
     # print(len(tempValues), len(currValues), len(voltValues))
-    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values})
+    shell.SaveData({'T_K': T_values, 'R_Ohm': R_values})
 
     # save plot to PDF
     fname = shell.GetSaveFileName(ext='pdf')
@@ -60,10 +60,11 @@ def MeasureProc():
     len_line = N_points / 4
 
     def IsNeededNowMeasureR(num):
-        return (2 * len_line - percent_points * len_line < num < 2 * len_line + percent_points * len_line) \
-               or (num > 0 * len_line + percent_points * len_line) or (num < N_points - percent_points * len_line)
-
-    curr_temp = iv_sweeper.lakeshore.GetTemperature()
+        return True #(2 * len_line - percent_points * len_line < num < 2 * len_line + percent_points * len_line) \
+               #or (num > 0 * len_line + percent_points * len_line) or (num < N_points - percent_points * len_line)
+    while len(tempsMomental) == 0:
+        time.sleep(1)
+    curr_temp = tempsMomental[-1]  #iv_sweeper.lakeshore.GetTemperature()
     while (not f_exit.is_set()) and (curr_temp >= temp_limit or temp_limit == -1):
         # measure I_V
         V_for_R = []
@@ -75,7 +76,7 @@ def MeasureProc():
         for i, volt in enumerate(voltValues0):
             # measure I-V point
             iv_sweeper.SetOutput(volt)
-            time.sleep(shell.step_delay)
+            # time.sleep(shell.step_delay)
             V_meas = iv_sweeper.MeasureNow(1) / shell.gain
             I_values.append((volt / shell.R) / shell.k_A)
             V_values.append(V_meas / shell.k_V_meas)
@@ -112,7 +113,7 @@ def MeasureProc():
         print(s)
         time.sleep(time_to_wait)
 
-        curr_temp = iv_sweeper.lakeshore.GetTemperature()  # for next measurement
+        curr_temp = tempsMomental[-1]  # iv_sweeper.lakeshore.GetTemperature()  # for next measurement
     # end while
     f_exit.set()
     exit(0)
@@ -121,7 +122,7 @@ def MeasureProc():
 def TemperatureThreadProc():
     while not f_exit.is_set():
         UpdateRealtimeThermometer()
-        time.sleep(1)
+        # time.sleep(1)
 
 
 # User input
@@ -155,6 +156,7 @@ if temp_limit != 0:
 else:
     print('Close main window to end this measurement, it will not be done automatically')
     temp_limit = -1
+print('Interval between curves is:', time_to_wait, 'sec.')
 
 # Main program window
 pw = plotWindow("R(T)", color_buttons=False)

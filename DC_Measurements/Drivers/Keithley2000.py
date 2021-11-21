@@ -8,8 +8,8 @@ class Keithley2000(visa_device.visa_device):
         super().__init__(device_num)
         self.SendString(':CONFigure:VOLTage:DC')
         self.SendString(':SENSe:FUNCtion:VOLTage:DC')
-        self.SendString(':SENSe::VOLTage:DC:NPLCycles 1')
-        self.SendString(':SENSe::VOLTage:DC:RANGe:AUTO ON')
+        self.SendString(':SENSe:VOLTage:DC:NPLCycles 5')
+        self.SendString(':SENSe:VOLTage:DC:RANGe:AUTO ON')
         self.SendString(':SYSTem:AZERo OFF')
         self.SendString(':SENSe::VOLTage:DC:AVERage ON')
         print('Keithley 2000 series connection success')
@@ -17,6 +17,7 @@ class Keithley2000(visa_device.visa_device):
     # returns voltage in volts
     def MeasureNow(self, channel):
         read = self.GetString(':READ?')
+        # print(read)
         # value can be in different formats
         try:
             return float(read)

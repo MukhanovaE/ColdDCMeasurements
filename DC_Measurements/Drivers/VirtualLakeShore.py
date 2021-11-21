@@ -1,6 +1,7 @@
 import numpy as np
 import time
 from scipy.interpolate import interp1d
+import pandas as pd
 
 from Lib.PID import PID
 
@@ -12,15 +13,18 @@ class VirtualLakeShore:
         self._sweep = sweep_device
 
 
-        self._sweep_seq = np.linspace(0, max_thermometer_current, 3)
-        self._sweep_seq = np.hstack((self._sweep_seq, self._sweep_seq[:-1][::-1]))
+        self._sweep_seq = [0, max_thermometer_current]  # np.linspace(0, max_thermometer_current, 2)
+        # self._sweep_seq = np.hstack((self._sweep_seq, self._sweep_seq[:-1][::-1]))
 
         # load calibration curve
-        fname = 'temp_curve.dat'
+        fname = 'temp_curve2.dat'
         cal_curve = np.genfromtxt(fname, delimiter=' ')
         resistances = cal_curve[:, 0]
         temperatures = cal_curve[:, 1]
         self._r_t = interp1d(resistances, temperatures, kind='linear', fill_value='extrapolate')
+        k, b = np.polyfit(resistances[-5:], temperatures[-5:],1)
+        self.ex_k, self.ex_b = k, b
+        self.max_res = resistances[-1]
 
         self._setpoint = None
         self.max_heater_current = 300e-3
@@ -50,19 +54,26 @@ class VirtualLakeShore:
         voltages = np.zeros_like(sweep_seq)
         for i, curr in enumerate(sweep_seq):
             sweeper.SetOutput(curr)
-            # time.sleep(0.1)
+            time.sleep(0.8)
+            #print('----')
             voltages[i] = sense.MeasureNow(1) - zero
+            #print(voltages[i])
+            #print('-----')
 
         try:
+            #print(sweep_seq, voltages)
             return abs(np.polyfit(sweep_seq, voltages, 1)[0])
         except np.linalg.LinAlgError:
             return 0
         except TypeError:
             return 0
-
+        
+    def _extrapolate(self, temp):
+        return self.ex_k * temp + self.ex_b
+    
     def GetTemperature(self):
         resistance = self.__meas_resistance()
-        temp = self._r_t(resistance)
+        temp = self._r_t(resistance) if resistance >= self.max_res else self._extrapolate(resistance)
         if self._mode_active and not (self._setpoint is None):
             self._update_step()
 

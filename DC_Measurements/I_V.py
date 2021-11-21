@@ -72,21 +72,23 @@ def MeasurementThreadProc():
 
     for i, volt in enumerate(voltValues0):
         iv_sweeper.SetOutput(volt)
-        time.sleep(shell.step_delay)
+        # time.sleep(shell.step_delay)
 
         V_meas = iv_sweeper.MeasureNow(6) / shell.gain - zero_value
         voltValues.append(V_meas / shell.k_V_meas)
         currValues.append((volt / shell.R) / shell.k_A)
 
+        
+
         if fMeasDeriv:
             R_values = np.abs(np.gradient(voltValues) * shell.k_V_meas * 1e+7)  # in Ohms
 
         # resistance measurement
-        if volt < lower_R_bound or volt > upper_R_bound:
-            R_IValues.append(volt / shell.R)  # Amperes forever!
-            R_UValues.append(V_meas)  # volts
+        # if volt < lower_R_bound or volt > upper_R_bound:
+        R_IValues.append(volt / shell.R)  # Amperes forever!
+        R_UValues.append(V_meas)  # volts
 
-            UpdateResistance(pw.Axes[tabIV], np.array(R_IValues), np.array(R_UValues))
+        UpdateResistance(pw.Axes[tabIV], np.array(R_IValues), np.array(R_UValues))
 
         pw.updateLine2D(tabIV, currValues, voltValues)
         if fMeasDeriv:
