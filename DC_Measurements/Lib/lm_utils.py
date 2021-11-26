@@ -281,10 +281,10 @@ class ScriptShell:
         def split_curve(curve):
             N_points = len(curve) // 4
 
-            upper_quarter_1 = curve[:N_points]
-            down_quarter_2 = curve[N_points:2 * N_points]
-            down_quarter_3 = curve[2 * N_points:3 * N_points]
-            upper_quarter_4 = curve[3 * N_points:4 * N_points]
+            upper_quarter_1 = curve[:N_points + 1]
+            down_quarter_2 = curve[N_points: 2 * N_points + 1]
+            down_quarter_3 = curve[2 * N_points + 1 :3 * N_points + 1]
+            upper_quarter_4 = curve[3 * N_points :4 * N_points]
 
             crit_curve = np.hstack((down_quarter_3[::-1], upper_quarter_1))
             retr_curve = np.hstack((upper_quarter_4, down_quarter_2[::-1]))
@@ -358,6 +358,21 @@ class ScriptShell:
         up.UploadMeasFolder(save_dir)
         nc = NextCloudUploader()
         nc.UploadFolder(save_dir)
+
+
+def format_temperature(temp):
+    return f'{temp} K' if temp >= 1 else f'{temp * 1e+3} mK'
+
+
+class SweepSequence:
+    def __init__(self, end, step):
+        self.upper_line_1 = np.arange(0, end, step)
+        self.down_line_1 = np.arange(end, -end, - step)
+        self.upper_line_2 = np.arange(-end, 0, step)
+
+        self.sequence = np.hstack((self.upper_line_1, self.down_line_1, self.upper_line_2))
+        self.N_points = len(self.sequence)
+        self.curr_axis = -np.hstack((self.down_line_1, [-end]))
 
 
 # Function FindCriticalCurrents
@@ -894,6 +909,7 @@ class Logger:
         self.__lines = []
 
         self.AddGenericEntry(
+            f'R={shell.R / shell.k_R} {r_units[shell.k_R]};'
             f'CurrentRange={(shell.rangeA / shell.R) / shell.k_A} {core_units[shell.k_A]}A;'
             f'CurrentStep={(shell.stepA / shell.R) / shell.k_A} {core_units[shell.k_A]}A; '
             f'Gain={shell.gain}; IVPointDelay={shell.step_delay} sec; LeonardoPoints={shell.num_samples}')

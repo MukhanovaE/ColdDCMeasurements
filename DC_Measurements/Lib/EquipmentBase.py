@@ -56,7 +56,8 @@ class EquipmentBase:
             return
         print('Temperature control device is: ', end='')
         if shell.lakeshore_model == LAKESHORE_MODEL_370:
-            self._ls = DebugLakeShore370(device_num=shell.lakeshore, max_temp=temp_end, mode=temp_mode)
+            self._ls = LakeShore370(device_num=shell.lakeshore, temp_0=temp_start, max_temp=temp_end,
+                                         temp_step=temp_step, mode=temp_mode, control_channel=6)
         elif shell.lakeshore_model == LAKESHORE_MODEL_335:
             self._ls = LakeShore335(device_num=shell.lakeshore, mode=temp_mode, control_channel='A', heater_channel=1,
                                     temp_0=temp_start, max_temp=temp_end, temp_step=temp_step)

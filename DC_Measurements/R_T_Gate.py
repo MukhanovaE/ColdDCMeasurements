@@ -52,7 +52,7 @@ def UpdateRealtimeThermometer():
         ax.relim()
         ax.autoscale_view()
         ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
-        ax.set_title(f'T={T_curr}')
+        ax.set_title(f'T = {format_temperature(T_curr)}')
         pw.canvases[tabTemp].draw()
 
 
@@ -83,7 +83,7 @@ def MeasureProc():
             for _ in range(3):
                 I_values = []
                 V_values = []
-                for i, volt in enumerate(voltValues0):
+                for i, volt in enumerate(sweep_seq.sequence):
                     if f_exit.is_set():
                         exit(0)
                     # measure I-V point
@@ -134,13 +134,8 @@ shell = ScriptShell('R(T)Gate')
 Log = Logger(shell)
 
 # Yokogawa voltage values
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-N_points = len(voltValues0)
+sweep_seq = SweepSequence(shell.rangeA, shell.stepA)
+N_points = len(sweep_seq.sequence)
 percent_points = 0.05  # 5% points around zero to measure R
 
 # temperature limit from command-line parameters (in mK)

@@ -39,7 +39,7 @@ def main_thread():
         pw.SetHeader(tabIV, f'Critical current variability stats, curve {N + 1} of {N_stats}')
         line = pw.addAdditionalLine(tabIV)
 
-        for nv, volt in enumerate(voltValues0):
+        for nv, volt in enumerate(sweep_seq.sequence):
             # Measure
             iv_sweeper.SetOutput(volt)
             time.sleep(shell.step_delay)
@@ -59,7 +59,7 @@ def main_thread():
             U_values.append(V)
 
             # only superconductor->normal transfer states
-            if nv < N_points // 4 or (N_points // 2 < nv < N_points * 3 // 4):
+            if nv < sweep_seq.N_points // 4 or (sweep_seq.N_points // 2 < nv < sweep_seq.N_points * 3 // 4):
                 voltValues_IC.append(V)
                 currValues_IC.append(A)
 
@@ -106,13 +106,7 @@ shell = ScriptShell('Stats')
 iv_sweeper = EquipmentBase(shell)
 
 # all Yokogawa generated values (always in volts!!!)
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-N_points = len(voltValues0)
+sweep_seq = SweepSequence(shell.rangeA, shell.stepA)
 
 # Statistics parameters
 try:

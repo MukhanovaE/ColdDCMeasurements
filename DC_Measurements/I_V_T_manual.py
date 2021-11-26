@@ -23,8 +23,8 @@ def DataSave():
     if not isTemperatureObtained.is_set():
         print('Waiting newest logs to get current temperature...')
     isTemperatureObtained.wait()
-    shell.SaveData({f'I, {shell.I_units}A': currValues,
-              f'U, {shell.I_units}V': voltValues, 'T, mK': [T] * len(currValues)}, caption=caption)
+    shell.SaveData({f'I_{shell.I_units}A': currValues,
+              f'U_{shell.I_units}V': voltValues, 'T_mK': [T] * len(currValues)}, caption=caption)
 
     Log.Save()
 
@@ -44,12 +44,12 @@ def LoadTemperatureThreadProc():
     global T
     T = LoadTemperatureFromLogs()
     isTemperatureObtained.set()
-    print('T=', T, 'mK')
+    print('T=', format_temperature(T))
 
 
 @MeasurementProc(lambda: iv_sweeper.SetOutput(0))
 def Measurement():
-    for volt in voltValues0:
+    for volt in sweep_seq.sequence:
         iv_sweeper.SetOutput(volt)
         time.sleep(shell.step_delay)
 
@@ -86,13 +86,7 @@ iv_sweeper = EquipmentBase(shell)
 f_exit = False
 
 # all Yokogawa generated values (always in volts!!!)
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)
-
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
+sweep_seq = SweepSequence(shell.rangeA, shell.stepA)
 
 voltValues = []
 currValues = []
@@ -113,14 +107,14 @@ print('Close a plot window to stop measurement and save only currently obtained 
 
 # lists of values used for counting R
 percentage_R = 0.1  # how many percents left-right will be used to measure R
-fraction_R = int(len(voltValues0) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
+fraction_R = int(len(sweep_seq.sequence) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
 count_R = 0
 R_IValues = [0]
 R_UValues = [0]
 
 # Real-time resistance measurement
-lower_R_bound = upper_line_2[int(len(upper_line_2) * percentage_R)]
-upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
+lower_R_bound = sweep_seq.upper_line_2[int(len(sweep_seq.upper_line_2) * percentage_R)]
+upper_R_bound = sweep_seq.upper_line_1[int(len(sweep_seq.upper_line_1) * (1 - percentage_R))]
 
 # Perform measures!
 isTemperatureObtained = threading.Event()

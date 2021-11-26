@@ -121,7 +121,7 @@ class LakeShore370(LakeShoreBase):
 class DebugLakeShore370:
 
     def __init__(self, device_num=17, temp_0=None, max_temp=MAX_TEMP, verbose=True, mode="active",
-                 temp_step=0.1):
+                 temp_step=0.1, control_channel=6):
         self.__verbose = verbose
         self._set_channel(6)
         if mode == 'passive':

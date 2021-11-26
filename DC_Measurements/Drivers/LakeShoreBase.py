@@ -1,4 +1,5 @@
 from Drivers import visa_device
+from Lib.lm_utils import *
 import numpy as np
 import time
 import threading
@@ -77,7 +78,7 @@ class LakeShoreBase(visa_device.visa_device):
     def _update_params(self, T):
         print('---------------')
         print('LakeShore status:')
-        print('Temperature is:', T)
+        print('Temperature is:', format_temperature(T))
         self._update_excitation(T)
         self._update_pid(T)
         self._update_heater_range(T)
@@ -107,7 +108,7 @@ class LakeShoreBase(visa_device.visa_device):
             time.sleep(1)
         res = 0
         count = 0
-        while res == 0 and count <5:
+        while res == 0 and count < 5:
             time.sleep(0.5)
             try:
                 resp = self._meas_temperature()
@@ -210,7 +211,7 @@ class LakeShoreBase(visa_device.visa_device):
             self._update_params(initialTemp)
 
             # temperature swept values
-            self._tempValues = np.arange(initialTemp, max_temp, temp_step)
+            self._tempValues = np.hstack((np.arange(initialTemp, max_temp, temp_step), [max_temp]))
 
         if self._verbose:
             print('LakeShore bridge connection success')
@@ -229,7 +230,7 @@ class LakeShoreBase(visa_device.visa_device):
             self._update_params(temp)
 
             actual_temp = self.GetTemperature()
-            print(f'Heating... (target temperature - {temp})')
+            print(f'Establishing a temperature... (target temperature - {format_temperature(temp)})')
 
             # Wait for temperature to be established
             c = 0
@@ -243,7 +244,7 @@ class LakeShoreBase(visa_device.visa_device):
             while count_ok < 3:
                 time.sleep(3)
                 actual_temp = self.GetTemperature()
-                print('Now:', actual_temp, 'K, must be:', temp, 'K')
+                print('Now:', format_temperature(actual_temp), ', must be:', format_temperature(temp))
                 if abs(actual_temp - temp) <= tol_temp:
                     count_ok += 1
                     print('Stable', count_ok, 'times')

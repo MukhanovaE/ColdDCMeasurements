@@ -10,7 +10,7 @@ from Lib.lm_utils import *
 def DataSave():
     if not shell.f_save:
         return
-    shell.SaveData({f'I, {shell.I_units}A': currValues, f'U, {shell.V_units}V': voltValues, 'R, Ohm': R_values})
+    shell.SaveData({f'I_{shell.I_units}A': currValues, f'U_{shell.V_units}V': voltValues, 'R_Ohm': R_values})
 
     fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
@@ -41,7 +41,7 @@ def MeasurementThreadProc():
     iv_sweeper.SetOutput(0)
     zero_value = iv_sweeper.MeasureNow(6) / shell.gain
 
-    for i, volt in enumerate(voltValues0):
+    for i, volt in enumerate(sweep_seq.sequence):
         iv_sweeper.SetOutput(volt)
         # time.sleep(shell.step_delay)
 
@@ -75,14 +75,8 @@ Log = Logger(shell)
 iv_sweeper = EquipmentBase(shell)
 
 # all Yokogawa generated values (always in volts!!!)
-upper_line_1 = np.arange(0,  shell.rangeA,  shell.stepA)
-down_line_1 = np.arange( shell.rangeA, - shell.rangeA, - shell.stepA)
-upper_line_2 = np.arange(- shell.rangeA, 0,  shell.stepA)
+sweep_seq = SweepSequence(shell.rangeA, shell.stepA)
 
-# always in volts!
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
 voltValues = []
 currValues = []
 R_values = []
@@ -95,13 +89,13 @@ f_exit = threading.Event()
 # Resistance measurement
 # ----------------------------------------------------------------------------------------------------
 percentage_R = 0.1  # how many percents left-right will be used to measure R
-fraction_R = int(len(voltValues0) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
+fraction_R = int(len(sweep_seq.sequence) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
 R_IValues = [0]
 R_UValues = [0]
 
-lower_R_bound = upper_line_2[int(len(upper_line_2) * percentage_R)]
-upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
-N_half = len(upper_line_1) + 1
+lower_R_bound = sweep_seq.upper_line_2[int(len(sweep_seq.upper_line_2) * percentage_R)]
+upper_R_bound = sweep_seq.upper_line_1[int(len(sweep_seq.upper_line_1) * (1 - percentage_R))]
+N_half = len(sweep_seq.upper_line_1) + 1
 # ----------------------------------------------------------------------------------------------------
 
 

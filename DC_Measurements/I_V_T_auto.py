@@ -72,7 +72,7 @@ def UpdateRealtimeThermometer():
         ax.relim()
         ax.autoscale_view()
         ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
-        ax.set_title(f'T={T_curr}')
+        ax.set_title(f'T = {format_temperature(T_curr)}')
         pw.canvases[tabTemp].draw()
 
 
@@ -82,7 +82,7 @@ def TemperatureThreadProc():
         time.sleep(1)
 
 
-#@MeasurementProc(EquipmentCleanup)
+@MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, resist
 
@@ -91,9 +91,9 @@ def thread_proc():
         temp = iv_sweeper.lakeshore.GetTemperature()
         # read 
         # write data to logs
-        #Log.AddParametersEntry('T', temp, 'K', PID=iv_sweeper.lakeshore.pid,
-        #                       HeaterRange=iv_sweeper.lakeshore.htrrng,
-        #                       Excitation=iv_sweeper.lakeshore.excitation)
+        Log.AddParametersEntry('T', temp, 'K', PID=iv_sweeper.lakeshore.pid,
+                               HeaterRange=iv_sweeper.lakeshore.htrrng,
+                               Excitation=iv_sweeper.lakeshore.excitation)
         all_Ic = []
         all_Ir = []
         all_this_temp_A = []
@@ -161,33 +161,23 @@ def thread_proc():
 
                     return result_data
 
-                # 1/3: 0 - max curr, Ic+
-                for j, volt in enumerate(upper_line_1):
+                for j, volt in enumerate(sweep_seq.sequence):
                     res = PerformStep(iv_sweeper, currValues, tempValues, voltValues,
                                       volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                    this_temp_buff_ic[j + N_points // 2] = res
-
-                # 2/3: max curr -> min curr, Ir+, Ic-
-                for j, volt in enumerate(down_line_1):
-                    res = PerformStep(iv_sweeper, currValues, tempValues, voltValues,
-                                      volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                    if j < (len(down_line_1) // 2):
-                        this_temp_buff_ir[N_points - j - 1] = res
-                    else:
-                        this_temp_buff_ic[N_points - j - 1] = res
-
-                # 3/3: min curr -> 0, Ir-
-                for j, volt in enumerate(upper_line_2):
-                    res = PerformStep(iv_sweeper, currValues, tempValues, voltValues,
-                                      volt, this_temp_V, this_temp_A, this_T, this_RIValues, this_RUValues)
-                    this_temp_buff_ir[j] = res
+                    if j < len(sweep_seq.sequence) // 4:
+                        this_temp_buff_ic[j + N_points // 2 + 1] = res
+                    if len(sweep_seq.sequence) // 4 <= j <= 2 * len(sweep_seq.sequence) // 4:
+                        this_temp_buff_ir[N_points - (j - len(sweep_seq.sequence) // 4) - 1] = res
+                    if 2 * len(sweep_seq.sequence) // 4 <= j <= 3 * len(sweep_seq.sequence) // 4:
+                        this_temp_buff_ic[N_points // 2 - (j - 2 * len(sweep_seq.sequence) // 4)] = res
+                    if j >= 3 * len(sweep_seq.sequence) // 4:
+                        this_temp_buff_ir[j - 3 * len(sweep_seq.sequence) // 4] = res
 
                 N_meas += 1
 
                 # check measurements accuracy
-                fMeasSuccess = True
                 pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
-                '''
+
                 mean_temp = np.mean(this_T)
                 if abs(mean_temp - temp) > 0.005:  # toleracy is 5 mK
                     print(f'Temperature was unstable, desired - {temp}, average - {mean_temp}. Now retrying...')
@@ -195,7 +185,7 @@ def thread_proc():
                     # retry loop, do not exit while
                     fMeasSuccess = False
                 else:
-                    fMeasSuccess = True'''
+                    fMeasSuccess = True
 
             all_Ic.append(this_temp_buff_ic)
             all_Ir.append(this_temp_buff_ir)
@@ -273,7 +263,7 @@ if temp0 == 0:
     temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
 
 print(
-    f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {max_temp} K, with step: {temp_step * 1e+3:.3f} mK, each temperature will be measured',
+    f'Temperature sweep range: from {"<current>" if temp0 is None else format_temperature(temp0)} to {format_temperature(max_temp)}, with step: {format_temperature(temp_step)}, each temperature will be measured',
     N_curves_each_time, 'times')
 
 # Initialize devices
@@ -281,15 +271,9 @@ iv_sweeper = EquipmentBase(shell, temp_mode='active', temp_start=temp0, temp_end
 print('Temperatures will be:\n', iv_sweeper.lakeshore.TempRange)
 
 # Yokogawa voltage values
-n_points = int(2 * shell.rangeA // shell.stepA)
-upper_line_1 = np.arange(0, shell.rangeA, shell.stepA)  # np.linspace(0, rangeA, n_points // 2)
-down_line_1 = np.arange(shell.rangeA, -shell.rangeA, -shell.stepA)  # np.linspace(rangeA, -rangeA, n_points)
-upper_line_2 = np.arange(-shell.rangeA, 0, shell.stepA)  # np.linspace(-rangeA, 0, n_points // 2)
-voltValues0 = np.hstack((upper_line_1,
-                         down_line_1,
-                         upper_line_2))
-print(n_points)
-N_points = len(down_line_1)
+sweep_seq = SweepSequence(shell.rangeA, shell.stepA)
+
+N_points = len(sweep_seq.curr_axis)
 N_temps = len(iv_sweeper.lakeshore.TempRange)
 
 # Custom plot colormaps
@@ -297,9 +281,9 @@ R_3D_colormap = LinearSegmentedColormap.from_list("R_3D", [(0, 0, 1), (1, 1, 0),
 
 # Resistance measurement
 percentage_R = 0.2  # how many percents left-right will be used to measure R
-fraction_R = int(len(voltValues0) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
-lower_R_bound = upper_line_2[int(len(upper_line_2) * percentage_R)]
-upper_R_bound = upper_line_1[int(len(upper_line_1) * (1 - percentage_R))]
+fraction_R = int(len(sweep_seq.sequence) * ((1 / 3) * 2 * percentage_R))  # in how many points R will be measured
+lower_R_bound = sweep_seq.upper_line_2[int(len(sweep_seq.upper_line_2) * percentage_R)]
+upper_R_bound = sweep_seq.upper_line_1[int(len(sweep_seq.upper_line_1) * (1 - percentage_R))]
 
 # data receivers
 data_buff = np.zeros((N_points, N_temps))
@@ -310,7 +294,7 @@ currValues = []
 tempValues = []
 voltValues = []
 crit_curs = np.zeros((2, N_temps))
-currValues_axis = ((-down_line_1 / shell.R) / shell.k_A)
+currValues_axis = ((sweep_seq.curr_axis / shell.R) / shell.k_A)
 tempValues_axis = iv_sweeper.lakeshore.TempRange
 tempsMomental = []  # for temperatures plot
 
