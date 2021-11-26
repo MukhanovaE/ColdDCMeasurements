@@ -40,7 +40,7 @@ def InitBuffers():
 def DataSave(T):
     if not shell.f_save:
         return
-    caption = f'Gate_{T * 1e+3:.2f}_mK'
+    caption = f'IV(Gate)_{T * 1e+3:.2f}_mK'
 
     print('Saving PDF...')
     fname = shell.GetSaveFileName(caption, 'pdf')
@@ -57,6 +57,7 @@ def DataSave(T):
     shell.SaveMatrix(curr_voltages, currValues, voltValues, f'I, {shell.I_units}A', caption=caption)
 
     Log.Save()
+    shell.UploadToClouds()
 
 
 def TemperatureThreadProc():
@@ -252,8 +253,8 @@ def thread_proc():
     del Yokogawa_gate
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'Gate_T')
+shell = ScriptShell('IV(Gate)')
+Log = Logger(shell)
 
 n_points = int(2 * shell.rangeA // shell.stepA)
 upper_line_1 = np.linspace(0, shell.rangeA, n_points // 2 + 1)

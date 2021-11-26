@@ -10,10 +10,9 @@ from Lib.lm_utils import *
 def DataSave():
     if not shell.f_save:
         return
-    caption = "simple_I_V"
-    shell.SaveData({f'I, {shell.I_units}A': currValues, f'U, {shell.V_units}V': voltValues, 'R, Ohm': R_values}, caption)
+    shell.SaveData({f'I, {shell.I_units}A': currValues, f'U, {shell.V_units}V': voltValues, 'R, Ohm': R_values})
 
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     pw.SaveFigureToPDF(tabIV, pp)
     pw.SaveFigureToPDF(tabR, pp)
@@ -23,7 +22,7 @@ def DataSave():
     Log.Save()
 
     print('Uploading to clouds')
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 def Cleanup():
@@ -44,7 +43,7 @@ def MeasurementThreadProc():
 
     for i, volt in enumerate(voltValues0):
         iv_sweeper.SetOutput(volt)
-        time.sleep(shell.step_delay)
+        # time.sleep(shell.step_delay)
 
         V_meas = iv_sweeper.MeasureNow(6) / shell.gain - zero_value
         voltValues.append(V_meas / shell.k_V_meas)
@@ -62,7 +61,7 @@ def MeasurementThreadProc():
 
         pw.updateLine2D(tabIV, currValues, voltValues)
         if fMeasDeriv:
-            pw.updateLine2D(tabR, currValues, R_values)
+            pw.updateLine2D(tabR, currValues[1:-1], R_values[1:-1])
 
         fMeasDeriv = True
         if f_exit.is_set():
@@ -71,8 +70,8 @@ def MeasurementThreadProc():
     Cleanup()
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'simple_I_V')
+shell = ScriptShell(title='IV')
+Log = Logger(shell)
 iv_sweeper = EquipmentBase(shell)
 
 # all Yokogawa generated values (always in volts!!!)

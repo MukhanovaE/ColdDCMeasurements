@@ -40,7 +40,7 @@ def InitBuffers():
 def DataSave(B):
     if not shell.f_save:
         return
-    caption = f'Gate_{B:.4f}_Gs'
+    caption = f'IV(Gate)_{B:.4f}_G'
 
     print('Saving PDF...')
     fname = shell.GetSaveFileName(caption, 'pdf')
@@ -59,7 +59,7 @@ def DataSave(B):
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 def TemperatureThreadProc():
@@ -254,8 +254,8 @@ def thread_proc():
     del Yokogawa_gate
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'Gate_B')
+shell = ScriptShell('GateB')
+Log = Logger(shell)
 
 # Initialize devices
 iv_sweeper = EquipmentBase(shell, temp_mode='passive')
@@ -359,7 +359,7 @@ tempsMomental = []
 
 last_resistance = 0
 
-sweeper = FieldUtils.YokogawaFieldSweeper(fields, Field_controller, pw)
+sweeper = FieldUtils.YokogawaFieldSweeper(fields, shell.coil_constant, Field_controller, pw)
 gui_thread = threading.Thread(target=thread_proc)
 gui_thread.start()
 

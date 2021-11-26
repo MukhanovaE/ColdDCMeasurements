@@ -25,6 +25,7 @@ namespace ExperimentRunner
         // Settings names in Windows registry
         private const String strSettingsTab = "ActiveTab";
         private const String strSampleName = "SampleName";
+        private const String strStructureName = "StructureName";
 
         private const String strSweepDeviceID = "SourceSweep";
         private const String strFieldGateDeviceID = "SourceExcitation";
@@ -115,7 +116,7 @@ namespace ExperimentRunner
             }
             if (fNew - eps > MAX_TEMP)
             {
-                DialogResult ret = MessageBox.Show("Warning. a temperature is > 1.7K.\nYou are performing this measurement on your own risk.\nAreYouSure?",
+                DialogResult ret = MessageBox.Show("Warning. a temperature is > 1.7K.\nPlease don't forget to open V13.\nPress Yes to continue.",
                     strError, MessageBoxButtons.YesNo, MessageBoxIcon.Stop);
                 return (ret == DialogResult.Yes);
             }
@@ -133,8 +134,9 @@ namespace ExperimentRunner
 
         private bool CheckField(float fRange, bool fYokogawa = true)
         {
-            if (!fYokogawa) return true;
-            return CheckOneValue(Math.Abs(fRange), MAX_FIELD, "field", "G");  //negative fields are possible
+            return true;
+            /* if (!fYokogawa) return true;
+            return CheckOneValue(Math.Abs(fRange), MAX_FIELD, "field", "G");  //negative fields are possible */
         }
 
         private bool CheckCurrents(params float[] fCurrents)
@@ -238,6 +240,21 @@ namespace ExperimentRunner
                 meas_params.StartMeasurement();
         }
 
+        private void SaveContactsSettings()
+        {
+            meas_params.SaveContactSettings();
+        }
+
+        private void InitContactsSettings()
+        {
+            meas_params.LoadContactSettings();
+            int[] nConts = meas_params.ContactNumbers;
+            txtContactsI1.Text = nConts[RunParams.CONTACT_I1].ToString();
+            txtContactsI2.Text = nConts[RunParams.CONTACT_I2].ToString();
+            txtContactsU1.Text = nConts[RunParams.CONTACT_V1].ToString();
+            txtContactsU2.Text = nConts[RunParams.CONTACT_V2].ToString();
+        }
+
         private void SaveAMISettings(int nTab)
         {
             Settings ss = new Settings();
@@ -273,6 +290,8 @@ namespace ExperimentRunner
 
             sett.SaveSetting(strSettingsTab, nCurrentTab);
             sett.SaveSetting(strSampleName, txtSampleName.Text);
+            sett.SaveSetting(strStructureName, txtStructureName.Text);
+            SaveContactsSettings();
 
             sett.SaveSetting(strSweepDeviceID, nIDDeviceSweep);
             sett.SaveSetting(strFieldGateDeviceID, nIDDeviceFieldGate);
@@ -290,6 +309,7 @@ namespace ExperimentRunner
             // advanced settings for some tabs
             SaveShapiroSettings(cboShapiroType.SelectedIndex);
             SaveAMISettings(nCurrentTab);
+            
         }
 
         private void LoadSettings()
@@ -306,8 +326,10 @@ namespace ExperimentRunner
             int settGenID = 18;
 
             String strSampName="Sample 1";
+            String strStructureNameSetting = "Structure 1";
             sett.TryLoadSetting(strSettingsTab, ref nCurrentTab); //default value is 0, so the first tab will be opened if there is no settings
             sett.TryLoadSetting(strSampleName, ref strSampName);
+            sett.TryLoadSetting(strStructureName, ref strStructureNameSetting);
 
             sett.TryLoadSetting(strSweepDeviceID, ref settDevSweep);
             sett.TryLoadSetting(strFieldGateDeviceID, ref settDevFieldGate);
@@ -343,7 +365,9 @@ namespace ExperimentRunner
 
             tabControl1.SelectedIndex = nCurrentTab;
             txtSampleName.Text = strSampName;
+            txtStructureName.Text = strStructureNameSetting;
             meas_params.SetSampleName(strSampName);
+            InitContactsSettings();
             UpdateCurrentTab();
         }
 
@@ -1540,6 +1564,61 @@ namespace ExperimentRunner
         private void TxtRT_WaitTime_TextChanged(object sender, EventArgs e)
         {
             meas_params.UpdateParameter(1, txtRT_WaitTime.Text);
+        }
+
+        private void TextBox1_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void TxtStructureName_TextChanged(object sender, EventArgs e)
+        {
+            meas_params.SetStructureName(txtStructureName.Text);
+        }
+
+        private void UpdateContact(int nc, TextBox field)
+        {
+            meas_params.SetContact(nc, HandleTextFieldChange(field));
+        }
+
+        private void TxtContactsI1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, false, false);
+        }
+
+        private void TxtContactsI1_TextChanged(object sender, EventArgs e)
+        {
+            UpdateContact(RunParams.CONTACT_I1, txtContactsI1);
+        }
+
+        private void TxtContactsI2_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, false, false);
+        }
+
+        private void TxtContactsI2_TextChanged(object sender, EventArgs e)
+        {
+            UpdateContact(RunParams.CONTACT_I2, txtContactsI2);
+        }
+
+        private void TxtContactsU1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, false, false);
+        }
+
+        private void TxtContactsU1_TextChanged(object sender, EventArgs e)
+        {
+            UpdateContact(RunParams.CONTACT_V1, txtContactsU1);
+        }
+
+        private void TxtContactsU2_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            InputValidator.HandleKeyEvent(e, false, false);
+        }
+
+        private void TxtContactsU2_TextChanged(object sender, EventArgs e)
+        {
+            UpdateContact(RunParams.CONTACT_V2, txtContactsU2);
         }
 
         private void TxtFieldOrGateDevice_TextChanged(object sender, EventArgs e)

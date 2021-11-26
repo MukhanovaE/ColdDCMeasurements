@@ -40,7 +40,7 @@ def DataSave():
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption_file))
+    shell.UploadToClouds()
 
 
 def UpdateRealtimeThermometer():
@@ -193,8 +193,8 @@ def thread_proc():
         time_mgr.OneSweepStepEnd(i + 1)
 
 
-shell = ScriptShell()
-Log = Logger(shell, 'Shapiro')
+shell = ScriptShell('Shapiro')
+Log = Logger(shell)
 
 # define a program mode (sweep power or frequency) and sweep parameters
 try:

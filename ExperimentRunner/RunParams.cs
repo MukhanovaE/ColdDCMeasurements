@@ -16,11 +16,18 @@ namespace ExperimentRunner
         public const int EXCITATION_YOKOGAWA = 0;
         public const int EXCITATION_KEITHLEY_6220 = 1;
         public const int EXCITATION_KEITHLEY_2400 = 2;
+
         public const int READOUT_LEONARDO = 0;
         public const int READOUT_KEITHLEY_2182 = 1;
         public const int READOUT_KEITHLEY_2400 = 2;
+
         public const int LAKESHORE_370 = 0;
         public const int LAKESHORE_335 = 1;
+
+        public const int CONTACT_I1 = 0;
+        public const int CONTACT_I2 = 1;
+        public const int CONTACT_V1 = 2;
+        public const int CONTACT_V2 = 3;
 
         //settings registry key names
         private const string strSettingsIUnits = "_I_units";
@@ -32,6 +39,7 @@ namespace ExperimentRunner
         private const string strSettingsGain = "_VoltageGain";
         private const string strSettingsDelay = "_TimeStep";
         private const string strSettingsSamples = "_SamplesPerStep";
+        private const String strContactNumbers = "ContactNumbers";
 
         //Color to mark fields with error values
         Color cError = Color.FromArgb(230, 0, 0);
@@ -57,7 +65,8 @@ namespace ExperimentRunner
         private float fResistance;
 
         //Measurement parameters to be set with methods, manually
-        private string strSampleName;
+        private string strSampleName, strStructureName;
+        private int [] nContactIDs = { 1, 1, 1, 1 };
         private int mIDDeviceSweep, mIDDeviceFieldOrGate, mIDLakeShore, mIDDeviceReadout;  //device IDs
         private int mSweepDeviceType, mReadDeviceType;  //device types
         private int mLakeShoreModel;
@@ -520,6 +529,7 @@ namespace ExperimentRunner
                 -RT readout device type; 0 if Leonardo board, 1 if Keithley nanovoltmeter is used
                 -WT IV curve current sweep device type, 0 if Yokogawa, 1 if Keithley
                 -LT LakeShore model: 0 if 370, 1 if 335 (to be continued...)
+                -C numbers of contacts (separated by comma)
                 Resistance (in selected units)
                 Voltage sweep range (in volts)
                 Voltage sweep step (in volts)
@@ -534,6 +544,9 @@ namespace ExperimentRunner
 
             if (UserParams.Count != 0)
                 strKwargs += " -P '" + String.Join(";", UserParams) + "'";
+
+            strKwargs += " -C " + String.Join(",", nContactIDs);
+            strKwargs += " -ST \"" + strStructureName + "\"";
 
             String strCmdLine = String.Format(@"/k python.exe {0}.py {1} {2} {3} {4} {5} {6} {7}",
                 strCurrentScript,
@@ -558,6 +571,16 @@ namespace ExperimentRunner
         public void SetSampleName(string newName)
         {
             strSampleName = newName;
+        }
+
+        public void SetStructureName(string newName)
+        {
+            strStructureName = newName;
+        }
+
+        public void SetContact(int nContact, int nValue)
+        {
+            nContactIDs[nContact] = nValue;
         }
 
         //equipment parameters setters
@@ -646,5 +669,31 @@ namespace ExperimentRunner
                 return nCurrentTab;
             }
         }
-    }
+
+        public void SaveContactSettings()
+        {
+
+            Settings sett = new Settings();
+            sett.SaveSetting(strContactNumbers, nContactIDs);
+        }
+
+        public void LoadContactSettings()
+        {
+            Settings sett = new Settings();
+            if(!sett.TryLoadSetting(strContactNumbers, ref nContactIDs))
+            {
+                //set default values
+                for (int i = 0; i < 4; i++)
+                    nContactIDs[i] = i + 1;
+            }
+        }
+
+        public int[] ContactNumbers
+        {
+            get
+            {
+                return nContactIDs;
+            }
+        }
+    }  
 }

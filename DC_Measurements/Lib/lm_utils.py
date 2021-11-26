@@ -4,11 +4,10 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QTabWidget, QVBoxLayout, QPushButton, \
     QGridLayout, QSizePolicy
 from Lib.GoogleDrive import GoogleDriveUploader
 from Lib.CloudRQC import NextCloudUploader
-
 import os
 from os import path
 import sys
@@ -58,6 +57,10 @@ class ScriptShell:
         return s.translate(str.maketrans({':': '_', '/': '_', '\\': '_', '*': '_', '?': '_', '"': '_',
                                           '>': '_', '<': '_', '|': '_'}))
 
+    def _format_contacts_name(self, contacts_string):
+        lc = contacts_string.split(",")
+        return f'I{lc[0]},{lc[1]}V{lc[2]},{lc[3]}'
+
     def _user_input(self):
         # units
         self.k_R = list(r_units.keys())[int(input('Enter resistance units (1 - Ohm, 2 - KOhm, 3 - MOhm): ')) - 1]
@@ -90,9 +93,13 @@ class ScriptShell:
         self.f_save = True
         self.user_params = ""
 
-    def __init__(self):
+    def __init__(self, title):
+        self._save_path = None
         self.sample_name = ""
+        self.structure_name = ""
         self.experimentDate = datetime.now()
+        self.contacts = ""
+        self.title = title
 
         if len(sys.argv) == 1:  # user did not specify everything in command line
             self._user_input()
@@ -114,6 +121,10 @@ class ScriptShell:
                 p.add_argument('-W', action='store', required=False, default=self.default_yok_write)
                 p.add_argument('-L', action='store', required=False, default=self.default_lakeshore)
                 p.add_argument('-P', action='store', required=False, default="")
+
+                p.add_argument('-C', action='store', required=False, default="1,2,3,4")
+                p.add_argument('-ST', action='store', required=False, default="Structure1")
+                p.add_argument('-CC', action='store', required=False, default="1")
 
                 p.add_argument('-nV', action='store_true')
                 p.add_argument('-mkV', action='store_true')
@@ -161,6 +172,9 @@ class ScriptShell:
                 self.step_delay = float(args['StepDelay'])
                 self.num_samples = int(args['NumSamples'])
 
+                self.structure_name = args['ST']
+                self.contacts = self._format_contacts_name(args['C'])
+
                 f_save = not args['nosave']
                 if not f_save:
                     print('Warning! Data will not be saved!')
@@ -174,6 +188,7 @@ class ScriptShell:
                 self.readout_device_type = int(args['WT'])
                 self.read_device_id = int(args['RR'])
                 self.lakeshore_model = int(args['LT'])
+                self.coil_constant = float(args['CC'])
 
                 self.field_gate_device_id = int(field_gate_device_id) if field_gate_device_id.isdigit() \
                     else field_gate_device_id
@@ -188,50 +203,61 @@ class ScriptShell:
         self.I_units = core_units[self.k_A]
         self.V_units = core_units[self.k_V_meas]
         self.sample_name = self._preprocess_string_for_filename(self.sample_name)
+        self.structure_name = self._preprocess_string_for_filename(self.structure_name)
         # print('R=', self.R, 'R*', self.k_R, 'V*', self.k_V_meas, 'A*', self.k_A)  # for debugging
+
+    def _get_measurement_id(self, caption, for_folder):
+        if for_folder:
+            return f'{self.structure_name}_{self.contacts}_{caption.split("_")[0]}'
+        else:
+            return f'{self.structure_name}_{self.contacts}_{caption}'
 
     # GetSaveFolder
     # Get a directory to save experiment data
     # If folder not exists, creates it
     # Parameters:
     # caption - additional string to be added to the end of file
-    def GetSaveFolder(self, caption=""):
+    def GetSaveFolder(self, caption=None):
+        if self._save_path is not None:
+            return self._save_path
         # get current date only one time
         # to prevent case when part of saved files will have date, for example, 12:00
         # and another part - 12:01
 
-        R_units = r_units[self.k_R]
         experimentDate = self.experimentDate
+        if caption is None:
+            caption = self.title
 
-        cd_short = experimentDate.strftime('%d-%m-%Y')
-        cd_this_meas = experimentDate.strftime('%H-%M') + \
-                       f'_{self.sample_name}_R_{self.R / self.k_R}_{R_units}Ohm_{caption.split("_")[0]}'
-        save_path = path.join(os.getcwd(), 'Data', cd_short, cd_this_meas)
+        cd_first_with_date = experimentDate.strftime('%d-%m-%Y') + '_' + self.sample_name
+        cd_this_meas = experimentDate.strftime('%H-%M') + '_' + self._get_measurement_id(caption, for_folder=True)
+        save_path = path.join(os.getcwd(), 'Data', cd_first_with_date, cd_this_meas)
 
         if not path.isdir(save_path):
             os.makedirs(save_path)
 
+        self._save_path = save_path
         return save_path
 
     # Function GetSaveFileName
     # Get a filename to save
     # Parameters:
     # caption - additional string to be added to the end of file
-    def GetSaveFileName(self, caption="", ext="dat", preserve_unique=True):
+    def GetSaveFileName(self, caption=None, ext="dat", preserve_unique=True):
+        if caption is None:
+            caption = self.title
         save_path = self.GetSaveFolder(caption)
 
         cd = self.experimentDate.strftime('%d-%m-%Y_%H-%M')
-        R_units = r_units[self.k_R]
+        meas_id = self._get_measurement_id(caption, for_folder=False)
 
-        filename = path.join(save_path, f'{cd}_{self.sample_name}_R_{self.R / self.k_R}_{R_units}Ohm_{caption}.{ext}')
+        filename = path.join(save_path, f'{cd}_{meas_id}.{ext}')
 
         # if file, even with this minutes, already exists
         if preserve_unique:
             k = 0
             while os.path.isfile(filename):
                 k += 1
-                filename = os.path.join(os.getcwd(), 'Data',
-                                f'{cd}_{self.sample_name}_R_{self.R / self.k_R}_{R_units}Ohm_{caption}_{k}.{ext}')
+                filename = path.join(save_path, f'{cd}_{meas_id}_{k}.{ext}')
 
         return filename
 
@@ -241,17 +267,17 @@ class ScriptShell:
     # caption - additional string to be added to the end of file
     # data_dict - a dictionary which has a format:
     # {columnName1:[data1, data1,...], columnName2:[data2, data2,...]}
-    def SaveData(self, data_dict, caption="", preserve_unique=True):
+    def SaveData(self, data_dict, caption=None, preserve_unique=True):
+        if caption is None:
+            caption = self.title
         fname = self.GetSaveFileName(caption=caption, preserve_unique=preserve_unique)
-        I_units = core_units[self.k_A]
-        V_units = core_units[self.k_V_meas]
 
         df = pd.DataFrame(data_dict)
         df.to_csv(fname, sep=" ", header=True, index=False, float_format='%.8f')
 
         print('Data were successfully saved to:', fname)
 
-    def SaveMatrix(self, all_swept_values, all_currents, all_voltages, rows_header, caption=""):
+    def SaveMatrix(self, all_swept_values, all_currents, all_voltages, rows_header, caption=None):
         def split_curve(curve):
             N_points = len(curve) // 4
 
@@ -264,6 +290,9 @@ class ScriptShell:
             retr_curve = np.hstack((upper_quarter_4, down_quarter_2[::-1]))
 
             return list(crit_curve), list(retr_curve)
+
+        if caption is None:
+            caption = self.title
 
         fname = self.GetSaveFileName(caption + '_matrix')
         fname_c = self.GetSaveFileName(caption + '_matrix_Ic')
@@ -321,13 +350,14 @@ class ScriptShell:
         df_save_r_deriv.to_csv(fname_r_deriv, sep=" ", header=True, index=True, float_format='%.8f',
                                index_label=rows_header)
 
-# Function UploadToClouds
-# Uploads measured data to all possible cloud storages
-def UploadToClouds(save_dir):
-    up = GoogleDriveUploader()
-    up.UploadMeasFolder(save_dir)
-    nc = NextCloudUploader()
-    nc.UploadFolder(save_dir)
+    # Function UploadToClouds
+    # Uploads measured data to all possible cloud storages
+    def UploadToClouds(self):
+        save_dir = self._save_path
+        up = GoogleDriveUploader()
+        up.UploadMeasFolder(save_dir)
+        nc = NextCloudUploader()
+        nc.UploadFolder(save_dir)
 
 
 # Function FindCriticalCurrents
@@ -858,7 +888,8 @@ class TimeEstimator:
 
 
 class Logger:
-    def __init__(self, shell, caption):
+    def __init__(self, shell):
+        caption = shell.title
         self.__filename = shell.GetSaveFileName(caption + '_params', ext='log')
         self.__lines = []
 

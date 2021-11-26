@@ -18,7 +18,7 @@ def DataSave():
     if not shell.f_save:
         return
 
-    caption = f"I_V_T_{T}"
+    caption = f"IV_{T}"
 
     if not isTemperatureObtained.is_set():
         print('Waiting newest logs to get current temperature...')
@@ -29,7 +29,7 @@ def DataSave():
     Log.Save()
 
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 # Procedure after window closed - write results to a file
@@ -76,8 +76,8 @@ def Measurement():
 
 
 # User input
-shell = ScriptShell()
-Log = Logger(shell, 'I_V_T')
+shell = ScriptShell('IV')
+Log = Logger(shell)
 
 k_temp = 1000  # to millikelvin from logged value
 T = 0  # current measurement temperature

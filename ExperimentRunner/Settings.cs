@@ -19,12 +19,29 @@ namespace ExperimentRunner
            rk = hkcu.CreateSubKey(strSettingsKey);
         }
 
-        public bool TryLoadSetting(String setting, ref String strOutput)
+        public bool TryLoadSetting(String setting, ref int[] Output)
+        {
+            try
+            {
+                byte[] st = (byte[])rk.GetValue(setting);
+                if (st is null)
+                    return false;
+                Buffer.BlockCopy(st, 0, Output, 0, st.Length);
+                return true;
+            }
+            catch
+            {
+                //strOutput = 0;
+                return false;
+            }
+        }
+
+        public bool TryLoadSetting(String setting, ref String Output)
         {
             try
             {
                 String st = rk.GetValue(setting).ToString();
-                strOutput = st;
+                Output = st;
                 return true;
             }
             catch
@@ -34,12 +51,12 @@ namespace ExperimentRunner
             }
         }
 
-        public bool TryLoadSetting(String setting, ref int strOutput)
+        public bool TryLoadSetting(String setting, ref int Output)
         {
             try
             {
                 int st = (int)rk.GetValue(setting);
-                strOutput = st;
+                Output = st;
                 return true;
             }
             catch
@@ -73,6 +90,21 @@ namespace ExperimentRunner
             {
                 return false;
             }
+        }
+
+        public bool SaveSetting(String setting, int [] val)
+        {
+            //try
+            //{
+            byte[] regData = new byte[val.Length * sizeof(int)];
+            Buffer.BlockCopy(val, 0, regData, 0, regData.Length);
+            rk.SetValue(setting, regData, RegistryValueKind.Binary);
+            return true;
+            /*}
+            catch
+            {
+                return false;
+            }*/
         }
 
         ~Settings()

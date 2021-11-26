@@ -12,12 +12,13 @@ from Lib.lm_utils import *
 class EquipmentBase:
     def __init__(self, shell: ScriptShell, temp_mode=None, temp_start=None, temp_end=None, temp_step=None):
         max_range_value = (shell.rangeA / shell.R)
+        print('m', max_range_value)
         error_message = 'This device type is not supported yet!'
 
         print('Excitation device is: ')
         if shell.excitation_device_type == EXCITATION_YOKOGAWA:
             print('Yokogawa, ID =', shell.excitation_device_id)
-            self._source = DebugYokogawaGS200(device_num=shell.excitation_device_id, what='VOLT')
+            self._source = YokogawaGS200(device_num=shell.excitation_device_id, what='VOLT')
         elif shell.excitation_device_type == EXCITATION_KEITHLEY_6200:
             print('Keithley 6200, ID =', shell.excitation_device_id)
             self._source = Keithley6200(device_num=shell.excitation_device_id, what='VOLT', R=shell.R,
@@ -30,14 +31,14 @@ class EquipmentBase:
                 mode = Keithley2400WorkMode.MODE_SOURCE
             self._source = Keithley2400(device_num=shell.excitation_device_id, R=shell.R,
                                         what='VOLT', max_current=max_range_value, mode=mode)
-            
+
         else:
             raise ValueError(error_message)
 
         print('\nReadout device is: ')
         if shell.readout_device_type == READOUT_LEONARDO:
             print('Leonardo')
-            self._sense = DebugLeonardo(n_samples=shell.num_samples)
+            self._sense = Leonardo(n_samples=shell.num_samples)
         elif shell.readout_device_type == READOUT_KEITHLEY_2182A:
             print('Keithley 2182A, ID =', shell.read_device_id)
             self._sense = Keithley2182A(device_num=shell.read_device_id)
@@ -80,4 +81,3 @@ class EquipmentBase:
     @property
     def lakeshore(self):
         return self._ls
-

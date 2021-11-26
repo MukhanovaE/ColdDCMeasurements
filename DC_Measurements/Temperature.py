@@ -66,7 +66,7 @@ def UpdateRealtimeThermometer():
 def TemperatureThreadProc():
     while not f_exit.is_set():
         UpdateRealtimeThermometer()
-        time.sleep(1.5)
+        time.sleep(1)
 
 
 thermometer_thread = threading.Thread(target=TemperatureThreadProc)

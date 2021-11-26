@@ -16,12 +16,11 @@ def DataSave():
         return
 
     # save main data
-    caption = 'Temp'
     shell.SaveData({'T, mK': tempValues, f'I, {shell.I_units}A': currValues,
-              f'U, {shell.V_units}V': voltValues, 'R': np.gradient(voltValues)}, caption=caption)
+              f'U, {shell.V_units}V': voltValues, 'R': np.gradient(voltValues)})
 
     print('Saving PDF...')
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname[:-3] + 'pdf')
     # I-U-T color mesh
     pw.SaveFigureToPDF(tabIVTCMesh, pp)
@@ -39,15 +38,15 @@ def DataSave():
     print('Plots were successfully saved to PDF:', fname)
 
     # save critical temperature values
-    caption_cr = caption + '_crit'
+    caption_cr = shell.title + '_crit'
     shell.SaveData({'T, mK': tempValues_axis[:N_meas], f'Crit curr., negative, {shell.I_units}A': crit_curs[0, :N_meas],
               f'Crit curr., positive, {shell.I_units}A': crit_curs[1, :N_meas]}, caption=caption_cr)
-    shell.SaveMatrix(tempValues, currValues, voltValues, f'I, {shell.I_units}A', caption=caption)
-    shell.SaveData({'T': tempValuesR, f'R': resistValuesR}, caption=caption + '_R')
+    shell.SaveMatrix(tempValues, currValues, voltValues, f'I, {shell.I_units}A')
+    shell.SaveData({'T': tempValuesR, f'R': resistValuesR}, caption=shell.title + '_R')
 
     Log.Save()
     # upload to cloud services
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
 
 def EquipmentCleanup():
@@ -57,12 +56,13 @@ def EquipmentCleanup():
 def UpdateRealtimeThermometer():
     global times, tempsMomental, t
     T_curr = iv_sweeper.lakeshore.GetTemperature()
-    times.append(t)
-    t += 1
-    tempsMomental.append(T_curr)
-    if t > 1000:
-        tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
-        times = times[-1000:]
+    if T_curr != 0:
+        times.append(t)
+        t += 1
+        tempsMomental.append(T_curr)
+        if t > 1000:
+            tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
+            times = times[-1000:]
 
     if pw.CurrentTab == tabTemp:
         line_T = pw.CoreObjects[tabTemp]
@@ -82,16 +82,18 @@ def TemperatureThreadProc():
         time.sleep(1)
 
 
-@MeasurementProc(EquipmentCleanup)
+#@MeasurementProc(EquipmentCleanup)
 def thread_proc():
     global f_exit, currValues, voltValues, tempValues, tempsMomental, N_meas, resist
 
     # Temperature change and measurement process!
     for i, temp in enumerate(iv_sweeper.lakeshore):
+        temp = iv_sweeper.lakeshore.GetTemperature()
+        # read 
         # write data to logs
-        Log.AddParametersEntry('T', temp, 'K', PID=iv_sweeper.lakeshore.pid,
-                               HeaterRange=iv_sweeper.lakeshore.htrrng,
-                               Excitation=iv_sweeper.lakeshore.excitation)
+        #Log.AddParametersEntry('T', temp, 'K', PID=iv_sweeper.lakeshore.pid,
+        #                       HeaterRange=iv_sweeper.lakeshore.htrrng,
+        #                       Excitation=iv_sweeper.lakeshore.excitation)
         all_Ic = []
         all_Ir = []
         all_this_temp_A = []
@@ -183,6 +185,9 @@ def thread_proc():
                 N_meas += 1
 
                 # check measurements accuracy
+                fMeasSuccess = True
+                pw.MarkPointOnLine(tabTemp, times[-1], tempsMomental[-1], 'ro', markersize=4)
+                '''
                 mean_temp = np.mean(this_T)
                 if abs(mean_temp - temp) > 0.005:  # toleracy is 5 mK
                     print(f'Temperature was unstable, desired - {temp}, average - {mean_temp}. Now retrying...')
@@ -190,7 +195,7 @@ def thread_proc():
                     # retry loop, do not exit while
                     fMeasSuccess = False
                 else:
-                    fMeasSuccess = True
+                    fMeasSuccess = True'''
 
             all_Ic.append(this_temp_buff_ic)
             all_Ir.append(this_temp_buff_ir)
@@ -257,18 +262,16 @@ def thread_proc():
 
 
 # User input
-shell = ScriptShell()
-Log = Logger(shell, 'Temp')
+shell = ScriptShell('IV(T)')
+Log = Logger(shell)
 warnings.filterwarnings('ignore')
 
 # get LakeShore temperature sweep parameters from command line
-try:
-    temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in shell.user_params.split(';')]
-    N_curves_each_time = int(N_curves_each_time)
-    if temp0 == 0:
-        temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
-except Exception:
-    temp0, max_temp, temp_step, N_curves_each_time = None, 1.1, 100 * 1E-3, 1
+temp0, max_temp, temp_step, N_curves_each_time = [float(i) for i in shell.user_params.split(';')]
+N_curves_each_time = int(N_curves_each_time)
+if temp0 == 0:
+    temp0 = None  # if 0 specified in a command-line, use current LakeShore temperature as starter in sweep
+
 print(
     f'Temperature sweep range: from {"<current>" if temp0 is None else temp0 * 1e+3} mK to {max_temp} K, with step: {temp_step * 1e+3:.3f} mK, each temperature will be measured',
     N_curves_each_time, 'times')
@@ -324,12 +327,12 @@ time_mgr = TimeEstimator(iv_sweeper.lakeshore.NumTemps)
 pw = plotWindow("Leonardo I-U measurement with different T")
 
 # 0 Colormesh I-V-T (crit. current) plot preparation
-tabIVTCMesh = pw.addColormesh('I-U-T, crit. (Color mesh)', r'$T, mK$', fr'$I, {core_units[shell.k_A]}A$',
+tabIVTCMesh = pw.addColormesh('I-U-T, crit. (Color mesh)', r'Temperature, K', fr'$I, {core_units[shell.k_A]}A$',
                               tempValues_axis, currValues_axis, data_buff, plt.get_cmap('brg'))
 
 # 1 Colormesh I-V-T (retrapping current) plot preparation
 
-tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'$T, mK$', fr'$I, {core_units[shell.k_A]}A$',
+tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'Temperature, K', fr'$I, {core_units[shell.k_A]}A$',
                               tempValues_axis,
                               currValues_axis, data_buff_ir, plt.get_cmap('brg'))
 
@@ -337,35 +340,35 @@ tabIVTRMesh = pw.addColormesh('I-U-T, retr. (Color mesh)', r'$T, mK$', fr'$I, {c
 tabIV = pw.addLine2D('I-U (simple 2D)', fr'$I, {core_units[shell.k_A]}A$', fr"$U, {core_units[shell.k_V_meas]}V$")
 
 # 3 I-V-T (critical current) 3D plot
-tabIVTC3D = pw.add3DPlot('I-U-T, crit. (3D)', 'T, mK', fr'$U, {core_units[shell.k_V_meas]}V$',
+tabIVTC3D = pw.add3DPlot('I-U-T, crit. (3D)', 'Temperature, K', fr'$U, {core_units[shell.k_V_meas]}V$',
                          fr'I, {core_units[shell.k_A]}A')
 
 # 4 I-V-T (critical current) 3D plot
-tabIVTR3D = pw.add3DPlot('I-U-T, retr. (3D)', 'T, mK', fr'$U, {core_units[shell.k_V_meas]}V$',
+tabIVTR3D = pw.add3DPlot('I-U-T, retr. (3D)', 'Temperature, K', fr'$U, {core_units[shell.k_V_meas]}V$',
                          fr'I, {core_units[shell.k_A]}A')
 
 # 5 T - I - R (critical current) 2D colormesh plot
-tabRCMesh = pw.addColormesh('I-R-T, crit. (Color mesh)', fr'$T, mK$', fr"$I, {core_units[shell.k_A]}A$",
+tabRCMesh = pw.addColormesh('I-R-T, crit. (Color mesh)', 'Temperature, K', fr"$I, {core_units[shell.k_A]}A$",
                             tempValues_axis, currValues_axis, R_buff, R_3D_colormap)
 
 # 6 T - I - R (retrapping current) 2D colormesh plot
-tabRRMesh = pw.addColormesh('I-R-T, retr. (Color mesh)', fr'$T, mK$', fr"$I, {core_units[shell.k_A]}A$",
+tabRRMesh = pw.addColormesh('I-R-T, retr. (Color mesh)', 'Temperature, K', fr"$I, {core_units[shell.k_A]}A$",
                             tempValues_axis, currValues_axis, R_buff_ir, R_3D_colormap)
 
 # 7 T - I - R (critical current) 3D plot
-tabRC3D = pw.add3DPlot('I-R-T, crit. (3D)', 'T, mK', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
+tabRC3D = pw.add3DPlot('I-R-T, crit. (3D)', 'Temperature, K', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
 
 # 8 T - I - R (retrapping current) 3D plot
-tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'T, mK', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
+tabRR3D = pw.add3DPlot('I-R-T, retr. (3D)', 'Temperature, K', fr'I, {core_units[shell.k_A]}A', '$R, Ohm$')
 
 # 9 I_crit. vs. T
-tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'T, mK',
+tabICT = pw.addLines2D("I crit. vs. T", ['$I_c^+$', '$I_c^-$'], 'Temperature, K',
                        fr'$I_C^\pm, {core_units[shell.k_A]}A$', linestyle='-', marker='o')
 
 tabResist = pw.addScatter2D('Resistance', 'Temperature', r'R, $\Omega$')
 
 # 10 T(t) plot - to control temperature in real time
-tabTemp = pw.addLine2D('Temperature', 'Time', 'T, mK')
+tabTemp = pw.addLine2D('Temperature', 'Time', 'T, K')
 
 # Update T on the last tab
 t = 0

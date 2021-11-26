@@ -290,6 +290,11 @@
             this.btnStats_mkV = new System.Windows.Forms.RadioButton();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.groupBox59 = new System.Windows.Forms.GroupBox();
+            this.label188 = new System.Windows.Forms.Label();
+            this.txtRT_WaitTime = new System.Windows.Forms.TextBox();
+            this.label187 = new System.Windows.Forms.Label();
+            this.btnRT_MeasUntilEnd = new System.Windows.Forms.RadioButton();
+            this.btnRT_MeasUntilTemperature = new System.Windows.Forms.RadioButton();
             this.label123 = new System.Windows.Forms.Label();
             this.txtRT_TempLimit = new System.Windows.Forms.TextBox();
             this.label95 = new System.Windows.Forms.Label();
@@ -647,11 +652,15 @@
             this.txtSampleName = new System.Windows.Forms.TextBox();
             this.chkSaveData = new System.Windows.Forms.CheckBox();
             this.cmdExploreData = new System.Windows.Forms.Button();
-            this.btnRT_MeasUntilTemperature = new System.Windows.Forms.RadioButton();
-            this.btnRT_MeasUntilEnd = new System.Windows.Forms.RadioButton();
-            this.label187 = new System.Windows.Forms.Label();
-            this.txtRT_WaitTime = new System.Windows.Forms.TextBox();
-            this.label188 = new System.Windows.Forms.Label();
+            this.txtStructureName = new System.Windows.Forms.TextBox();
+            this.label189 = new System.Windows.Forms.Label();
+            this.groupBox95 = new System.Windows.Forms.GroupBox();
+            this.label191 = new System.Windows.Forms.Label();
+            this.txtContactsU2 = new System.Windows.Forms.TextBox();
+            this.txtContactsU1 = new System.Windows.Forms.TextBox();
+            this.txtContactsI2 = new System.Windows.Forms.TextBox();
+            this.txtContactsI1 = new System.Windows.Forms.TextBox();
+            this.label190 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox53.SuspendLayout();
@@ -781,6 +790,7 @@
             this.groupBox90.SuspendLayout();
             this.groupBox46.SuspendLayout();
             this.groupBox45.SuspendLayout();
+            this.groupBox95.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -3577,6 +3587,59 @@
             this.groupBox59.TabIndex = 43;
             this.groupBox59.TabStop = false;
             this.groupBox59.Text = "Additional parameters";
+            // 
+            // label188
+            // 
+            this.label188.AutoSize = true;
+            this.label188.Location = new System.Drawing.Point(195, 115);
+            this.label188.Name = "label188";
+            this.label188.Size = new System.Drawing.Size(24, 13);
+            this.label188.TabIndex = 7;
+            this.label188.Text = "sec";
+            // 
+            // txtRT_WaitTime
+            // 
+            this.txtRT_WaitTime.Location = new System.Drawing.Point(156, 112);
+            this.txtRT_WaitTime.MaxLength = 3;
+            this.txtRT_WaitTime.Name = "txtRT_WaitTime";
+            this.txtRT_WaitTime.Size = new System.Drawing.Size(34, 20);
+            this.txtRT_WaitTime.TabIndex = 6;
+            this.txtRT_WaitTime.Text = "1";
+            this.txtRT_WaitTime.TextChanged += new System.EventHandler(this.TxtRT_WaitTime_TextChanged);
+            this.txtRT_WaitTime.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtRT_WaitTime_KeyPress);
+            // 
+            // label187
+            // 
+            this.label187.AutoSize = true;
+            this.label187.Location = new System.Drawing.Point(7, 115);
+            this.label187.Name = "label187";
+            this.label187.Size = new System.Drawing.Size(147, 13);
+            this.label187.TabIndex = 5;
+            this.label187.Text = "Wait between measurements:";
+            // 
+            // btnRT_MeasUntilEnd
+            // 
+            this.btnRT_MeasUntilEnd.AutoSize = true;
+            this.btnRT_MeasUntilEnd.Location = new System.Drawing.Point(10, 76);
+            this.btnRT_MeasUntilEnd.Name = "btnRT_MeasUntilEnd";
+            this.btnRT_MeasUntilEnd.Size = new System.Drawing.Size(131, 17);
+            this.btnRT_MeasUntilEnd.TabIndex = 4;
+            this.btnRT_MeasUntilEnd.Text = "Until program is closed";
+            this.btnRT_MeasUntilEnd.UseVisualStyleBackColor = true;
+            this.btnRT_MeasUntilEnd.CheckedChanged += new System.EventHandler(this.BtnRT_MeasUntilEnd_CheckedChanged);
+            // 
+            // btnRT_MeasUntilTemperature
+            // 
+            this.btnRT_MeasUntilTemperature.AutoSize = true;
+            this.btnRT_MeasUntilTemperature.Checked = true;
+            this.btnRT_MeasUntilTemperature.Location = new System.Drawing.Point(10, 48);
+            this.btnRT_MeasUntilTemperature.Name = "btnRT_MeasUntilTemperature";
+            this.btnRT_MeasUntilTemperature.Size = new System.Drawing.Size(108, 17);
+            this.btnRT_MeasUntilTemperature.TabIndex = 3;
+            this.btnRT_MeasUntilTemperature.TabStop = true;
+            this.btnRT_MeasUntilTemperature.Text = "Until temperature:";
+            this.btnRT_MeasUntilTemperature.UseVisualStyleBackColor = true;
+            this.btnRT_MeasUntilTemperature.CheckedChanged += new System.EventHandler(this.BtnRT_MeasUntilTemperature_CheckedChanged);
             // 
             // label123
             // 
@@ -7268,7 +7331,7 @@
             // 
             this.button1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.button1.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button1.Location = new System.Drawing.Point(523, 427);
+            this.button1.Location = new System.Drawing.Point(523, 494);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(168, 32);
             this.button1.TabIndex = 6;
@@ -7280,7 +7343,7 @@
             // 
             this.cmdOK.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.cmdOK.Location = new System.Drawing.Point(293, 427);
+            this.cmdOK.Location = new System.Drawing.Point(293, 494);
             this.cmdOK.Name = "cmdOK";
             this.cmdOK.Size = new System.Drawing.Size(168, 32);
             this.cmdOK.TabIndex = 5;
@@ -7301,19 +7364,20 @@
             // 
             this.txtSampleName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtSampleName.Location = new System.Drawing.Point(78, 373);
+            this.txtSampleName.Location = new System.Drawing.Point(92, 373);
             this.txtSampleName.Name = "txtSampleName";
-            this.txtSampleName.Size = new System.Drawing.Size(894, 20);
+            this.txtSampleName.Size = new System.Drawing.Size(880, 20);
             this.txtSampleName.TabIndex = 8;
             this.txtSampleName.Text = "Sample 1";
             this.txtSampleName.TextChanged += new System.EventHandler(this.txtSampleName_TextChanged);
             // 
             // chkSaveData
             // 
+            this.chkSaveData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkSaveData.AutoSize = true;
             this.chkSaveData.Checked = true;
             this.chkSaveData.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkSaveData.Location = new System.Drawing.Point(7, 407);
+            this.chkSaveData.Location = new System.Drawing.Point(7, 478);
             this.chkSaveData.Name = "chkSaveData";
             this.chkSaveData.Size = new System.Drawing.Size(121, 17);
             this.chkSaveData.TabIndex = 9;
@@ -7323,7 +7387,8 @@
             // 
             // cmdExploreData
             // 
-            this.cmdExploreData.Location = new System.Drawing.Point(795, 427);
+            this.cmdExploreData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdExploreData.Location = new System.Drawing.Point(795, 494);
             this.cmdExploreData.Name = "cmdExploreData";
             this.cmdExploreData.Size = new System.Drawing.Size(177, 32);
             this.cmdExploreData.TabIndex = 10;
@@ -7331,64 +7396,107 @@
             this.cmdExploreData.UseVisualStyleBackColor = true;
             this.cmdExploreData.Click += new System.EventHandler(this.CmdExploreData_Click);
             // 
-            // btnRT_MeasUntilTemperature
+            // txtStructureName
             // 
-            this.btnRT_MeasUntilTemperature.AutoSize = true;
-            this.btnRT_MeasUntilTemperature.Checked = true;
-            this.btnRT_MeasUntilTemperature.Location = new System.Drawing.Point(10, 48);
-            this.btnRT_MeasUntilTemperature.Name = "btnRT_MeasUntilTemperature";
-            this.btnRT_MeasUntilTemperature.Size = new System.Drawing.Size(108, 17);
-            this.btnRT_MeasUntilTemperature.TabIndex = 3;
-            this.btnRT_MeasUntilTemperature.TabStop = true;
-            this.btnRT_MeasUntilTemperature.Text = "Until temperature:";
-            this.btnRT_MeasUntilTemperature.UseVisualStyleBackColor = true;
-            this.btnRT_MeasUntilTemperature.CheckedChanged += new System.EventHandler(this.BtnRT_MeasUntilTemperature_CheckedChanged);
+            this.txtStructureName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtStructureName.Location = new System.Drawing.Point(92, 402);
+            this.txtStructureName.Name = "txtStructureName";
+            this.txtStructureName.Size = new System.Drawing.Size(880, 20);
+            this.txtStructureName.TabIndex = 12;
+            this.txtStructureName.Text = "Structure name";
+            this.txtStructureName.TextChanged += new System.EventHandler(this.TxtStructureName_TextChanged);
             // 
-            // btnRT_MeasUntilEnd
+            // label189
             // 
-            this.btnRT_MeasUntilEnd.AutoSize = true;
-            this.btnRT_MeasUntilEnd.Location = new System.Drawing.Point(10, 76);
-            this.btnRT_MeasUntilEnd.Name = "btnRT_MeasUntilEnd";
-            this.btnRT_MeasUntilEnd.Size = new System.Drawing.Size(131, 17);
-            this.btnRT_MeasUntilEnd.TabIndex = 4;
-            this.btnRT_MeasUntilEnd.Text = "Until program is closed";
-            this.btnRT_MeasUntilEnd.UseVisualStyleBackColor = true;
-            this.btnRT_MeasUntilEnd.CheckedChanged += new System.EventHandler(this.BtnRT_MeasUntilEnd_CheckedChanged);
+            this.label189.AutoSize = true;
+            this.label189.Location = new System.Drawing.Point(4, 404);
+            this.label189.Name = "label189";
+            this.label189.Size = new System.Drawing.Size(82, 13);
+            this.label189.TabIndex = 11;
+            this.label189.Text = "Structure name:";
             // 
-            // label187
+            // groupBox95
             // 
-            this.label187.AutoSize = true;
-            this.label187.Location = new System.Drawing.Point(7, 115);
-            this.label187.Name = "label187";
-            this.label187.Size = new System.Drawing.Size(147, 13);
-            this.label187.TabIndex = 5;
-            this.label187.Text = "Wait between measurements:";
+            this.groupBox95.Controls.Add(this.label191);
+            this.groupBox95.Controls.Add(this.txtContactsU2);
+            this.groupBox95.Controls.Add(this.txtContactsU1);
+            this.groupBox95.Controls.Add(this.txtContactsI2);
+            this.groupBox95.Controls.Add(this.txtContactsI1);
+            this.groupBox95.Controls.Add(this.label190);
+            this.groupBox95.Location = new System.Drawing.Point(4, 429);
+            this.groupBox95.Name = "groupBox95";
+            this.groupBox95.Size = new System.Drawing.Size(968, 43);
+            this.groupBox95.TabIndex = 13;
+            this.groupBox95.TabStop = false;
+            this.groupBox95.Text = "Contacts";
             // 
-            // txtRT_WaitTime
+            // label191
             // 
-            this.txtRT_WaitTime.Location = new System.Drawing.Point(156, 112);
-            this.txtRT_WaitTime.MaxLength = 3;
-            this.txtRT_WaitTime.Name = "txtRT_WaitTime";
-            this.txtRT_WaitTime.Size = new System.Drawing.Size(34, 20);
-            this.txtRT_WaitTime.TabIndex = 6;
-            this.txtRT_WaitTime.Text = "1";
-            this.txtRT_WaitTime.TextChanged += new System.EventHandler(this.TxtRT_WaitTime_TextChanged);
-            this.txtRT_WaitTime.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtRT_WaitTime_KeyPress);
+            this.label191.AutoSize = true;
+            this.label191.Location = new System.Drawing.Point(119, 18);
+            this.label191.Name = "label191";
+            this.label191.Size = new System.Drawing.Size(14, 13);
+            this.label191.TabIndex = 5;
+            this.label191.Text = "V";
             // 
-            // label188
+            // txtContactsU2
             // 
-            this.label188.AutoSize = true;
-            this.label188.Location = new System.Drawing.Point(195, 115);
-            this.label188.Name = "label188";
-            this.label188.Size = new System.Drawing.Size(24, 13);
-            this.label188.TabIndex = 7;
-            this.label188.Text = "sec";
+            this.txtContactsU2.Location = new System.Drawing.Point(172, 15);
+            this.txtContactsU2.MaxLength = 2;
+            this.txtContactsU2.Name = "txtContactsU2";
+            this.txtContactsU2.Size = new System.Drawing.Size(31, 20);
+            this.txtContactsU2.TabIndex = 4;
+            this.txtContactsU2.TextChanged += new System.EventHandler(this.TxtContactsU2_TextChanged);
+            this.txtContactsU2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtContactsU2_KeyPress);
+            // 
+            // txtContactsU1
+            // 
+            this.txtContactsU1.Location = new System.Drawing.Point(135, 15);
+            this.txtContactsU1.MaxLength = 2;
+            this.txtContactsU1.Name = "txtContactsU1";
+            this.txtContactsU1.Size = new System.Drawing.Size(31, 20);
+            this.txtContactsU1.TabIndex = 3;
+            this.txtContactsU1.TextChanged += new System.EventHandler(this.TxtContactsU1_TextChanged);
+            this.txtContactsU1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtContactsU1_KeyPress);
+            // 
+            // txtContactsI2
+            // 
+            this.txtContactsI2.Location = new System.Drawing.Point(61, 15);
+            this.txtContactsI2.MaxLength = 2;
+            this.txtContactsI2.Name = "txtContactsI2";
+            this.txtContactsI2.Size = new System.Drawing.Size(31, 20);
+            this.txtContactsI2.TabIndex = 2;
+            this.txtContactsI2.TextChanged += new System.EventHandler(this.TxtContactsI2_TextChanged);
+            this.txtContactsI2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtContactsI2_KeyPress);
+            // 
+            // txtContactsI1
+            // 
+            this.txtContactsI1.Location = new System.Drawing.Point(24, 15);
+            this.txtContactsI1.MaxLength = 2;
+            this.txtContactsI1.Name = "txtContactsI1";
+            this.txtContactsI1.Size = new System.Drawing.Size(31, 20);
+            this.txtContactsI1.TabIndex = 1;
+            this.txtContactsI1.TextChanged += new System.EventHandler(this.TxtContactsI1_TextChanged);
+            this.txtContactsI1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtContactsI1_KeyPress);
+            // 
+            // label190
+            // 
+            this.label190.AutoSize = true;
+            this.label190.Location = new System.Drawing.Point(6, 18);
+            this.label190.Name = "label190";
+            this.label190.Size = new System.Drawing.Size(10, 13);
+            this.label190.TabIndex = 0;
+            this.label190.Text = "I";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(984, 462);
+            this.ClientSize = new System.Drawing.Size(984, 529);
+            this.Controls.Add(this.groupBox95);
+            this.Controls.Add(this.txtStructureName);
+            this.Controls.Add(this.label189);
             this.Controls.Add(this.cmdExploreData);
             this.Controls.Add(this.chkSaveData);
             this.Controls.Add(this.txtSampleName);
@@ -7629,6 +7737,8 @@
             this.groupBox46.PerformLayout();
             this.groupBox45.ResumeLayout(false);
             this.groupBox45.PerformLayout();
+            this.groupBox95.ResumeLayout(false);
+            this.groupBox95.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -8259,6 +8369,15 @@
         private System.Windows.Forms.TextBox txtRT_WaitTime;
         private System.Windows.Forms.Label label187;
         private System.Windows.Forms.Label label188;
+        private System.Windows.Forms.TextBox txtStructureName;
+        private System.Windows.Forms.Label label189;
+        private System.Windows.Forms.GroupBox groupBox95;
+        private System.Windows.Forms.Label label191;
+        private System.Windows.Forms.TextBox txtContactsU2;
+        private System.Windows.Forms.TextBox txtContactsU1;
+        private System.Windows.Forms.TextBox txtContactsI2;
+        private System.Windows.Forms.TextBox txtContactsI1;
+        private System.Windows.Forms.Label label190;
     }
 }
 

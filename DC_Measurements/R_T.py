@@ -16,12 +16,11 @@ def DataSave():
     #    return
 
     # save main data
-    caption = 'R_T'
     # print(len(tempValues), len(currValues), len(voltValues))
-    shell.SaveData({'R, Ohm': R_values, 'T, K': T_values}, caption=caption)
+    shell.SaveData({'T_K': T_values, 'R_Ohm': R_values})
 
     # save plot to PDF
-    fname = shell.GetSaveFileName(caption, 'pdf')
+    fname = shell.GetSaveFileName(ext='pdf')
     pp = PdfPages(fname)
     pw.SaveFigureToPDF(tabRT, pp)
     pp.close()
@@ -29,7 +28,7 @@ def DataSave():
     Log.Save()
 
     print('Uploading to clouds')
-    UploadToClouds(shell.GetSaveFolder(caption))
+    shell.UploadToClouds()
 
     exit(0)
 
@@ -37,23 +36,24 @@ def DataSave():
 def UpdateRealtimeThermometer():
     global t, tempsMomental, times
     T_curr = iv_sweeper.lakeshore.GetTemperature()
-    times.append(t)
-    t += 1
-    tempsMomental.append(T_curr)
-    if t > 1000:
-        tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
-        times = times[-1000:]
+    if T_curr != 0:
+        times.append(t)
+        t += 1
+        tempsMomental.append(T_curr)
+        if t > 1000:
+            tempsMomental = tempsMomental[-1000:]  # keep memory and make plot to move left
+            times = times[-1000:]
 
-    if pw.CurrentTab == tabTemp:
-        line_T = pw.CoreObjects[tabTemp]
-        ax = pw.Axes[tabTemp]
-        line_T.set_xdata(times)
-        line_T.set_ydata(tempsMomental)
-        ax.relim()
-        ax.autoscale_view()
-        ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
-        ax.set_title(f'T={T_curr}')
-        pw.canvases[tabTemp].draw()
+        if pw.CurrentTab == tabTemp:
+            line_T = pw.CoreObjects[tabTemp]
+            ax = pw.Axes[tabTemp]
+            line_T.set_xdata(times)
+            line_T.set_ydata(tempsMomental)
+            ax.relim()
+            ax.autoscale_view()
+            ax.set_xlim(times[0], times[-1])  # remove green/red points which are below left edge of plot
+            ax.set_title(f'T={T_curr}')
+            pw.canvases[tabTemp].draw()
 
 
 @MeasurementProc(EquipmentCleanup)
@@ -94,9 +94,10 @@ def MeasureProc():
                 pass
 
         # Store data
-        T_values.append(curr_temp)
-        R_values.append(R_meas)  # Last value - there will be all points
-        print('Temperature:', curr_temp, 'resistance:', R_meas)
+        if curr_temp != 0:
+            T_values.append(curr_temp)
+            R_values.append(R_meas)  # Last value - there will be all points
+            print('Temperature:', curr_temp, 'resistance:', R_meas)
 
         # Update R(T) plot
         try:
@@ -126,8 +127,8 @@ def TemperatureThreadProc():
 
 
 # User input
-shell = ScriptShell()
-Log = Logger(shell, 'R_T')
+shell = ScriptShell('R(T)')
+Log = Logger(shell)
 
 # Initialize devices
 iv_sweeper = EquipmentBase(shell, temp_mode='passive')
